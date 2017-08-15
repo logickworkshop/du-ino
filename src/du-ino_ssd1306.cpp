@@ -116,13 +116,13 @@ void DUINO_SSD1306::clear_display()
   memset(buffer, 0, SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8);
 }
 
-void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, int8_t color)
+void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, SSD1306Color color)
 {
   // bound check
   if ((x < 0) || (x >= SSD1306_LCDWIDTH) || (y < 0) || (y >= SSD1306_LCDHEIGHT))
     return;
 
-  switch (color)
+  switch(color)
   {
     case SSD1306_BLACK:
       buffer[x + (y / 8) * SSD1306_LCDWIDTH] &= ~(1 << (y & 7));
@@ -135,9 +135,168 @@ void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, int8_t color)
       break;
   }
 }
+
+void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color color)
+{
+  // bound check
+  if((y < 0) || (y >= SSD1306_LCDHEIGHT))
+    return;
+
+  // clip at edges of display
+  if(x < 0)
+  {
+    w += x;
+    x = 0;
+  }
+  if((x + w) > SSD1306_LCDWIDTH)
+  {
+    w = (SSD1306_LCDWIDTH - x);
+  }
+
+  // check width
+  if(w <= 0)
+    return;
+
+  // initialize buffer pointer
+  register uint8_t * bp = buffer + ((y / 8) * SSD1306_LCDWIDTH) + x;
+
+  // initialize pixel mask
+  register uint8_t mask = 1 << (y & 7);
+
+  switch(color)
+  {
+    case SSD1306_BLACK:
+      mask = ~mask;
+      while(w--)
+      {
+        *bp++ &= mask;
+      }
+      break;
+    case SSD1306_WHITE:
+      while(w--)
+      {
+        *bp++ |= mask;
+      }
+      break;
+    case SSD1306_INVERSE:
+      while(w--)
+      {
+        *bp++ ^= mask;
+      }
+      break;
+  }
 }
 
-void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, int8_t color)
+void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color color)
 {
+  // bound check
+  if((x < 0) || (x >= SSD1306_LCDWIDTH))
+    return;
 
+  // clip at edges of display
+  if(y < 0)
+  {
+    h += y;
+    y = 0;
+  }
+  if((y + h) > SSD1306_LCDHEIGHT)
+  {
+    h = (SSD1306_LCDHEIGHT - y);
+  }
+
+  // check height
+  if(h <= 0)
+    return;
+
+  // use local byte registers for coordinates
+  register uint8_t ry = y;
+  register uint8_t rh = h;
+
+  // set up the pointer for fast movement through the buffer
+  register uint8_t *bp = buffer + ((ry / 8) * SSD1306_LCDWIDTH) + x;
+
+  // first partial byte
+  register uint8_t mod = (ry & 7);
+  if(mod)
+  {
+    // mask high bits
+    mod = 8 - mod;
+    static uint8_t premask[8] = {0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE};
+    register uint8_t mask = premask[mod];
+
+    // adjust the mask
+    if(rh < mod)
+    {
+      mask &= (0XFF >> (mod - rh));
+    }
+
+    switch(color)
+    {
+      case SSD1306_BLACK:
+        *bp &= ~mask;
+        break;
+      case SSD1306_WHITE:
+        *bp |= mask;
+        break;
+      case SSD1306_INVERSE:
+        *bp ^= mask;
+        break;
+    }
+
+    // exit if complete
+    if(rh < mod)
+    {
+      return;
+    }
+
+    rh -= mod;
+    bp += SSD1306_LCDWIDTH;
+  }
+
+  // solid bytes
+  if(rh >= 8)
+  {
+    if (color == SSD1306_INVERSE)
+    {
+      do
+      {
+        *bp = ~(*bp) + SSD1306_LCDWIDTH;
+        rh -= 8;
+      }
+      while(rh >= 8);
+    }
+    else
+    {
+      register uint8_t val = (color == SSD1306_WHITE) ? 0xFF : 0x00;
+
+      do
+      {
+        *bp = val + SSD1306_LCDWIDTH;
+        rh -= 8;
+      }
+      while(rh >= 8);
+    }
+  }
+
+  // last partial byte
+  if(rh)
+  {
+    // mask low bits
+    mod = rh & 7;
+    static uint8_t postmask[8] = {0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F};
+    register uint8_t mask = postmask[mod];
+
+    switch(color)
+    {
+      case SSD1306_BLACK:
+        *bp &= ~mask;
+        break;
+      case SSD1306_WHITE:
+        *bp |= mask;
+        break;
+      case SSD1306_INVERSE:
+        *bp ^= mask;
+        break;
+    }
+  }
 }
