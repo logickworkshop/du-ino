@@ -72,6 +72,10 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL    0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL     0x2A
 
+#define SSD1306_INVERSE                                   -1
+#define SSD1306_BLACK                                      0
+#define SSD1306_WHITE                                      1
+
 class DUINO_SSD1306 {
  public:
   DUINO_SSD1306();
@@ -82,6 +86,7 @@ class DUINO_SSD1306 {
   void display();
 
   void clear_display();
+  void draw_pixel(int16_t x, int16_t y, int8_t color);
 };
 
 #endif // DUINO_SSD1306_H_

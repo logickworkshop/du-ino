@@ -115,3 +115,22 @@ void DUINO_SSD1306::clear_display()
 {
   memset(buffer, 0, SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8);
 }
+
+void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, int8_t color)
+{
+  if ((x < 0) || (x >= SSD1306_LCDWIDTH) || (y < 0) || (y >= SSD1306_LCDHEIGHT))
+    return;
+
+    switch (color)
+    {
+      case SSD1306_BLACK:
+        buffer[x + (y / 8) * SSD1306_LCDWIDTH] &= ~(1 << (y & 7));
+        break;
+      case SSD1306_WHITE:
+        buffer[x + (y / 8) * SSD1306_LCDWIDTH] |=  (1 << (y & 7));
+        break;
+      case SSD1306_INVERSE:
+        buffer[x + (y / 8) * SSD1306_LCDWIDTH] ^=  (1 << (y & 7));
+        break;
+    }
+}
