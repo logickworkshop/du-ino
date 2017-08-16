@@ -379,6 +379,13 @@ void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Colo
   }
 }
 
+void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Color color)
+{
+  register int8_t i = 0;
+  while(*(text + i))
+    draw_char(x + 6 * i++, y, *(text + i), color);
+}
+
 void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)
 {
   fill_circle(x + 19, y + 19, 19, color);
