@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <Wire.h>
 
+#include "du-ino_font5x7.h"
 #include "du-ino_ssd1306.h"
 
 static uint8_t buffer[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8];
@@ -357,6 +358,25 @@ void DUINO_SSD1306::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD130
 void DUINO_SSD1306::fill_screen(SSD1306Color color)
 {
   fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
+}
+
+void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Color color)
+{
+  // bound check
+  if(((x + 5) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 7) < 0) || (y >= SSD1306_LCDHEIGHT))
+    return;
+
+  for(int8_t i = 0; i < 5; ++i)
+  {
+    uint8_t line = pgm_read_byte(&font5x7[c * 5 + i]);
+    for(int8_t j = 0; j < 8; ++j, line >>= 1)
+    {
+      if(line & 1)
+      {
+        draw_pixel(x + i, y + j, color);
+      }
+    }
+  }
 }
 
 void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)

@@ -99,6 +99,8 @@ class DUINO_SSD1306 {
   void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color);
   void fill_screen(SSD1306Color color);
 
+  void draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Color color);
+
   void draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color);
   void draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color);
   void draw_logick_logo(int16_t x, int16_t y, SSD1306Color color);
