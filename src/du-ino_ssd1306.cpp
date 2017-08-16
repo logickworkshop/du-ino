@@ -359,6 +359,23 @@ void DUINO_SSD1306::fill_screen(SSD1306Color color)
   fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
 }
 
+void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)
+{
+  fill_circle(x + 19, y + 19, 19, color);
+  fill_circle(x + 59, y + 19, 19, color);
+  fill_rect(x, y, 19, 21, color);
+  fill_rect(x + 39, y, 40, 21, color);
+}
+
+void DUINO_SSD1306::draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color)
+{
+  fill_circle(x + 10, y + 10, 10, color);
+  fill_circle(x + 30, y + 10, 10, color);
+  fill_rect(x, y, 10, 11, color);
+  fill_rect(x + 20, y, 21, 11, color);
+}
+
+
 inline void DUINO_SSD1306::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
 {
   draw_pixel(xc + x, yc + y, color);
