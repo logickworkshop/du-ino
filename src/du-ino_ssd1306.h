@@ -79,7 +79,6 @@ enum SSD1306Color
   SSD1306_INVERSE
 };
 
-
 class DUINO_SSD1306 {
  public:
   DUINO_SSD1306();
