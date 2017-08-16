@@ -300,13 +300,81 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
   }
 }
 
+void DUINO_SSD1306::draw_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color color)
+{
+  register int8_t x = 0;
+  register int8_t y = r;
+  register int8_t d = 3 - 2 * r;
+
+  while(y >= x)
+  {
+    draw_quadrants(xc, yc, x, y, color);
+    x++;
+
+    if(d > 0)
+    {
+      y--; 
+      d = d + 4 * (x - y) + 10;
+    }
+    else
+    {
+      d = d + 4 * x + 6;
+    }
+    draw_quadrants(xc, yc, x, y, color);
+  }
+}
+
+void DUINO_SSD1306::fill_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color color)
+{
+  register int8_t x = 0;
+  register int8_t y = r;
+  register int8_t d = 3 - 2 * r;
+
+  while(y >= x)
+  {
+    fill_quadrants(xc, yc, x, y, color);
+    x++;
+
+    if(d > 0)
+    {
+      y--; 
+      d = d + 4 * (x - y) + 10;
+    }
+    else
+    {
+      d = d + 4 * x + 6;
+    }
+    fill_quadrants(xc, yc, x, y, color);
+  }
+}
+
 void DUINO_SSD1306::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color)
 {
-  for (int16_t i = x; i < x + w; ++i)
+  for(int16_t i = x; i < x + w; ++i)
     draw_vline(i, y, h, color);
 }
 
 void DUINO_SSD1306::fill_screen(SSD1306Color color)
 {
   fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
+}
+
+inline void DUINO_SSD1306::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
+{
+  draw_pixel(xc + x, yc + y, color);
+  draw_pixel(xc + x, yc - y, color);
+  draw_pixel(xc + y, yc + x, color);
+  draw_pixel(xc + y, yc - x, color);
+  draw_pixel(xc - x, yc + y, color);
+  draw_pixel(xc - x, yc - y, color);
+  draw_pixel(xc - y, yc + x, color);
+  draw_pixel(xc - y, yc - x, color);
+}
+
+inline void DUINO_SSD1306::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
+{
+  draw_vline(xc + x, yc - y, y + y, color);
+  draw_vline(xc + y, yc - x, x + x, color);
+  draw_vline(xc - x, yc - y, y + y, color);
+  draw_vline(xc - y, yc - x, x + x, color);
 }
