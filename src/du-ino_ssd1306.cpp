@@ -245,9 +245,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
 
     // exit if complete
     if(rh < mod)
-    {
       return;
-    }
 
     rh -= mod;
     bp += SSD1306_LCDWIDTH;
@@ -271,7 +269,8 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
 
       do
       {
-        *bp = val + SSD1306_LCDWIDTH;
+        *bp = val;
+        bp += SSD1306_LCDWIDTH;
         rh -= 8;
       }
       while(rh >= 8);
