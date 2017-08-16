@@ -107,8 +107,7 @@ void DUINO_Encoder::service()
         }
         else
         {
-          #define ENC_SINGLECLICKONLY 1
-          if(double_click_ticks > ENC_SINGLECLICKONLY)
+          if(double_click_ticks > 1)
           {
             if(double_click_ticks < (ENC_DOUBLECLICKTIME / ENC_BUTTONINTERVAL))
             {
