@@ -22,7 +22,7 @@
 
 #include "du-ino_encoder.h"
 
-DUINO_Encoder::DUINO_Encoder()
+DUINO_Encoder::DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn)
   : pin_a(a)
   , pin_b(b)
   , pin_btn(btn)
