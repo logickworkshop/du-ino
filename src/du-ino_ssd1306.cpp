@@ -125,13 +125,13 @@ void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, SSD1306Color color)
 
   switch(color)
   {
-    case SSD1306_BLACK:
+    case Black:
       buffer[x + (y / 8) * SSD1306_LCDWIDTH] &= ~(1 << (y & 7));
       break;
-    case SSD1306_WHITE:
+    case White:
       buffer[x + (y / 8) * SSD1306_LCDWIDTH] |=  (1 << (y & 7));
       break;
-    case SSD1306_INVERSE:
+    case Inverse:
       buffer[x + (y / 8) * SSD1306_LCDWIDTH] ^=  (1 << (y & 7));
       break;
   }
@@ -166,20 +166,20 @@ void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color col
 
   switch(color)
   {
-    case SSD1306_BLACK:
+    case Black:
       mask = ~mask;
       while(w--)
       {
         *bp++ &= mask;
       }
       break;
-    case SSD1306_WHITE:
+    case White:
       while(w--)
       {
         *bp++ |= mask;
       }
       break;
-    case SSD1306_INVERSE:
+    case Inverse:
       while(w--)
       {
         *bp++ ^= mask;
@@ -233,13 +233,13 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
 
     switch(color)
     {
-      case SSD1306_BLACK:
+      case Black:
         *bp &= ~mask;
         break;
-      case SSD1306_WHITE:
+      case White:
         *bp |= mask;
         break;
-      case SSD1306_INVERSE:
+      case Inverse:
         *bp ^= mask;
         break;
     }
@@ -255,7 +255,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
   // solid bytes
   if(rh >= 8)
   {
-    if (color == SSD1306_INVERSE)
+    if (color == Inverse)
     {
       do
       {
@@ -266,7 +266,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
     }
     else
     {
-      register uint8_t val = (color == SSD1306_WHITE) ? 0xFF : 0x00;
+      register uint8_t val = (color == White) ? 0xFF : 0x00;
 
       do
       {
@@ -288,13 +288,13 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
 
     switch(color)
     {
-      case SSD1306_BLACK:
+      case Black:
         *bp &= ~mask;
         break;
-      case SSD1306_WHITE:
+      case White:
         *bp |= mask;
         break;
-      case SSD1306_INVERSE:
+      case Inverse:
         *bp ^= mask;
         break;
     }

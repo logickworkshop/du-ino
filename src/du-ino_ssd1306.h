@@ -79,14 +79,15 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL    0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL     0x2A
 
-enum SSD1306Color
-{
-  SSD1306_BLACK,
-  SSD1306_WHITE,
-  SSD1306_INVERSE
-};
-
 class DUINO_SSD1306 {
+ public:
+  enum SSD1306Color
+  {
+    Black,
+    White,
+    Inverse
+  };
+
  public:
   DUINO_SSD1306();
 
