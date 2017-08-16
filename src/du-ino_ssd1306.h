@@ -20,6 +20,13 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+/* This module is based in part upon the SSD1306 [1] and GFX [2] Arduino
+ * libraries from Adafruit.
+ * 
+ * [1]: https://github.com/adafruit/Adafruit_SSD1306
+ * [2]: https://github.com/adafruit/Adafruit-GFX-Library
+ */
+
 #ifndef DUINO_SSD1306_H_
 #define DUINO_SSD1306_H_
 
