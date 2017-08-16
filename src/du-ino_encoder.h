@@ -32,7 +32,8 @@
 
 #include "Arduino.h"
 
-class DUINO_Encoder {
+class DUINO_Encoder
+{
  public:
   enum Button {
     Open,
