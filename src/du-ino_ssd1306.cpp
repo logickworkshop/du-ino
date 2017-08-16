@@ -375,6 +375,36 @@ void DUINO_SSD1306::draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color)
   fill_rect(x + 20, y, 21, 11, color);
 }
 
+void DUINO_SSD1306::draw_logick_logo(int16_t x, int16_t y, SSD1306Color color)
+{
+  fill_rect(x + 0, y + 0, 2, 10, color);
+  fill_rect(x + 3, y + 4, 2, 6, color);
+  draw_hline(x + 5, y + 4, 2, color);
+  draw_hline(x + 5, y + 9, 2, color);
+  fill_rect(x + 7, y + 4, 2, 6, color);
+  fill_rect(x + 10, y + 4, 2, 6, color);
+  draw_hline(x + 12, y + 4, 2, color);
+  draw_hline(x + 12, y + 9, 2, color);
+  fill_rect(x + 14, y + 4, 2, 8, color);
+  draw_hline(x + 0, y + 11, 14, color);
+  fill_rect(x + 17, y + 4, 2, 6, color);
+  fill_rect(x + 20, y + 4, 2, 6, color);
+  draw_hline(x + 22, y + 4, 3, color);
+  draw_hline(x + 22, y + 9, 3, color);
+  fill_rect(x + 26, y + 0, 2, 10, color);
+  draw_vline(x + 28, y + 5, 2, color);
+  draw_vline(x + 29, y + 4, 4, color);
+  draw_vline(x + 30, y + 3, 2, color);
+  draw_vline(x + 30, y + 7, 2, color);
+  draw_vline(x + 31, y + 2, 2, color);
+  draw_vline(x + 31, y + 8, 2, color);
+  draw_vline(x + 32, y + 9, 2, color);
+  draw_vline(x + 33, y + 10, 2, color);
+  draw_vline(x + 34, y + 11, 2, color);
+  draw_vline(x + 35, y + 12, 2, color);
+  draw_vline(x + 36, y + 13, 2, color);
+  draw_vline(x + 37, y + 14, 2, color);
+}
 
 inline void DUINO_SSD1306::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
 {
