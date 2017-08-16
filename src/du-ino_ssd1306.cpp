@@ -300,3 +300,14 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
     }
   }
 }
+
+void DUINO_SSD1306::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color)
+{
+  for (int16_t i = x; i < x + w; ++i)
+    draw_vline(i, y, h, color);
+}
+
+void DUINO_SSD1306::fill_screen(SSD1306Color color)
+{
+  fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
+}

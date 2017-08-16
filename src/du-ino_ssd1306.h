@@ -94,6 +94,8 @@ class DUINO_SSD1306 {
   void draw_pixel(int16_t x, int16_t y, SSD1306Color color);
   void draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color color);
   void draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color color);
+  void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color);
+  void fill_screen(SSD1306Color color);
 };
 
 #endif // DUINO_SSD1306_H_
