@@ -27,12 +27,16 @@
 DUINO_MCP4922::DUINO_MCP4922(uint8_t ss)
   : pin_ss(ss)
 {
+  // configure chip select for output
   pinMode(pin_ss, OUTPUT);
 }
 
 void DUINO_MCP4922::begin()
 {
+  // hold chip deselect
   digitalWrite(pin_ss, HIGH);
+
+  // configure SPI
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);

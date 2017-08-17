@@ -41,10 +41,12 @@ DUINO_Encoder::DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn)
   , acceleration(0)
   , button(Open)
 {
+  // configure pins for active-low operation
   pinMode(pin_a, INPUT_PULLUP);
   pinMode(pin_b, INPUT_PULLUP);
   pinMode(pin_btn, INPUT_PULLUP);
 
+  // initialize state
   if (digitalRead(pin_a) == LOW)
     last = 3;
   if (digitalRead(pin_b) == LOW)
@@ -137,20 +139,19 @@ void DUINO_Encoder::service()
 int16_t DUINO_Encoder::get_value()
 {
   int16_t val;
-  
+
+  // read delta
   cli();
   val = delta;
-
   delta = 0;
-
   sei();
 
   int16_t r = 0;
   int16_t accel = acceleration >> 8;
 
-  if (val < 0)
+  if(val < 0)
     r -= 1 + accel;
-  else if (val > 0)
+  else if(val > 0)
     r += 1 + accel;
 
   return r;

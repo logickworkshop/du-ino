@@ -35,6 +35,7 @@ DUINO_SSD1306::DUINO_SSD1306()
 
 void DUINO_SSD1306::ssd1306_command(uint8_t c)
 {
+  // send I2C command
   uint8_t control = 0x00;
   Wire.beginTransmission(SSD1306_I2C_ADDRESS);
   Wire.write(control);
@@ -44,8 +45,10 @@ void DUINO_SSD1306::ssd1306_command(uint8_t c)
 
 void DUINO_SSD1306::begin()
 {
+  // initialize I2C
   Wire.begin();
 
+  // initialization sequence
   ssd1306_command(SSD1306_DISPLAYOFF);
 
   ssd1306_command(SSD1306_SETDISPLAYCLOCKDIV);
@@ -91,6 +94,7 @@ void DUINO_SSD1306::display()
   ssd1306_command(0);
   ssd1306_command(7);
 
+  // transmit buffer (fast mode)
 #ifdef TWBR
   uint8_t twbrbackup = TWBR;
   TWBR = 12;
@@ -114,6 +118,7 @@ void DUINO_SSD1306::display()
 
 void DUINO_SSD1306::clear_display()
 {
+  // clear buffer
   memset(buffer, 0, SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8);
 }
 
@@ -123,6 +128,7 @@ void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, SSD1306Color color)
   if ((x < 0) || (x >= SSD1306_LCDWIDTH) || (y < 0) || (y >= SSD1306_LCDHEIGHT))
     return;
 
+  // set pixel value
   switch(color)
   {
     case Black:
@@ -307,6 +313,7 @@ void DUINO_SSD1306::draw_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color 
   register int8_t y = r;
   register int8_t d = 3 - 2 * r;
 
+  // Bresenham raster circle algorithm
   while(y >= x)
   {
     draw_quadrants(xc, yc, x, y, color);
@@ -331,6 +338,7 @@ void DUINO_SSD1306::fill_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color 
   register int8_t y = r;
   register int8_t d = 3 - 2 * r;
 
+  // same as draw_circle, but vlines instead of locus pixels
   while(y >= x)
   {
     fill_quadrants(xc, yc, x, y, color);
@@ -351,12 +359,14 @@ void DUINO_SSD1306::fill_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color 
 
 void DUINO_SSD1306::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color)
 {
+  // draw filled rectangle as a series of vlines
   for(int16_t i = x; i < x + w; ++i)
     draw_vline(i, y, h, color);
 }
 
 void DUINO_SSD1306::fill_screen(SSD1306Color color)
 {
+  // full-screen filled rectangle
   fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
 }
 
@@ -366,6 +376,7 @@ void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Colo
   if(((x + 5) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 7) < 0) || (y >= SSD1306_LCDHEIGHT))
     return;
 
+  // draw pixels from ASCII 5x7 font map
   for(int8_t i = 0; i < 5; ++i)
   {
     uint8_t line = pgm_read_byte(&font5x7[c * 5 + i]);
@@ -381,6 +392,7 @@ void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Colo
 
 void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Color color)
 {
+  // draw characters with 1-pixel spacing
   register int8_t i = 0;
   while(*(text + i))
     draw_char(x + 6 * i++, y, *(text + i), color);
