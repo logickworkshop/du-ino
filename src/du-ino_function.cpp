@@ -23,6 +23,8 @@
 #include "du-ino_mcp4922.h"
 #include "du-ino_function.h"
 
+#define TRIG_MS     5
+
 DUINO_Function::DUINO_Function(uint16_t sc)
   : switch_config(sc)
 {
@@ -77,7 +79,8 @@ float DUINO_Function::analog_read(uint8_t jack)
       return 0.0;
   }
 
-  return float(analogRead(pin)) * (20.0 / 1023.0) - 10;
+  // value * (20 / (2^10 - 1)) - 10
+  return float(analogRead(pin)) * 0.019550342130987292 - 10.0;
 }
 
 void DUINO_Function::gate(uint8_t jack)
@@ -117,7 +120,7 @@ void DUINO_Function::trig(uint8_t jack)
   if(jack < 6 && out_mask & (1 << pin))
   {
     digitalWrite(pin, HIGH);
-    // TODO: delay
+    delay(TRIG_MS);
     digitalWrite(pin, LOW);
   }
 }
@@ -128,7 +131,7 @@ void DUINO_Function::multi_trig(uint8_t jacks)
   {
     if(jacks & out_mask & (1 << i))
       digitalWrite(i, HIGH);
-    // TODO: delay
+    delay(TRIG_MS);
     if(jacks & out_mask & (1 << i))
       digitalWrite(i, LOW);  
   }
@@ -136,5 +139,12 @@ void DUINO_Function::multi_trig(uint8_t jacks)
 
 void DUINO_Function::analog_write(uint8_t dac_pin, float value)
 {
-  // TODO: mcp4922 call
+  if(dac_pin > 4)
+    return;
+
+  // (value + 10) * ((2^12 - 1) / 20)
+  uint16_t data = (value + 10.0) * 204.75;
+
+  // DAC output
+  dac[dac_pin >> 1]->output(dac_pin & 1, data);
 }
