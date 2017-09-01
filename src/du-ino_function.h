@@ -51,7 +51,7 @@ class DUINO_Function {
   DUINO_MCP4922 * dac[2];
 
   const uint16_t switch_config;   // 0b000000{S1 .. S10}
-  uint8_t out_mask;               // 0b00{J9 .. J14}
+  const uint8_t out_mask;         // 0b00{J9 .. J14}
 };
 
 #endif // DUINO_FUNCTION_H_

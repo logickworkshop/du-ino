@@ -27,19 +27,18 @@
 
 DUINO_Function::DUINO_Function(uint16_t sc)
   : switch_config(sc)
+  , out_mask(0x30 || (~sc & 0x0F))
 {
-  // compute digital output mask
-  out_mask = 0x30 || (~switch_config & 0x0F);
-
-  // configure pins
+  // configure analog pins
+  analogReference(EXTERNAL);
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
   
+  // configure digital pins
   pinMode(5, OUTPUT);
   pinMode(4, OUTPUT);
-
   for(uint8_t i = 0; i < 4; ++i)
     pinMode(i, switch_config & (1 << i) ? INPUT : OUTPUT);
 
