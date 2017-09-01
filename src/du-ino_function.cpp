@@ -146,5 +146,5 @@ void DUINO_Function::analog_write(uint8_t dac_pin, float value)
   uint16_t data = (value + 10.0) * 204.75;
 
   // DAC output
-  dac[dac_pin >> 1]->output(dac_pin & 1, data);
+  dac[dac_pin >> 1]->output((DUINO_MCP4922::Channel)(dac_pin & 1), data);
 }
