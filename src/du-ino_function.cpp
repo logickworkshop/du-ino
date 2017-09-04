@@ -47,103 +47,54 @@ DUINO_Function::DUINO_Function(uint16_t sc)
     dac[i] = new DUINO_MCP4922(i + 6);
 }
 
-uint8_t DUINO_Function::digital_read(uint8_t jack)
+uint8_t DUINO_Function::gt_read(uint8_t jack)
 {
-  uint8_t pin = 14 - jack;
-
-  if(jack > 9 && jack < 15 && switch_config & (1 << pin))
-    return digitalRead(pin);
+  if(jack < 4 && switch_config & (1 << jack))
+    return digitalRead(jack);
   else
     return 0;
 }
 
-float DUINO_Function::analog_read(uint8_t jack)
+void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
 {
-  uint8_t pin;
-  switch(jack)
+  if(!(jack & GT_MULTI))
   {
-    case 0:
-      pin = A0;
-      break;
-    case 1:
-      pin = A1;
-      break;
-    case 2:
-      pin = A2;
-      break;
-    case 3:
-      pin = A3;
-      break;
-    default:
-      return 0.0;
+    if(jack < 6 && out_mask & (1 << jack))
+    {
+      digitalWrite(pin, on ? HIGH : LOW);
+      if(trig)
+      {
+        delay(TRIG_MS);
+        digitalWrite(pin, on ? LOW : HIGH);
+      }
+    }
   }
+  else
+  {
+    for(uint8_t i = 0; i < 6; ++i)
+      if(jack & out_mask & (1 << i))
+        digitalWrite(i, on ? HIGH : LOW);
+    if(trig)
+    {
+      delay(TRIG_MS);
+      for(uint8_t i = 0; i < 6; ++i)
+        if(jack & out_mask & (1 << i))
+          digitalWrite(i, on ? LOW : HIGH);
+    }
+  }
+}
 
+float DUINO_Function::cv_read(uint8_t jack)
+{
   // value * (20 / (2^10 - 1)) - 10
-  return float(analogRead(pin)) * 0.019550342130987292 - 10.0;
+  return float(analogRead(jack)) * 0.019550342130987292 - 10.0;
 }
 
-void DUINO_Function::gate(uint8_t jack)
+void DUINO_Function::cv_out(uint8_t jack, float value)
 {
-  uint8_t pin = 14 - jack;
-
-  if(jack < 6 && out_mask & (1 << pin))
-    digitalWrite(pin, HIGH);
-}
-
-void DUINO_Function::multi_gate(uint8_t jacks)
-{
-  for(uint8_t i = 0; i < 6; ++i)
-    if(jacks & out_mask & (1 << i))
-      digitalWrite(i, HIGH);
-}
-
-void DUINO_Function::clear(uint8_t jack)
-{
-  uint8_t pin = 14 - jack;
-
-  if(jack < 6 && out_mask & (1 << pin))
-    digitalWrite(pin, LOW);
-}
-
-void DUINO_Function::multi_clear(uint8_t jacks)
-{
-  for(uint8_t i = 0; i < 6; ++i)
-    if(jacks & out_mask & (1 << i))
-      digitalWrite(i, LOW);
-}
-
-void DUINO_Function::trig(uint8_t jack)
-{
-  uint8_t pin = 14 - jack;
-
-  if(jack < 6 && out_mask & (1 << pin))
-  {
-    digitalWrite(pin, HIGH);
-    delay(TRIG_MS);
-    digitalWrite(pin, LOW);
-  }
-}
-
-void DUINO_Function::multi_trig(uint8_t jacks)
-{
-  for(uint8_t i = 0; i < 6; ++i)
-  {
-    if(jacks & out_mask & (1 << i))
-      digitalWrite(i, HIGH);
-    delay(TRIG_MS);
-    if(jacks & out_mask & (1 << i))
-      digitalWrite(i, LOW);  
-  }
-}
-
-void DUINO_Function::analog_write(uint8_t dac_pin, float value)
-{
-  if(dac_pin > 4)
-    return;
-
   // (value + 10) * ((2^12 - 1) / 20)
   uint16_t data = (value + 10.0) * 204.75;
 
   // DAC output
-  dac[dac_pin >> 1]->output((DUINO_MCP4922::Channel)(dac_pin & 1), data);
+  dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
 }
