@@ -55,7 +55,7 @@ class DUINO_Function {
   virtual void loop() = 0;
 
  private:
-  uint8_t gt_read(uint8_t jack);
+  bool gt_read(uint8_t jack);
   void gt_out(uint8_t jack, bool on, bool trig = false);
 
   float cv_read(uint8_t jack);

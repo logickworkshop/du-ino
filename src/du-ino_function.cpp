@@ -47,12 +47,12 @@ DUINO_Function::DUINO_Function(uint16_t sc)
     dac[i] = new DUINO_MCP4922(i + 6);
 }
 
-uint8_t DUINO_Function::gt_read(uint8_t jack)
+bool DUINO_Function::gt_read(uint8_t jack)
 {
   if(jack < 4 && switch_config & (1 << jack))
-    return digitalRead(jack);
+    return (bool)digitalRead(jack);
   else
-    return 0;
+    return false;
 }
 
 void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
