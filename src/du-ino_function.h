@@ -61,6 +61,9 @@ class DUINO_Function {
   float cv_read(uint8_t jack);
   void cv_out(uint8_t jack, float value);
 
+  void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode);
+  void gt_detach_interrupt(uint8_t jack);
+
   DUINO_MCP4922 * dac[2];
 
   const uint16_t switch_config;   // 0b000000{S1 .. S10}

@@ -98,3 +98,13 @@ void DUINO_Function::cv_out(uint8_t jack, float value)
   // DAC output
   dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
 }
+
+void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode)
+{
+  attachInterrupt(digitalPinToInterrupt(jack), isr, mode);
+}
+
+void gt_detach_interrupt(uint8_t jack)
+{
+  detachInterrupt(digitalPinToInterrupt(jack));
+}
