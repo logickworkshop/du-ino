@@ -61,11 +61,11 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
   {
     if(jack < 6 && out_mask & (1 << jack))
     {
-      digitalWrite(pin, on ? HIGH : LOW);
+      digitalWrite(jack, on ? HIGH : LOW);
       if(trig)
       {
         delay(TRIG_MS);
-        digitalWrite(pin, on ? LOW : HIGH);
+        digitalWrite(jack, on ? LOW : HIGH);
       }
     }
   }
