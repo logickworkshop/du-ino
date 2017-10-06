@@ -30,11 +30,18 @@ class DUINO_Encoder;
 
 class DUINO_Interface {
  public:
-  DUINO_Interface();
+  static DUINO_Interface& get();
 
   void begin();
 
+  void timer_isr();
+
  private:
+  DUINO_Interface();
+
+  DUINO_Interface(DUINO_Interface const&);
+  void operator=(DUINO_Interface const&);
+
   DUINO_SSD1306 * display;
   DUINO_Encoder * encoder;
 };
