@@ -30,7 +30,7 @@ class DUINO_Encoder;
 
 class DUINO_Interface {
  public:
-  static DUINO_Interface& get();
+  static DUINO_Interface & get();
 
   void begin();
 

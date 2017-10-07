@@ -31,7 +31,7 @@ void DUINO_timer_isr()
   DUINO_Interface::get().timer_isr();
 }
 
-DUINO_Interface& DUINO_Interface::get()
+DUINO_Interface & DUINO_Interface::get()
 {
   static DUINO_Interface interface;
   static bool initialized = false;
