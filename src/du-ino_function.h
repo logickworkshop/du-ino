@@ -44,6 +44,7 @@
 
 #define GT_MULTI    0x80
 // e.g. gt_out(GT_MULTI | (1 << GT5) | (1 << GT1), true);
+#define GT_ALL      0xBF
 
 class DUINO_MCP4922;
 
@@ -51,8 +52,11 @@ class DUINO_Function {
  public:
   DUINO_Function(uint16_t sc);
 
-  virtual void setup() = 0;
-  virtual void loop() = 0;
+  void begin();
+  void run();
+
+  virtual void setup() {}
+  virtual void loop(unsigned long dt) {}
 
  private:
   bool gt_read(uint8_t jack);
@@ -68,6 +72,8 @@ class DUINO_Function {
 
   const uint16_t switch_config;   // 0b000000{S1 .. S10}
   const uint8_t out_mask;         // 0b00{GT6 .. GT1}
+
+  unsigned long time_last;
 };
 
 #endif // DUINO_FUNCTION_H_

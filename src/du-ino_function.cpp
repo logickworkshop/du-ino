@@ -47,6 +47,31 @@ DUINO_Function::DUINO_Function(uint16_t sc)
     dac[i] = new DUINO_MCP4922(i + 6);
 }
 
+void DUINO_Function::begin()
+{
+  static bool initialized = false;
+
+  if(!initialized)
+  {
+    gt_out(GT_ALL, false);
+    cv_out(CO1, 0.0);
+    cv_out(CO2, 0.0);
+    cv_out(CO3, 0.0);
+    cv_out(CO4, 0.0);
+
+    initialized = true;
+  }
+}
+
+void DUINO_Function::run()
+{
+  unsigned long time_current = millis();
+  unsigned long dt = time_current - time_last;
+  time_last = time_current;
+
+  loop(dt);
+}
+
 bool DUINO_Function::gt_read(uint8_t jack)
 {
   if(jack < 4 && switch_config & (1 << jack))
@@ -65,7 +90,7 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
       if(trig)
       {
         delay(TRIG_MS);
-        digitalWrite(jack, on ? LOW : HIGH);
+        digitalWrite(jack , on ? LOW : HIGH);
       }
     }
   }
