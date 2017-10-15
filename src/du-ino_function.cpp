@@ -64,15 +64,6 @@ void DUINO_Function::begin()
   }
 }
 
-void DUINO_Function::run()
-{
-  unsigned long time_current = millis();
-  unsigned long dt = time_current - time_last;
-  time_last = time_current;
-
-  loop(dt);
-}
-
 bool DUINO_Function::gt_read(uint8_t jack)
 {
   if(jack < 4 && switch_config & (1 << jack))
@@ -125,12 +116,12 @@ void DUINO_Function::cv_out(uint8_t jack, float value)
   dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
 }
 
-void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode)
+void DUINO_Function::gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode)
 {
   attachInterrupt(digitalPinToInterrupt(jack), isr, mode);
 }
 
-void gt_detach_interrupt(uint8_t jack)
+void DUINO_Function::gt_detach_interrupt(uint8_t jack)
 {
   detachInterrupt(digitalPinToInterrupt(jack));
 }

@@ -53,12 +53,10 @@ class DUINO_Function {
   DUINO_Function(uint16_t sc);
 
   void begin();
-  void run();
 
   virtual void setup() {}
-  virtual void loop(unsigned long dt) {}
+  virtual void loop() {}
 
- private:
   bool gt_read(uint8_t jack);
   void gt_out(uint8_t jack, bool on, bool trig = false);
 
@@ -68,12 +66,11 @@ class DUINO_Function {
   void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode);
   void gt_detach_interrupt(uint8_t jack);
 
+ private:
   DUINO_MCP4922 * dac[2];
 
   const uint16_t switch_config;   // 0b000000{S1 .. S10}
   const uint8_t out_mask;         // 0b00{GT6 .. GT1}
-
-  unsigned long time_last;
 };
 
 #endif // DUINO_FUNCTION_H_
