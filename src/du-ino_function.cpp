@@ -59,6 +59,7 @@ void DUINO_Function::begin()
     cv_out(CO3, 0.0);
     cv_out(CO4, 0.0);
 
+    setup();
     initialized = true;
   }
 }

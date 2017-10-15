@@ -42,6 +42,7 @@ void DUINO_Interface::begin()
     display->clear_display(); 
     display->display();
 
+    setup();
     initialized = true;
   }
 }
