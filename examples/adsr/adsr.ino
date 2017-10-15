@@ -26,7 +26,7 @@
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
-  DU_ADSR_Function(uint16_t sc) : DUINO_Function(sc) { }
+  DU_ADSR_Function() : DUINO_Function(0b0000000000) { }
   
   virtual void setup()
   {
@@ -61,7 +61,7 @@ void timer_isr()
 }
 
 void setup() {
-  function = new DU_ADSR_Function(0b0000000000);
+  function = new DU_ADSR_Function();
   interface = new DU_ADSR_Interface();
 
   function->begin();
