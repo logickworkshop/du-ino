@@ -125,6 +125,8 @@ class DU_ADSR_Interface : public DUINO_Interface {
   {
     // initialize interface
     selected = 0;
+    gate_last = false;
+    display_changed = false;
 
     // initialize ADSR values
     v[0] = v_last[0] = 5;
@@ -170,6 +172,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
       selected %= 4;
       display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::White);
       display->draw_char(32 * selected + 13, 56, label[selected], DUINO_SSD1306::Black);
+      display_changed = true;
     }
 
     // handle encoder spin
@@ -183,6 +186,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
       // update slider
       display->fill_rect(32 * selected + 11, 54 - v_last[selected], 9, 3, DUINO_SSD1306::Black);
       display->fill_rect(32 * selected + 11, 54 - v[selected], 9, 3, DUINO_SSD1306::White);
+      display_changed = true;
 
       // update ADSR value
       switch(selected)
@@ -205,10 +209,19 @@ class DU_ADSR_Interface : public DUINO_Interface {
     }
 
     // display gate state
-    display->fill_rect(98, 8, 28, 11, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
-    display->draw_text(100, 10, "GATE", DUINO_SSD1306::Inverse);
+    if(gate != gate_last)
+    {
+      display->fill_rect(98, 8, 28, 11, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
+      display->draw_text(100, 10, "GATE", DUINO_SSD1306::Inverse);
+      display_changed = true;
+      gate_last = gate;
+    }
 
-    display->display();
+    if(display_changed)
+    {
+      display->display();
+      display_changed = false;
+    }
   }
 
  private:
@@ -219,6 +232,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
 
   uint8_t selected;
   int8_t v[4], v_last[4];
+  bool gate_last, display_changed;
 };
 
 DU_ADSR_Function * function;
