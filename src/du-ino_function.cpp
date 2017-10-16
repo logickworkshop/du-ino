@@ -53,11 +53,15 @@ void DUINO_Function::begin()
 
   if(!initialized)
   {
+    dac[0]->begin();
+    dac[1]->begin();
+
+    dac[0]->output(DUINO_MCP4922::A, 0);
+    dac[0]->output(DUINO_MCP4922::B, 0);
+    dac[1]->output(DUINO_MCP4922::A, 0);
+    dac[1]->output(DUINO_MCP4922::B, 0);
+
     gt_out(GT_ALL, false);
-    cv_out(CO1, 0.0);
-    cv_out(CO2, 0.0);
-    cv_out(CO3, 0.0);
-    cv_out(CO4, 0.0);
 
     setup();
     initialized = true;
