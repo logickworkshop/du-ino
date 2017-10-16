@@ -82,7 +82,7 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
       if(trig)
       {
         delay(TRIG_MS);
-        digitalWrite(jack , on ? LOW : HIGH);
+        digitalWrite(jack, on ? LOW : HIGH);
       }
     }
   }
