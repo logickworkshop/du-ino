@@ -32,7 +32,7 @@ struct DU_ADSR_Values {
 };
 
 volatile DU_ADSR_Values adsr_values;
-volatile bool gate;
+volatile bool gate, retrigger;
 
 static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 
@@ -46,11 +46,18 @@ class DU_ADSR_Function : public DUINO_Function {
   virtual void setup()
   {
     gate_time = 0;
+    retrigger = false;
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
   }
 
   virtual void loop()
   {
+    if(retrigger)
+    {
+      gate_time = 0;
+      retrigger = false;
+    }
+
     if(gate_time)
     {
       if(gate)
@@ -220,6 +227,8 @@ DU_ADSR_Interface * interface;
 void gate_isr()
 {
   gate = function->gt_read(GT3);
+  if(!gate)
+    retrigger = true;
 }
 
 void timer_isr()
