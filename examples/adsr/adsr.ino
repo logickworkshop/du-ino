@@ -46,6 +46,7 @@ class DU_ADSR_Function : public DUINO_Function {
   virtual void setup()
   {
     gate_time = 0;
+    release_time = 0;
     retrigger = false;
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
   }
@@ -55,6 +56,7 @@ class DU_ADSR_Function : public DUINO_Function {
     if(retrigger)
     {
       gate_time = 0;
+      release_time = 0;
       retrigger = false;
     }
 
@@ -108,7 +110,7 @@ class DU_ADSR_Function : public DUINO_Function {
     }
     else if(gate)
     {
-      gate_time = millis();
+      gate_time = millis() - (unsigned long)((cv_current / 10.0) * float(adsr_values.A));
     }
   }
 
