@@ -241,7 +241,7 @@ DU_ADSR_Interface * interface;
 void gate_isr()
 {
   gate = function->gt_read(GT3);
-  if(!gate)
+  if(gate)
     retrigger = true;
 }
 
