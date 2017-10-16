@@ -24,9 +24,8 @@
 #define DUINO_INTERFACE_H_
 
 #include "Arduino.h"
-
-class DUINO_SSD1306;
-class DUINO_Encoder;
+#include "du-ino_ssd1306.h"
+#include "du-ino_encoder.h"
 
 class DUINO_Interface {
  public:
@@ -38,7 +37,6 @@ class DUINO_Interface {
   virtual void setup() {}
   virtual void timer() {}
 
- private:
   DUINO_SSD1306 * display;
   DUINO_Encoder * encoder;
 };
