@@ -56,10 +56,10 @@ void DUINO_Function::begin()
     dac[0]->begin();
     dac[1]->begin();
 
-    dac[0]->output(DUINO_MCP4922::A, 0);
-    dac[0]->output(DUINO_MCP4922::B, 0);
-    dac[1]->output(DUINO_MCP4922::A, 0);
-    dac[1]->output(DUINO_MCP4922::B, 0);
+    dac[0]->output(DUINO_MCP4922::A, 0x800);
+    dac[0]->output(DUINO_MCP4922::B, 0x800);
+    dac[1]->output(DUINO_MCP4922::A, 0x800);
+    dac[1]->output(DUINO_MCP4922::B, 0x800);
 
     gt_out(GT_ALL, false);
 
@@ -114,7 +114,7 @@ float DUINO_Function::cv_read(uint8_t jack)
 void DUINO_Function::cv_out(uint8_t jack, float value)
 {
   // (value + 10) * ((2^12 - 1) / 20)
-  uint16_t data = (value + 10.0) * 204.75;
+  uint16_t data = uint16_t((value + 10.0) * 204.75);
 
   // DAC output
   dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
