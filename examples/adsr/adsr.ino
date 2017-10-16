@@ -236,7 +236,8 @@ void timer_isr()
   interface->timer_isr();
 }
 
-void setup() {
+void setup()
+{
   gate = 0;
 
   function = new DU_ADSR_Function();
@@ -249,7 +250,8 @@ void setup() {
   Timer1.attachInterrupt(timer_isr);
 }
 
-void loop() {
+void loop()
+{
   function->loop();
   interface->loop();
 }
