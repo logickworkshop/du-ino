@@ -35,7 +35,7 @@ class DUINO_Interface {
   void timer_isr();
 
   virtual void setup() {}
-  virtual void timer() {}
+  virtual void loop() {}
 
   DUINO_SSD1306 * display;
   DUINO_Encoder * encoder;

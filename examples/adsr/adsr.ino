@@ -27,14 +27,14 @@
 struct DU_ADSR_Values {
   uint16_t A;  // ms
   uint16_t D;  // ms
-  float S;    // V
+  float S;     // V
   uint16_t R;  // ms
 };
 
 volatile DU_ADSR_Values adsr_values;
 volatile bool gate;
 
-const unsigned char label[] PROGMEM = {'A', 'D', 'S', 'R'};
+static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 
 void gate_isr();
 void timer_isr();
@@ -130,14 +130,14 @@ class DU_ADSR_Interface : public DUINO_Interface {
     adsr_values.R = uint16_t(v[3]) * 30;
 
     // draw top line
-    display->draw_du_logo_sm(1, 1, DUINO_SSD1306::White);
-    display->draw_text(41, 10, "ADSR/VCA", DUINO_SSD1306::White);
+    display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
+    display->draw_text(42, 10, "ADSR/VCA", DUINO_SSD1306::White);
     display->draw_text(100, 10, "GATE", DUINO_SSD1306::White);
 
     // draw sliders
     for(uint8_t i = 0; i < 4; ++i)
     {
-      display->fill_rect(32 * selected + 11, 54 - v[selected], 9, 3, DUINO_SSD1306::White);
+      display->fill_rect(32 * i + 11, 54 - v[i], 9, 3, DUINO_SSD1306::White);
     }
 
     // draw labels
@@ -151,7 +151,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
     display->display();
   }
 
-  virtual void timer()
+  virtual void loop()
   {
     // handle encoder button press
     DUINO_Encoder::Button b = encoder->get_button();
@@ -198,7 +198,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
     }
 
     // display gate state
-    display->fill_rect(98, 8, 28, 9, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
+    display->fill_rect(98, 8, 28, 11, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
     display->draw_text(100, 10, "GATE", DUINO_SSD1306::Inverse);
 
     display->display();
@@ -242,4 +242,5 @@ void setup() {
 
 void loop() {
   function->loop();
+  interface->loop();
 }

@@ -48,5 +48,4 @@ void DUINO_Interface::begin()
 void DUINO_Interface::timer_isr()
 {
   encoder->service();
-  timer();
 }
