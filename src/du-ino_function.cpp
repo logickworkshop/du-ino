@@ -44,7 +44,7 @@ DUINO_Function::DUINO_Function(uint16_t sc)
 
   // configure DACs
   for(uint8_t i = 0; i < 2; ++i)
-    dac[i] = new DUINO_MCP4922(i + 6);
+    dac[i] = new DUINO_MCP4922(i + 6, 8);
 }
 
 void DUINO_Function::begin()
@@ -118,6 +118,12 @@ void DUINO_Function::cv_out(uint8_t jack, float value)
 
   // DAC output
   dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
+}
+
+void DUINO_Function::cv_hold(bool state)
+{
+  // both DACs share the LDAC pin, so holding either will hold all four channels
+  dac[0]->hold(state);
 }
 
 void DUINO_Function::gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode)

@@ -24,7 +24,7 @@
 
 DUINO_Interface::DUINO_Interface()
   : display(new DUINO_SSD1306())
-  , encoder(new DUINO_Encoder(9, 10, 8))
+  , encoder(new DUINO_Encoder(9, 10, 12))
 {
 
 }

@@ -62,6 +62,7 @@ class DUINO_Function {
 
   float cv_read(uint8_t jack);
   void cv_out(uint8_t jack, float value);
+  void cv_hold(bool state);
 
   void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode);
   void gt_detach_interrupt(uint8_t jack);

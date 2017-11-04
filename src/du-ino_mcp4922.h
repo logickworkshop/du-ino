@@ -34,14 +34,16 @@ class DUINO_MCP4922 {
   };
 
  public:
-  DUINO_MCP4922(uint8_t ss);
+  DUINO_MCP4922(uint8_t ss, uint8_t ldac);
 
   void begin();
 
   void output(Channel channel, uint16_t data);
+  void hold(bool state);
 
  private:
   const uint8_t pin_ss;
+  const uint8_t pin_ldac;
 };
 
 #endif // DUINO_FUNCTION_H_
