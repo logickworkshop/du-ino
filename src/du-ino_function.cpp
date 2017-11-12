@@ -27,7 +27,7 @@
 
 DUINO_Function::DUINO_Function(uint16_t sc)
   : switch_config(sc)
-  , out_mask(0x30 || (~sc & 0x0F))
+  , out_mask(0x30 | (~sc & 0x0F))
 {
   // configure analog pins
   analogReference(EXTERNAL);
@@ -37,10 +37,8 @@ DUINO_Function::DUINO_Function(uint16_t sc)
   pinMode(A3, INPUT);
   
   // configure digital pins
-  pinMode(5, OUTPUT);
-  pinMode(4, OUTPUT);
-  for(uint8_t i = 0; i < 4; ++i)
-    pinMode(i, switch_config & (1 << i) ? INPUT : OUTPUT);
+  for(uint8_t i = 0; i < 6; ++i)
+    pinMode(i, out_mask & (1 << i) ? OUTPUT : INPUT);
 
   // configure DACs
   for(uint8_t i = 0; i < 2; ++i)

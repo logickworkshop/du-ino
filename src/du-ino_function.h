@@ -70,7 +70,7 @@ class DUINO_Function {
  private:
   DUINO_MCP4922 * dac[2];
 
-  const uint16_t switch_config;   // 0b000000{S1 .. S10}
+  const uint16_t switch_config;   // 0b000000{SC4 .. SC1}{SG6 .. SG1}
   const uint8_t out_mask;         // 0b00{GT6 .. GT1}
 };
 
