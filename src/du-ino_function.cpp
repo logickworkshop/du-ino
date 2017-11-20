@@ -69,7 +69,7 @@ void DUINO_Function::begin()
 bool DUINO_Function::gt_read(uint8_t jack)
 {
   if(jack < 4 && switch_config & (1 << jack))
-    return digitalRead(jack) == HIGH ? false : true;
+    return digitalRead(jack) == HIGH ? true : false;
   else
     return false;
 }
