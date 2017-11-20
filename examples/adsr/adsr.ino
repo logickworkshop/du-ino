@@ -135,15 +135,15 @@ class DU_ADSR_Interface : public DUINO_Interface {
     v[1] = v_last[1] = 10;
     v[2] = v_last[2] = 15;
     v[3] = v_last[3] = 5; 
-    adsr_values.A = uint16_t(v[0]) * 30;
-    adsr_values.D = uint16_t(v[1]) * 30;
-    adsr_values.S = (float(v[2]) / 32.0) * 10.0;
-    adsr_values.R = uint16_t(v[3]) * 30;
+    adsr_values.A = uint16_t(v[0]) * 24;
+    adsr_values.D = uint16_t(v[1]) * 24;
+    adsr_values.S = (float(v[2]) / 46.0) * 10.0;
+    adsr_values.R = uint16_t(v[3]) * 24;
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
-    display->draw_text(42, 10, "ADSR/VCA", DUINO_SSD1306::White);
-    display->draw_text(100, 10, "GATE", DUINO_SSD1306::White);
+    display->draw_text(16, 0, "ADSR/VCA", DUINO_SSD1306::White);
+    display->draw_text(100, 0, "GATE", DUINO_SSD1306::White);
 
     // draw sliders
     for(uint8_t i = 0; i < 4; ++i)
@@ -181,8 +181,8 @@ class DU_ADSR_Interface : public DUINO_Interface {
     v[selected] += encoder->get_value();
     if(v[selected] < 0)
       v[selected] = 0;
-    if(v[selected] > 32)
-      v[selected] = 32;
+    if(v[selected] > 46)
+      v[selected] = 46;
     if(v[selected] != v_last[selected])
     {
       // update slider
@@ -194,16 +194,16 @@ class DU_ADSR_Interface : public DUINO_Interface {
       switch(selected)
       {
         case 0:
-          adsr_values.A = uint16_t(v[selected]) * 30;
+          adsr_values.A = uint16_t(v[selected]) * 24;
           break;
         case 1:
-          adsr_values.D = uint16_t(v[selected]) * 30;
+          adsr_values.D = uint16_t(v[selected]) * 24;
           break;
         case 2:
-          adsr_values.S = (float(v[selected]) / 32.0) * 10.0;
+          adsr_values.S = (float(v[selected]) / 46.0) * 10.0;
           break;
         case 3:
-          adsr_values.R = uint16_t(v[selected]) * 30;
+          adsr_values.R = uint16_t(v[selected]) * 24;
           break;
       }
       // update last encoder value
@@ -213,8 +213,8 @@ class DU_ADSR_Interface : public DUINO_Interface {
     // display gate state
     if(gate != gate_last)
     {
-      display->fill_rect(98, 8, 28, 11, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
-      display->draw_text(100, 10, "GATE", DUINO_SSD1306::Inverse);
+      display->fill_rect(98, 0, 28, 7, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
+      display->draw_text(100, 0, "GATE", DUINO_SSD1306::Inverse);
       display_changed = true;
       gate_last = gate;
     }
