@@ -24,6 +24,12 @@
 #include <du-ino_interface.h>
 #include <TimerOne.h>
 
+#define ENV_PEAK              5.0
+#define ENV_SATURATION        1.581976
+#define ENV_DECAY_COEFF       -2.0
+#define ENV_RELEASE_COEFF     -2.0
+#define ENV_RELEASE_HOLD      3
+
 struct DU_ADSR_Values {
   uint16_t A;  // ms
   uint16_t D;  // ms
@@ -68,18 +74,13 @@ class DU_ADSR_Function : public DUINO_Function {
         if(elapsed < adsr_values.A)
         {
           // attack
-          cv_current = (float(elapsed) / float(adsr_values.A)) * 10.0;
-        }
-        else if(elapsed < adsr_values.A + adsr_values.D)
-        {
-          // decay
-          cv_current = adsr_values.S + (1.0 - float(elapsed - adsr_values.A) / float(adsr_values.D))
-                       * (10.0 - adsr_values.S);
+          cv_current = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values.A))));
         }
         else
         {
-          // sustain
-          cv_current = adsr_values.S;
+          // decay/sustain
+          cv_current = adsr_values.S + (ENV_PEAK - adsr_values.S)
+              * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values.A) / float(adsr_values.D)));
         }
       }
       else
@@ -87,10 +88,10 @@ class DU_ADSR_Function : public DUINO_Function {
         if(release_time)
         {
           uint16_t elapsed = millis() - release_time;
-          if(elapsed < adsr_values.R)
+          if(elapsed < adsr_values.R * ENV_RELEASE_HOLD)
           {
             // release
-            cv_current = (1.0 - float(elapsed) / float(adsr_values.R)) * cv_released;
+            cv_current = exp(ENV_RELEASE_COEFF * (float(elapsed) / float(adsr_values.R))) * cv_released;
           }
           else
           {
@@ -110,7 +111,7 @@ class DU_ADSR_Function : public DUINO_Function {
     }
     else if(gate)
     {
-      gate_time = millis() - (unsigned long)((cv_current / 10.0) * float(adsr_values.A));
+      gate_time = millis() - (unsigned long)((cv_current / ENV_PEAK) * float(adsr_values.A));
     }
   }
 
@@ -127,7 +128,6 @@ class DU_ADSR_Interface : public DUINO_Interface {
   {
     // initialize interface
     selected = 0;
-    gate_last = false;
     display_changed = false;
 
     // initialize ADSR values
@@ -137,13 +137,12 @@ class DU_ADSR_Interface : public DUINO_Interface {
     v[3] = v_last[3] = 5; 
     adsr_values.A = uint16_t(v[0]) * 24;
     adsr_values.D = uint16_t(v[1]) * 24;
-    adsr_values.S = (float(v[2]) / 46.0) * 10.0;
+    adsr_values.S = (float(v[2]) / 46.0) * ENV_PEAK;
     adsr_values.R = uint16_t(v[3]) * 24;
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
     display->draw_text(16, 0, "ADSR/VCA", DUINO_SSD1306::White);
-    display->draw_text(100, 0, "GATE", DUINO_SSD1306::White);
 
     // draw sliders
     for(uint8_t i = 0; i < 4; ++i)
@@ -200,7 +199,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
           adsr_values.D = uint16_t(v[selected]) * 24;
           break;
         case 2:
-          adsr_values.S = (float(v[selected]) / 46.0) * 10.0;
+          adsr_values.S = (float(v[selected]) / 46.0) * ENV_PEAK;
           break;
         case 3:
           adsr_values.R = uint16_t(v[selected]) * 24;
@@ -208,15 +207,6 @@ class DU_ADSR_Interface : public DUINO_Interface {
       }
       // update last encoder value
       v_last[selected] = v[selected];
-    }
-
-    // display gate state
-    if(gate != gate_last)
-    {
-      display->fill_rect(98, 0, 28, 7, gate ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
-      display->draw_text(100, 0, "GATE", DUINO_SSD1306::Inverse);
-      display_changed = true;
-      gate_last = gate;
     }
 
     if(display_changed)
@@ -227,14 +217,9 @@ class DU_ADSR_Interface : public DUINO_Interface {
   }
 
  private:
-  void display_gate()
-  {
-
-  }
-
   uint8_t selected;
   int8_t v[4], v_last[4];
-  bool gate_last, display_changed;
+  bool display_changed;
 };
 
 DU_ADSR_Function * function;
