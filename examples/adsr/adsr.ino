@@ -111,7 +111,8 @@ class DU_ADSR_Function : public DUINO_Function {
     }
     else if(gate)
     {
-      gate_time = millis() - (unsigned long)((cv_current / ENV_PEAK) * float(adsr_values.A));
+      gate_time = millis()
+          - (unsigned long)(-float(adsr_values.A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
     }
   }
 
