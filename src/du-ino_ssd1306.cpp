@@ -262,11 +262,12 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
   // solid bytes
   if(rh >= 8)
   {
-    if (color == Inverse)
+    if(color == Inverse)
     {
       do
       {
-        *bp = ~(*bp) + SSD1306_LCDWIDTH;
+        *bp = ~(*bp);
+        bp += SSD1306_LCDWIDTH;
         rh -= 8;
       }
       while(rh >= 8);
