@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <Wire.h>
+#include <avr/pgmspace.h>
 
 #include "du-ino_font5x7.h"
 #include "du-ino_ssd1306.h"
@@ -396,6 +397,31 @@ void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Co
   register int8_t i = 0;
   while(*(text + i))
     draw_char(x + 6 * i++, y, *(text + i), color);
+}
+
+void DUINO_SSD1306::draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color)
+{
+  // bound check
+  if(((x + 16) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 16) < 0) || (y >= SSD1306_LCDHEIGHT))
+    return;
+
+  // draw pixels from icon map
+  for(int8_t i = 0; i < 16; ++i)
+  {
+    uint8_t line1 = pgm_read_byte(&map[c * 32 + i * 2]);
+    uint8_t line2 = pgm_read_byte(&map[c * 32 + i * 2 + 1]);
+    for(int8_t j = 0; j < 8; ++j, line1 >>= 1, line2 >>= 1)
+    {
+      if(line1 & 1)
+      {
+        draw_pixel(x + i, y + j, color);
+      }
+      if(line2 & 1)
+      {
+        draw_pixel(x + i, y + j + 8, color);
+      }
+    }
+  }
 }
 
 void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)

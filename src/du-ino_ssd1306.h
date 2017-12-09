@@ -110,6 +110,8 @@ class DUINO_SSD1306
   void draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Color color);
   void draw_text(int16_t x, int16_t y, const char * text, SSD1306Color color);
 
+  void draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color);
+
   void draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color);
   void draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color);
   void draw_logick_logo(int16_t x, int16_t y, SSD1306Color color);
