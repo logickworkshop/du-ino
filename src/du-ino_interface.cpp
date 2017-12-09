@@ -20,6 +20,8 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+#include <EEPROM.h>
+
 #include "du-ino_interface.h"
 
 DUINO_Interface::DUINO_Interface()
@@ -48,4 +50,20 @@ void DUINO_Interface::begin()
 void DUINO_Interface::timer_isr()
 {
   encoder->service();
+}
+
+void DUINO_Interface::save_params(int address, uint8_t * start, int length)
+{
+  for(int i = 0; i < length; ++i)
+  {
+    EEPROM.write(address + i, *(start + i));
+  }
+}
+
+void DUINO_Interface::load_params(int address, uint8_t * start, int length)
+{
+  for(int i = 0; i < length; ++i)
+  {
+    *(start + i) = EEPROM.read(address + i);
+  }
 }

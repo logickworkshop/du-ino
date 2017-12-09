@@ -37,6 +37,9 @@ class DUINO_Interface {
   virtual void setup() {}
   virtual void loop() {}
 
+  void save_params(int address, uint8_t * start, int length);
+  void load_params(int address, uint8_t * start, int length);
+
   DUINO_SSD1306 * display;
   DUINO_Encoder * encoder;
 };
