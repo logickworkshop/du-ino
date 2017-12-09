@@ -200,12 +200,10 @@ class DU_ADSR_Interface : public DUINO_Interface {
       }
       else
       {
-        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Black);
-        display->draw_char(32 * selected + 13, 56, label[selected], DUINO_SSD1306::White);
+        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Inverse);
         selected++;
         selected %= 4;
-        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::White);
-        display->draw_char(32 * selected + 13, 56, label[selected], DUINO_SSD1306::Black);
+        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Inverse);
         display_changed = true;
       }
     }
