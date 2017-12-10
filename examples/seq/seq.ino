@@ -110,6 +110,16 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
     // load settings
     load_params(0, stage_pitch, 8);
+    load_params(8, stage_steps, 8);
+    load_params(16, stage_gate, 8);
+    load_params(24, stage_slew, 1);
+    load_params(25, stage_count, 1);
+    load_params(26, diradd_mode, 1);
+    load_params(27, slew_rate, 1);
+    load_params(28, gate_time, 1);
+    load_params(29, clock_bpm, 1);
+
+    // verify settings and export to function parameters
     for(uint8_t i = 0; i < 8; ++i)
     {
       if(stage_pitch[i] > 119)
@@ -118,7 +128,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       }
       seq_values.stage_cv[i] = note_to_cv(stage_pitch[i]);
     }
-    load_params(8, stage_steps, 8);
+
     for(uint8_t i = 0; i < 8; ++i)
     {
       if(stage_steps[i] < 1 || stage_steps[i] > 8)
@@ -127,7 +137,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       }
       seq_values.stage_steps[i] = stage_steps[i];
     }
-    load_params(16, stage_gate, 8);
+    
     for(uint8_t i = 0; i < 8; ++i)
     {
       if(stage_gate[i] > 5)
@@ -136,20 +146,17 @@ class DU_SEQ_Interface : public DUINO_Interface {
       }
       seq_values.stage_gate[i] = (GateMode)stage_gate[i];
     }
-    load_params(24, stage_slew, 1);
-    load_params(25, stage_count, 1);
+
     if(stage_count < 1 || stage_count > 8)
     {
       stage_count = 8;
     }
+
     seq_values.stage_count = stage_count;
-    load_params(26, diradd_mode, 1);
     seq_values.diradd_mode = (bool)diradd_mode;
-    load_params(27, slew_rate, 1);
     seq_values.slew_rate = (float)slew_rate / 255.0;
-    load_params(28, gate_time, 1);
     seq_values.gate_time = (float)gate_time / 255.0;
-    load_params(29, clock_bpm, 1);
+    
     if(clock_bpm > 30)
     {
       clock_bpm = 30;
@@ -210,10 +217,20 @@ class DU_SEQ_Interface : public DUINO_Interface {
       switch(main_selected)
       {
         case 0: // save
-          // TODO: save parameters
+          save_params(0, stage_pitch, 8);
+          save_params(8, stage_steps, 8);
+          save_params(16, stage_gate, 8);
+          save_params(24, stage_slew, 1);
+          save_params(25, stage_count, 1);
+          save_params(26, diradd_mode, 1);
+          save_params(27, slew_rate, 1);
+          save_params(28, gate_time, 1);
+          save_params(29, clock_bpm, 1);
+          break;
         case 1: // top
           top_selected++;
           top_selected %= 5;
+          break;
         default: // stages
           stage_selected++;
           stage_selected %= 8;
