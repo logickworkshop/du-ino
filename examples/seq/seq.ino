@@ -24,6 +24,9 @@
 #include <du-ino_interface.h>
 #include <TimerOne.h>
 #include <avr/pgmspace.h>
+#include <util/atomic.h>
+
+#define DIGITAL_THRESH 1.25 // V
 
 enum GateMode {
   GATE_NONE = 0,
@@ -67,11 +70,15 @@ struct DU_SEQ_Values {
   bool diradd_mode;
   float slew_rate;
   float gate_time;
-  float clock_period;
+  uint16_t clock_period;
   bool clock_ext;
 };
 
-DU_SEQ_Values seq_values;
+volatile DU_SEQ_Values seq_values;
+
+volatile uint8_t stage;
+volatile uint8_t step;
+volatile bool clock_gate, retrigger;
 
 void clock_isr();
 void reset_isr();
@@ -89,7 +96,86 @@ class DU_SEQ_Function : public DUINO_Function {
 
   virtual void loop()
   {
+    // cache stage and step
+    uint8_t cached_stage, cached_step;
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    {
+      cached_stage = stage;
+      cached_step = step;
+    }
+
+    // drop gate and clock on retrigger
+    if(retrigger)
+    {
+      gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), false);
+      clock_time = millis();
+    }
+
+    // set gate state
+    bool gate = false;
+    switch(seq_values.stage_gate[cached_stage])
+    {
+      case GATE_NONE:
+        gate = false;
+        break;
+      case GATE_1SHT:
+        if(!cached_step)
+        {
+          gate = partial_gate();
+        }
+        break;
+      case GATE_REPT:
+        gate = partial_gate();
+        break;
+      case GATE_LONG:
+        if(cached_step == seq_values.stage_steps[cached_stage] - 1)
+        {
+          gate = partial_gate();
+        }
+        else
+        {
+          gate = true;
+        }
+        break;
+      case GATE_EXT1:
+        gate = cv_read(CI2) > DIGITAL_THRESH;
+        break;
+      case GATE_EXT2:
+        gate = cv_read(CI3) > DIGITAL_THRESH;
+        break;
+    }
+
+    // set pitch CV state
+    cv_out(CO1, seq_values.stage_cv[cached_stage]);
+
+    // set gate and clock states
+    if(gate && (clock_gate || retrigger))
+    {
+      gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), true);
+    }
+    else
+    {
+      gt_out(GT5, gate);
+      gt_out(GT6, clock_gate || retrigger);
+    }
+
+    // reset retrigger
+    if(retrigger)
+    {
+      retrigger = false;
+    }
   }
+
+ private:
+  bool partial_gate()
+  {
+    uint16_t elapsed = millis() - clock_time;
+    return (seq_values.clock_ext && clock_gate)
+           || (elapsed < (seq_values.gate_time * seq_values.clock_period / 16))
+           || retrigger;
+  }
+
+  unsigned long clock_time;
 };
 
 class DU_SEQ_Interface : public DUINO_Interface {
@@ -417,9 +503,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
     return ((float)note - 36.0) / 12.0;
   }
 
-  float bpm_to_ms(uint8_t bpm)
+  uint16_t bpm_to_ms(uint8_t bpm)
   {
-    return 600000.0 / (float)bpm;
+    return 600000 / bpm;
   }
 
   void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SSD1306::SSD1306Color color)
@@ -553,10 +639,24 @@ DU_SEQ_Interface * interface;
 
 void clock_isr()
 {
+  clock_gate = function->gt_read(GT3);
+  if(clock_gate)
+  {
+    step++;
+    step %= seq_values.stage_steps[stage];
+    if(!step)
+    {
+      stage++;
+      stage %= seq_values.stage_count;
+    }
+    retrigger = true;
+  }
 }
 
 void reset_isr()
 {
+  stage = step = 0;
+  retrigger = true;
 }
 
 void timer_isr()
