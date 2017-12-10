@@ -97,6 +97,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
   virtual void setup()
   {
     // initialize interface
+    main_selected = 2;
+    top_selected = 0;
     display_changed = false;
 
     // draw top line
@@ -185,11 +187,41 @@ class DU_SEQ_Interface : public DUINO_Interface {
       display->fill_rect(16 * i + 2 + 6 * (~(stage_slew >> i) & 1), 60, 6, 2, DUINO_SSD1306::Black);
     }
 
+    invert_current_selection();
     display->display();
   }
 
   virtual void loop()
   {
+    // handle encoder button press
+    DUINO_Encoder::Button b = encoder->get_button();
+    if(b == DUINO_Encoder::DoubleClicked)
+    {
+      // switch main selection
+      invert_current_selection();
+      main_selected++;
+      main_selected %= 6;
+      invert_current_selection();
+      display_changed = true;
+    }
+    else if(b == DUINO_Encoder::Clicked)
+    {
+      invert_current_selection();
+      switch(main_selected)
+      {
+        case 0: // save
+          // TODO: save parameters
+        case 1: // top
+          top_selected++;
+          top_selected %= 5;
+        default: // stages
+          stage_selected++;
+          stage_selected %= 8;
+          break;
+      }
+      invert_current_selection();
+      display_changed = true;
+    }
 
     if(display_changed)
     {
@@ -248,6 +280,52 @@ class DU_SEQ_Interface : public DUINO_Interface {
         break;
     }
   }
+
+  void invert_current_selection()
+  {
+    switch(main_selected)
+    {
+      case 0: // save
+        display->fill_rect(121, 0, 7, 7, DUINO_SSD1306::Inverse);
+        break;
+      case 1: // top
+        switch(top_selected)
+        {
+          case 0: // count
+            display->fill_rect(37, 1, 7, 9, DUINO_SSD1306::Inverse);
+            break;
+          case 1: // dir/add
+            display->fill_rect(46, 1, 7, 9, DUINO_SSD1306::Inverse);
+            break;
+          case 2: // slew
+            display->fill_rect(55, 1, 20, 9, DUINO_SSD1306::Inverse);
+            break;
+          case 3: // gate
+            display->fill_rect(77, 1, 20, 9, DUINO_SSD1306::Inverse);
+            break;
+          case 4: // clock
+            display->fill_rect(99, 1, 19, 9, DUINO_SSD1306::Inverse);
+            break;
+        }
+        break;
+      case 2: // pitch
+        display->fill_rect(16 * stage_selected, 10, 16, 15, DUINO_SSD1306::Inverse);
+        break;
+      case 3: // steps
+        display->fill_rect(16 * stage_selected, 25, 16, 17, DUINO_SSD1306::Inverse);
+        break;
+      case 4: // gate
+        display->fill_rect(16 * stage_selected, 42, 16, 16, DUINO_SSD1306::Inverse);
+        break;
+      case 5: // slew
+        display->fill_rect(16 * stage_selected, 58, 16, 6, DUINO_SSD1306::Inverse);
+        break;
+    }
+  }
+
+  uint8_t main_selected;  // 0 - save, 1 - top, 2 - pitch, 3 - steps, 4 - gate, 5 - slew
+  uint8_t top_selected;   // 0 - count, 1 - dir/add, 2 - slew, 3 - gate, 4 - clock
+  uint8_t stage_selected;
 
   bool display_changed;
 
