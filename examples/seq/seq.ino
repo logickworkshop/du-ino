@@ -141,16 +141,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       display->draw_hline(57 + i * 22, 8, 16, DUINO_SSD1306::White);
       display->draw_vline(73 + i * 22, 2, 7, DUINO_SSD1306::White);
     }
-    if(clock_bpm == 0)
-    {
-      display->draw_text(100, 2, "EXT", DUINO_SSD1306::White);
-    }
-    else
-    {
-      display->draw_char(100, 2, '0' + clock_bpm / 10, DUINO_SSD1306::White);
-      display->draw_char(106, 2, '0' + clock_bpm % 10, DUINO_SSD1306::White);
-      display->draw_char(112, 2, '0', DUINO_SSD1306::White);
-    }
+    display_clock(100, 2, clock_bpm, DUINO_SSD1306::White);
 
     // draw step elements
     for(uint8_t i = 0; i < 8; ++i)
@@ -184,6 +175,20 @@ class DU_SEQ_Interface : public DUINO_Interface {
   }
 
  private:
+  void display_clock(int16_t x, int16_t y, uint8_t bpm, DUINO_SSD1306::SSD1306Color color)
+  {
+    if(bpm == 0)
+    {
+      display->draw_text(x, y, "EXT", DUINO_SSD1306::White);
+    }
+    else
+    {
+      display->draw_char(x, y, '0' + bpm / 10, DUINO_SSD1306::White);
+      display->draw_char(x + 6, y, '0' + bpm % 10, DUINO_SSD1306::White);
+      display->draw_char(x + 12, y, '0', DUINO_SSD1306::White);
+    }
+  }
+
   void display_note(int16_t x, int16_t y, uint8_t note, DUINO_SSD1306::SSD1306Color color)
   {
     // draw octave
