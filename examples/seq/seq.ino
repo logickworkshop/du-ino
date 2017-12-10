@@ -58,6 +58,21 @@ static const unsigned char gate_mode_icons[] PROGMEM = {
 static const unsigned char semitone_lt[12] = {'C', 'C', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'A', 'B', 'B'};
 static const Intonation semitone_in[12] = {IN, IS, IN, IF, IN, IN, IS, IN, IS, IN, IF, IN};
 
+struct DU_SEQ_Values {
+  float stage_cv[8];
+  uint8_t stage_steps[8];
+  GateMode stage_gate[8];
+  bool stage_slew[8];
+  uint8_t stage_count;
+  bool diradd_mode;
+  float slew_rate;
+  float gate_time;
+  float clock_period;
+  bool clock_ext;
+};
+
+DU_SEQ_Values seq_values;
+
 void clock_isr();
 void reset_isr();
 void timer_isr();
@@ -99,7 +114,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
       {
         stage_pitch[i] = 119;
       }
-    }    
+      seq_values.stage_cv[i] = note_to_cv(stage_pitch[i]);
+    }
     load_params(8, stage_steps, 8);
     for(uint8_t i = 0; i < 8; ++i)
     {
@@ -107,6 +123,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       {
         stage_steps[i] = 8;
       }
+      seq_values.stage_steps[i] = stage_steps[i];
     }
     load_params(16, stage_gate, 8);
     for(uint8_t i = 0; i < 8; ++i)
@@ -115,6 +132,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       {
         stage_gate[i] = 5;
       }
+      seq_values.stage_gate[i] = (GateMode)stage_gate[i];
     }
     load_params(24, stage_slew, 1);
     load_params(25, stage_count, 1);
@@ -122,14 +140,20 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       stage_count = 8;
     }
+    seq_values.stage_count = stage_count;
     load_params(26, diradd_mode, 1);
+    seq_values.diradd_mode = (bool)diradd_mode;
     load_params(27, slew_rate, 1);
+    seq_values.slew_rate = (float)slew_rate / 255.0;
     load_params(28, gate_time, 1);
+    seq_values.gate_time = (float)gate_time / 255.0;
     load_params(29, clock_bpm, 1);
     if(clock_bpm > 30)
     {
       clock_bpm = 30;
     }
+    seq_values.clock_period = bpm_to_ms(clock_bpm);
+    seq_values.clock_ext = !(bool)clock_bpm;
 
     // draw global elements
     display->draw_char(38, 2, '0' + stage_count, DUINO_SSD1306::White);
@@ -175,6 +199,16 @@ class DU_SEQ_Interface : public DUINO_Interface {
   }
 
  private:
+  float note_to_cv(uint8_t note)
+  {
+    return ((float)note - 36.0) / 12.0;
+  }
+
+  float bpm_to_ms(uint8_t bpm)
+  {
+    return 600000.0 / (float)bpm;
+  }
+
   void display_clock(int16_t x, int16_t y, uint8_t bpm, DUINO_SSD1306::SSD1306Color color)
   {
     if(bpm == 0)
