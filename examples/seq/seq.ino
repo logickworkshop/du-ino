@@ -279,13 +279,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
     for(uint8_t i = 0; i < 8; ++i)
     {
       // pitch
-      display_note(16 * i, 9, params.vals.stage_pitch[i], DUINO_SSD1306::White);
+      display_note(16 * i, 20, params.vals.stage_pitch[i], DUINO_SSD1306::White);
       // steps
-      for(uint8_t j = 0; j < params.vals.stage_steps[i]; ++j)
-      {
-        display->draw_hline(16 * i + 2, 40 - j * 2, 5, DUINO_SSD1306::White);
-        display->draw_hline(16 * i + 9, 40 - j * 2, 5, DUINO_SSD1306::White);
-      }
+      display_steps(16 * i, 35, params.vals.stage_steps[i], DUINO_SSD1306::White);
       // gate mode
       display->draw_icon_16(16 * i, 42, gate_mode_icons, (GateMode)params.vals.stage_gate[i], DUINO_SSD1306::White);
       // slew
@@ -429,8 +425,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
             params.vals.stage_pitch[stage_selected] = 119;
           }
           seq_values.stage_cv[stage_selected] = note_to_cv(params.vals.stage_pitch[stage_selected]);
-          display->fill_rect(16 * stage_selected, 10, 16, 15, DUINO_SSD1306::White);
-          display_note(16 * stage_selected, 9, params.vals.stage_pitch[stage_selected], DUINO_SSD1306::Black);
+          display->fill_rect(16 * stage_selected, 20, 16, 15, DUINO_SSD1306::White);
+          display_note(16 * stage_selected, 20, params.vals.stage_pitch[stage_selected], DUINO_SSD1306::Black);
           break;
         case 3: // steps
           params.vals.stage_steps[stage_selected] += v;
@@ -443,12 +439,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
             params.vals.stage_steps[stage_selected] = 8;
           }
           seq_values.stage_steps[stage_selected] = params.vals.stage_steps[stage_selected];
-          display->fill_rect(16 * stage_selected, 25, 16, 17, DUINO_SSD1306::White);
-          for(uint8_t j = 0; j < params.vals.stage_steps[stage_selected]; ++j)
-          {
-            display->draw_hline(16 * stage_selected + 2, 40 - j * 2, 5, DUINO_SSD1306::Black);
-            display->draw_hline(16 * stage_selected + 9, 40 - j * 2, 5, DUINO_SSD1306::Black);
-          }
+          display->fill_rect(16 * stage_selected, 35, 16, 7, DUINO_SSD1306::White);
+          display_steps(16 * stage_selected, 35, params.vals.stage_steps[stage_selected], DUINO_SSD1306::Black);
           break;
         case 4: // gate
           params.vals.stage_gate[stage_selected] += v;
@@ -543,26 +535,52 @@ class DU_SEQ_Interface : public DUINO_Interface {
   void display_note(int16_t x, int16_t y, int8_t note, DUINO_SSD1306::SSD1306Color color)
   {
     // draw octave
-    display->draw_char(x + 9, y + 8, '0' + note / 12, color);
+    display->draw_char(x + 9, y + 7, '0' + note / 12, color);
 
     // draw note
-    display->draw_char(x + 2, y + 5, semitone_lt[note % 12], color);
+    display->draw_char(x + 2, y + 4, semitone_lt[note % 12], color);
     
     // draw intonation symbol
     switch(semitone_in[note % 12])
     {
       case IF:
-        display->draw_vline(x + 9, y + 2, 5, color);
-        display->draw_pixel(x + 10, y + 4, color);
-        display->draw_pixel(x + 10, y + 6, color);
-        display->draw_vline(x + 11, y + 5, 2, color);
-        break;
-      case IS:
-        display->draw_vline(x + 9, y + 2, 5, color);
+        display->draw_vline(x + 9, y + 1, 5, color);
         display->draw_pixel(x + 10, y + 3, color);
         display->draw_pixel(x + 10, y + 5, color);
-        display->draw_vline(x + 11, y + 2, 5, color);
+        display->draw_vline(x + 11, y + 4, 2, color);
         break;
+      case IS:
+        display->draw_vline(x + 9, y + 1, 5, color);
+        display->draw_pixel(x + 10, y + 2, color);
+        display->draw_pixel(x + 10, y + 4, color);
+        display->draw_vline(x + 11, y + 1, 5, color);
+        break;
+    }
+  }
+
+  void display_steps(int16_t x, int16_t y, int8_t steps, DUINO_SSD1306::SSD1306Color color)
+  {
+    // draw center line
+    display->draw_hline(x + 1, y + 3, 14, color);
+
+    // draw top pips
+    for(uint8_t i = 0; i < 4; ++i)
+    {
+      if(i + 1 > steps)
+      {
+        break;
+      }
+      display->fill_rect(x + 1 + i * 4, y + 1, 2, 2, color);
+    }
+
+    // draw bottom pips
+    for(uint8_t i = 0; i < 4; ++i)
+    {
+      if(i + 5 > steps)
+      {
+        break;
+      }
+      display->fill_rect(x + 13 - i * 4, y + 4, 2, 2, color);
     }
   }
 
@@ -594,10 +612,10 @@ class DU_SEQ_Interface : public DUINO_Interface {
         }
         break;
       case 2: // pitch
-        display->fill_rect(16 * stage_selected, 10, 16, 15, DUINO_SSD1306::Inverse);
+        display->fill_rect(16 * stage_selected, 20, 16, 15, DUINO_SSD1306::Inverse);
         break;
       case 3: // steps
-        display->fill_rect(16 * stage_selected, 25, 16, 17, DUINO_SSD1306::Inverse);
+        display->fill_rect(16 * stage_selected, 35, 16, 7, DUINO_SSD1306::Inverse);
         break;
       case 4: // gate
         display->fill_rect(16 * stage_selected, 42, 16, 16, DUINO_SSD1306::Inverse);
