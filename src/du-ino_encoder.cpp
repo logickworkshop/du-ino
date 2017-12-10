@@ -143,8 +143,9 @@ int16_t DUINO_Encoder::get_value()
   // read delta
   cli();
   val = delta;
-  delta = 0;
+  delta = val & 1;
   sei();
+  val >>= 1;
 
   int16_t r = 0;
   int16_t accel = acceleration >> 8;
