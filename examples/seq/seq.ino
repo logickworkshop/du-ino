@@ -163,6 +163,7 @@ class DU_SEQ_Function : public DUINO_Function {
     if(retrigger)
     {
       retrigger = false;
+      clock_gate &= seq_values.clock_ext;
     }
   }
 
@@ -262,7 +263,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     seq_values.clock_period = bpm_to_ms(params.vals.clock_bpm);
     seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-    update_clock();
+    Timer1.initialize(seq_values.clock_period * 1000);
+    Timer1.attachInterrupt(clock_isr);
 
     // draw global elements
     display->draw_char(38, 2, '0' + params.vals.stage_count, DUINO_SSD1306::White);
@@ -517,10 +519,13 @@ class DU_SEQ_Interface : public DUINO_Interface {
  private:
   void update_clock()
   {
-    Timer1.detachInterrupt();
-    if(!seq_values.clock_ext)
+    if(seq_values.clock_ext)
     {
-      Timer1.initialize(seq_values.clock_period * 1000);
+      Timer1.detachInterrupt();
+    }
+    else
+    {
+      Timer1.setPeriod(seq_values.clock_period * 1000);
       Timer1.attachInterrupt(clock_isr);
     }
   }
@@ -707,7 +712,8 @@ ENCODER_ISR(interface->encoder);
 
 void clock_isr()
 {
-  clock_gate = function->gt_read(GT3);
+  clock_gate = !seq_values.clock_ext || function->gt_read(GT3);
+
   if(clock_gate)
   {
     step++;
