@@ -105,10 +105,18 @@ class DU_SEQ_Function : public DUINO_Function {
       cached_step = step;
     }
 
-    // drop gate and clock on retrigger
     if(retrigger)
     {
-      gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), false);
+      if(!cached_step)
+      {
+        // drop gate and clock at start of stage
+        gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), false);
+      }
+      else
+      {
+        // drop clock each retrigger
+        gt_out(GT6, false);
+      }
       clock_time = millis();
     }
 
