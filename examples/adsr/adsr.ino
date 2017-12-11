@@ -22,7 +22,6 @@
 
 #include <du-ino_function.h>
 #include <du-ino_interface.h>
-#include <TimerOne.h>
 
 #define ENV_PEAK              5.0
 #define ENV_SATURATION        1.581976
@@ -39,13 +38,12 @@ struct DU_ADSR_Values {
   uint16_t R;  // ms
 };
 
-volatile DU_ADSR_Values adsr_values;
+DU_ADSR_Values adsr_values;
 volatile bool gate, retrigger;
 
 static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 
 void gate_isr();
-void timer_isr();
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
@@ -269,16 +267,13 @@ class DU_ADSR_Interface : public DUINO_Interface {
 DU_ADSR_Function * function;
 DU_ADSR_Interface * interface;
 
+ENCODER_ISR(interface->encoder);
+
 void gate_isr()
 {
   gate = function->gt_read(GT3);
   if(gate)
     retrigger = true;
-}
-
-void timer_isr()
-{
-  interface->timer_isr();
 }
 
 void setup()
@@ -290,9 +285,6 @@ void setup()
 
   function->begin();
   interface->begin();
-
-  Timer1.initialize(1000);
-  Timer1.attachInterrupt(timer_isr);
 }
 
 void loop()

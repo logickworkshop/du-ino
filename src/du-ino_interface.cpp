@@ -42,14 +42,12 @@ void DUINO_Interface::begin()
     display->clear_display(); 
     display->display();
 
+    // initialize encoder
+    encoder->begin();
+
     setup();
     initialized = true;
   }
-}
-
-void DUINO_Interface::timer_isr()
-{
-  encoder->service();
 }
 
 void DUINO_Interface::save_params(int address, uint8_t * start, int length)

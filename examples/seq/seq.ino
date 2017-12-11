@@ -82,7 +82,6 @@ volatile bool gate, clock_gate, retrigger;
 
 void clock_isr();
 void reset_isr();
-void timer_isr();
 
 class DU_SEQ_Function : public DUINO_Function {
  public:
@@ -518,12 +517,11 @@ class DU_SEQ_Interface : public DUINO_Interface {
  private:
   void update_clock()
   {
-    // TODO: replace encoder clock with timer2?
-    //Timer1.detachInterrupt();
+    Timer1.detachInterrupt();
     if(!seq_values.clock_ext)
     {
-      //Timer1.initialize(seq_values.clock_period * 1000);
-      //Timer1.attachInterrupt(clock_isr);
+      Timer1.initialize(seq_values.clock_period * 1000);
+      Timer1.attachInterrupt(clock_isr);
     }
   }
 
@@ -705,6 +703,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
 DU_SEQ_Function * function;
 DU_SEQ_Interface * interface;
 
+ENCODER_ISR(interface->encoder);
+
 void clock_isr()
 {
   clock_gate = function->gt_read(GT3);
@@ -727,11 +727,6 @@ void reset_isr()
   retrigger = true;
 }
 
-void timer_isr()
-{
-  interface->timer_isr();
-}
-
 void setup()
 {
   function = new DU_SEQ_Function();
@@ -739,9 +734,6 @@ void setup()
 
   function->begin();
   interface->begin();
-
-  Timer1.initialize(1000);
-  Timer1.attachInterrupt(timer_isr);
 }
 
 void loop()

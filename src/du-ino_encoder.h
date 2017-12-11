@@ -48,6 +48,8 @@ class DUINO_Encoder
  public:
   DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn);
 
+  void begin();
+
   void service(void);  
   int16_t get_value(void);
   Button get_button(void);
@@ -62,5 +64,7 @@ class DUINO_Encoder
   volatile uint16_t acceleration;
   volatile Button button;
 };
+
+#define ENCODER_ISR(encoder) ISR(TIMER2_OVF_vect) { (encoder)->service(); }
 
 #endif // DUINO_ENCODER_H_

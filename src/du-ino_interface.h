@@ -32,7 +32,6 @@ class DUINO_Interface {
   DUINO_Interface();
 
   void begin();
-  void timer_isr();
 
   virtual void setup() {}
   virtual void loop() {}

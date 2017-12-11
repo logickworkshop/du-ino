@@ -20,6 +20,8 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+#include <avr/interrupt.h>
+
 #include "du-ino_encoder.h"
 
 // encoder acceleration configuration for 1000Hz tick
@@ -51,6 +53,21 @@ DUINO_Encoder::DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn)
     last = 3;
   if (digitalRead(pin_b) == LOW)
     last ^= 1;
+
+  // set up timer
+  TIMSK2 &= ~(1 << TOIE2);
+  TCCR2A &= ~((1 << WGM21) | (1 << WGM20));
+  TCCR2B &= ~(1 << WGM22);
+  ASSR &= ~(1 << AS2);
+  TIMSK2 &= ~(1 << OCIE2A);
+  TCCR2B |= (1 << CS22);
+  TCCR2B &= ~((1 << CS21) | (1 << CS20));
+}
+
+void DUINO_Encoder::begin()
+{
+  TCNT2 = 256 - (int)((float)F_CPU * 0.000015625);
+  TIMSK2 |= (1 << TOIE2);
 }
 
 void DUINO_Encoder::service()
