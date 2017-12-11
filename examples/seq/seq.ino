@@ -68,9 +68,9 @@ struct DU_SEQ_Values {
   bool stage_slew[8];
   uint8_t stage_count;
   bool diradd_mode;
-  float slew_rate;
-  float gate_time;
-  uint16_t clock_period;
+  uint8_t slew_rate;
+  uint8_t gate_time;
+  unsigned long clock_period;
   bool clock_ext;
 };
 
@@ -170,9 +170,8 @@ class DU_SEQ_Function : public DUINO_Function {
  private:
   bool partial_gate()
   {
-    uint16_t elapsed = millis() - clock_time;
     return (seq_values.clock_ext && clock_gate)
-           || (elapsed < (seq_values.gate_time * seq_values.clock_period / 16))
+           || (millis() - clock_time < (seq_values.gate_time * (seq_values.clock_period / 16000)))
            || retrigger;
   }
 
@@ -249,21 +248,21 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       params.vals.slew_rate = 8;
     }
-    seq_values.slew_rate = (float)params.vals.slew_rate / 16.0;
+    seq_values.slew_rate = params.vals.slew_rate;
 
     if(params.vals.gate_time < 0 || params.vals.gate_time > 16)
     {
       params.vals.gate_time = 8;
     }
-    seq_values.gate_time = (float)params.vals.gate_time / 16.0;
+    seq_values.gate_time = params.vals.gate_time;
     
     if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 30)
     {
       params.vals.clock_bpm = 0;
     }
-    seq_values.clock_period = bpm_to_ms(params.vals.clock_bpm);
+    seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
     seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-    Timer1.initialize(seq_values.clock_period * 1000);
+    Timer1.initialize(seq_values.clock_period);
     Timer1.attachInterrupt(clock_isr);
 
     // draw global elements
@@ -384,7 +383,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.slew_rate = 16;
               }
-              seq_values.slew_rate = (float)params.vals.slew_rate / 16.0;
+              seq_values.slew_rate = params.vals.slew_rate;
               display->fill_rect(57, 3, 16, 5, DUINO_SSD1306::White);
               display_slew_rate(57, 3, params.vals.slew_rate, DUINO_SSD1306::Black);
               break;
@@ -398,7 +397,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.gate_time = 16;
               }
-              seq_values.gate_time = (float)params.vals.gate_time / 16.0;
+              seq_values.gate_time = params.vals.gate_time;
               display->fill_rect(79, 3, 16, 5, DUINO_SSD1306::White);
               display_gate_time(79, 3, params.vals.gate_time, DUINO_SSD1306::Black);
               break;
@@ -412,7 +411,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.clock_bpm = 30;
               }
-              seq_values.clock_period = bpm_to_ms(params.vals.clock_bpm);
+              seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
               seq_values.clock_ext = !(bool)params.vals.clock_bpm;
               display->fill_rect(99, 1, 19, 9, DUINO_SSD1306::White);
               display_clock(100, 2, params.vals.clock_bpm, DUINO_SSD1306::Black);
@@ -525,7 +524,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     else
     {
-      Timer1.setPeriod(seq_values.clock_period * 1000);
+      Timer1.setPeriod(seq_values.clock_period);
       Timer1.attachInterrupt(clock_isr);
     }
   }
@@ -535,9 +534,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
     return ((float)note - 36.0) / 12.0;
   }
 
-  uint16_t bpm_to_ms(uint8_t bpm)
+  unsigned long bpm_to_us(uint8_t bpm)
   {
-    return 600000 / bpm;
+    return 6000000 / (unsigned long)bpm;
   }
 
   void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SSD1306::SSD1306Color color)
