@@ -23,7 +23,11 @@
 #include <du-ino_function.h>
 #include <du-ino_interface.h>
 
-volatile bool gt3_state, gt3_retrigger, gt4_state, gt4_retrigger;
+#define GT_INT_DISPLAY_TIME   1000
+
+volatile uint8_t gt_state;
+volatile bool gt3_retrigger, gt4_retrigger;
+volatile unsigned long gt3_retrigger_time, gt4_retrigger_time;
 int8_t calibration_value;
 bool gt, gt_io;
 float cv[4];
@@ -37,8 +41,6 @@ class DU_Test_Function : public DUINO_Function {
   
   virtual void setup()
   {
-    gt3_state = gt3_retrigger = false;
-    gt4_state = gt4_retrigger = false;
     gt_attach_interrupt(GT3, gt3_isr, CHANGE);
     gt_attach_interrupt(GT4, gt4_isr, CHANGE);
 
@@ -47,6 +49,21 @@ class DU_Test_Function : public DUINO_Function {
 
   virtual void loop()
   {
+    if(gt3_retrigger)
+    {
+      if(millis() - gt3_retrigger_time > GT_INT_DISPLAY_TIME)
+      {
+        gt3_retrigger = false;
+      }
+    }
+    if(gt4_retrigger)
+    {
+      if(millis() - gt4_retrigger_time > GT_INT_DISPLAY_TIME)
+      {
+        gt4_retrigger = false;
+      }
+    }
+
     cv[0] = cv_read(CI1);
     cv[1] = cv_read(CI2);
     cv[2] = cv_read(CI3);
@@ -63,7 +80,29 @@ class DU_Test_Function : public DUINO_Function {
       set_switch_config(gt_io ? 0b0000110000 : 0b0000001111);
     }
 
-    gt_out(GT_ALL, gt);
+    if(gt_io)
+    {
+      gt_out(GT_ALL, gt);
+    }
+    else
+    {
+      if(gt_read(GT1))
+      {
+        gt_state |= 1U;
+      }
+      else
+      {
+        gt_state &= ~1U;
+      }
+      if(gt_read(GT2))
+      {
+        gt_state |= 2U;
+      }
+      else
+      {
+        gt_state &= ~2U;
+      }
+    }
   }
 
  private:
@@ -127,7 +166,11 @@ class DU_Test_Interface : public DUINO_Interface {
     }
     else if(b == DUINO_Encoder::Held)
     {
-      // TODO: digital output control
+      gt = true;
+    }
+    else if(b == DUINO_Encoder::Released)
+    {
+      gt = false;
     }
 
     // handle encoder spin
@@ -148,6 +191,9 @@ class DU_Test_Interface : public DUINO_Interface {
 
     // display CV input values
     display_cv_in();
+
+    // display GT input/output states
+    display_gtio();
 
     // update display
     display->display();
@@ -177,6 +223,32 @@ class DU_Test_Interface : public DUINO_Interface {
     }
   }
 
+  void display_gtio()
+  {
+    display->fill_rect(104, 27, 5, 37, DUINO_SSD1306::Black);
+    display->fill_rect(120, 47, 5, 17, DUINO_SSD1306::Black);
+
+    // input & output for GT1 - GT4
+    for(uint8_t i = 0; i < 4; ++i)
+    {
+      if((i == 2 && gt3_retrigger) || (i == 3) && gt4_retrigger)
+      {
+        display->draw_char(104, 27 + 10 * i, 0x0F, DUINO_SSD1306::White);
+      }
+      else if((gt_io && gt) || (!gt_io && (gt_state & (1U << i))))
+      {
+        display->draw_char(104, 27 + 10 * i, 0x04, DUINO_SSD1306::White);
+      }
+    }
+
+    // output for GT5 & GT6
+    if(gt_io && gt)
+    {
+      display->draw_char(120, 47, 0x04, DUINO_SSD1306::White);
+      display->draw_char(120, 57, 0x04, DUINO_SSD1306::White);
+    }
+  }
+
   bool display_changed;
   int8_t last_calibration_value;
 };
@@ -188,16 +260,31 @@ ENCODER_ISR(interface->encoder);
 
 void gt3_isr()
 {
-  gt3_state = function->gt_read(GT3);
-  if(gt3_state)
+  if(function->gt_read(GT3))
+  {
+    gt_state |= 4U;
     gt3_retrigger = true;
+    gt3_retrigger_time = millis();
+  }
+  else
+  {
+    gt_state &= ~4U;
+  }
 }
 
 void gt4_isr()
 {
-  gt4_state = function->gt_read(GT4);
-  if(gt4_state)
+  if(function->gt_read(GT4))
+  {
+    gt_state |= 8U;
     gt4_retrigger = true;
+    gt4_retrigger_time = millis();
+  }
+  else
+  {
+    gt_state &= ~8U;
+    gt_state = 0;
+  }
 }
 
 void setup()
@@ -205,6 +292,9 @@ void setup()
   function = new DU_Test_Function();
   interface = new DU_Test_Interface();
 
+  gt_state = 0;
+  gt3_retrigger = gt4_retrigger = false;
+  gt3_retrigger_time = gt4_retrigger_time = 0;
   calibration_value = 0;
   gt = false;
   gt_io = false;
