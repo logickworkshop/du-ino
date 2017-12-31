@@ -67,11 +67,13 @@ class DUINO_Function {
   void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode);
   void gt_detach_interrupt(uint8_t jack);
 
+  void set_switch_config(uint16_t sc);
+
  private:
   DUINO_MCP4922 * dac[2];
 
-  const uint16_t switch_config;   // 0b000000{SC4 .. SC1}{SG6 .. SG1}
-  const uint8_t out_mask;         // 0b00{GT6 .. GT1}
+  uint16_t switch_config;   // 0b000000{SC4 .. SC1}{SG6 .. SG1}
+  uint8_t out_mask;         // 0b00{GT6 .. GT1}
 };
 
 #endif // DUINO_FUNCTION_H_

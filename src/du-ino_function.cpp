@@ -133,3 +133,9 @@ void DUINO_Function::gt_detach_interrupt(uint8_t jack)
 {
   detachInterrupt(digitalPinToInterrupt(jack));
 }
+
+void DUINO_Function::set_switch_config(uint16_t sc)
+{
+  switch_config = sc;
+  out_mask = 0x30 | (~sc & 0x0F);
+}
