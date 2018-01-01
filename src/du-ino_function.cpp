@@ -26,19 +26,15 @@
 #define TRIG_MS     5
 
 DUINO_Function::DUINO_Function(uint16_t sc)
-  : switch_config(sc)
-  , out_mask(0x30 | (~sc & 0x0F))
 {
+  set_switch_config(sc)
+
   // configure analog pins
   analogReference(EXTERNAL);
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
-  
-  // configure digital pins
-  for(uint8_t i = 0; i < 6; ++i)
-    pinMode(i, out_mask & (1 << i) ? OUTPUT : INPUT);
 
   // configure DACs
   for(uint8_t i = 0; i < 2; ++i)
@@ -138,4 +134,8 @@ void DUINO_Function::set_switch_config(uint16_t sc)
 {
   switch_config = sc;
   out_mask = 0x30 | (~sc & 0x0F);
+
+  // configure digital pins
+  for(uint8_t i = 0; i < 6; ++i)
+    pinMode(i, out_mask & (1 << i) ? OUTPUT : INPUT);
 }
