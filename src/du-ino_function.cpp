@@ -27,7 +27,7 @@
 
 DUINO_Function::DUINO_Function(uint16_t sc)
 {
-  set_switch_config(sc)
+  set_switch_config(sc);
 
   // configure analog pins
   analogReference(EXTERNAL);
@@ -65,9 +65,30 @@ void DUINO_Function::begin()
 bool DUINO_Function::gt_read(uint8_t jack)
 {
   if(jack < 4 && switch_config & (1 << jack))
+  {
     return digitalRead(jack) == LOW ? true : false;
+  }
   else
+  { 
     return false;
+  }
+}
+
+bool DUINO_Function::gt_read_debounce(uint8_t jack)
+{
+  if(jack < 4 && switch_config & (1 << jack))
+  {
+    uint16_t buffer = 0x5555;
+    while(buffer && buffer != 0xFFFF)
+    {
+      buffer = (buffer << 1) | digitalRead(jack);
+    }
+    return buffer ? false : true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)

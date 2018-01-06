@@ -260,7 +260,7 @@ ENCODER_ISR(interface->encoder);
 
 void gt3_isr()
 {
-  if(function->gt_read(GT3))
+  if(function->gt_read_debounce(GT3))
   {
     gt_state |= 4U;
     gt3_retrigger = true;
@@ -274,7 +274,7 @@ void gt3_isr()
 
 void gt4_isr()
 {
-  if(function->gt_read(GT4))
+  if(function->gt_read_debounce(GT4))
   {
     gt_state |= 8U;
     gt4_retrigger = true;
@@ -283,7 +283,6 @@ void gt4_isr()
   else
   {
     gt_state &= ~8U;
-    gt_state = 0;
   }
 }
 
