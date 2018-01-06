@@ -47,7 +47,7 @@ void gate_isr();
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
-  DU_ADSR_Function() : DUINO_Function(0b0000000100) { }
+  DU_ADSR_Function() : DUINO_Function(0b1011001100) { }
   
   virtual void setup()
   {
@@ -271,7 +271,7 @@ ENCODER_ISR(interface->encoder);
 
 void gate_isr()
 {
-  gate = function->gt_read(GT3);
+  gate = function->gt_read_debounce(GT3);
   if(gate)
     retrigger = true;
 }
