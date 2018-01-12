@@ -78,3 +78,18 @@ class DUINO_Function {
 };
 
 #endif // DUINO_FUNCTION_H_
+
+
+/* SWITCH   NC (0)        NO (1)
+ * ------   ----------    -----------
+ * SG1      GT1 output    GT1 input
+ * SG2      GT2 output    GT2 input
+ * SG3      GT3 output    GT3 input
+ * SG4      GT4 output    GT4 input
+ * SG5      CO3 = DAC3    GT5 output
+ * SG6      CO4 = DAC4    GT6 output
+ * SC1      AD1+ = CI1    AD1+ = DAC1
+ * SC2      AD1- = CI2    AD1- = DAC2
+ * SC3      AD2+ = CI3    AD2+ = DAC3
+ * SC4      AD2- = CI4    AD2- = DAC4
+ */
