@@ -69,7 +69,7 @@ struct DU_SEQ_Values {
   uint8_t stage_count;
   bool diradd_mode;
   uint8_t slew_rate;
-  uint8_t gate_time;
+  uint16_t gate_ms;
   unsigned long clock_period;
   bool clock_ext;
 };
@@ -85,10 +85,11 @@ void reset_isr();
 
 class DU_SEQ_Function : public DUINO_Function {
  public:
-  DU_SEQ_Function() : DUINO_Function(0b0111110000) { }
+  DU_SEQ_Function() : DUINO_Function(0b0111111111) { }
   
   virtual void setup()
   {
+    // TODO: attach GT3 to hardware clock isr that sets clock to EXT
     gt_attach_interrupt(GT3, clock_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
 
@@ -97,15 +98,17 @@ class DU_SEQ_Function : public DUINO_Function {
 
   virtual void loop()
   {
-    // cache stage and step
-    uint8_t cached_stage, cached_step;
+    // cache stage, step, and clock gate (so that each loop is "atomic")
     ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
       cached_stage = stage;
       cached_step = step;
+      cached_clock_gate = clock_gate;
+      cached_retrigger = retrigger;
+      retrigger = false;
     }
 
-    if(retrigger)
+    if(cached_retrigger)
     {
       if(!cached_step)
       {
@@ -157,32 +160,20 @@ class DU_SEQ_Function : public DUINO_Function {
     cv_out(CO1, seq_values.stage_cv[cached_stage]);
 
     // set gate and clock states
-    if(gate && (clock_gate || retrigger))
-    {
-      gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), true);
-    }
-    else
-    {
-      gt_out(GT5, gate);
-      gt_out(GT6, clock_gate || retrigger);
-    }
-
-    // reset retrigger
-    if(retrigger)
-    {
-      retrigger = false;
-      clock_gate &= seq_values.clock_ext;
-    }
+    gt_out(GT5, gate);
+    gt_out(GT6, cached_clock_gate);
   }
 
  private:
   bool partial_gate()
   {
-    return (seq_values.clock_ext && clock_gate)
-           || (millis() - clock_time < (seq_values.gate_time * (seq_values.clock_period / 16000)))
-           || retrigger;
+    return (seq_values.clock_ext && cached_clock_gate)
+           || cached_retrigger
+           || ((millis() - clock_time) < seq_values.gate_ms);
   }
 
+  uint8_t cached_stage, cached_step;
+  bool cached_clock_gate, cached_retrigger;
   unsigned long clock_time;
 };
 
@@ -262,7 +253,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       params.vals.gate_time = 8;
     }
-    seq_values.gate_time = params.vals.gate_time;
+    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
     
     if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 30)
     {
@@ -270,8 +261,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
     seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-    Timer1.initialize(seq_values.clock_period);
-    Timer1.attachInterrupt(clock_isr);
+    Timer1.initialize();
+    update_clock();
 
     // draw global elements
     display->draw_char(38, 2, '0' + params.vals.stage_count, DUINO_SSD1306::White);
@@ -405,7 +396,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.gate_time = 16;
               }
-              seq_values.gate_time = params.vals.gate_time;
+              seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
               display->fill_rect(79, 3, 16, 5, DUINO_SSD1306::White);
               display_gate_time(79, 3, params.vals.gate_time, DUINO_SSD1306::Black);
               break;
@@ -496,7 +487,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
 
     // display gate
-    if(!retrigger && (gate != last_gate || stage != last_stage))
+    /*if(!retrigger && (gate != last_gate || stage != last_stage))
     {
       if(gate)
       {
@@ -514,7 +505,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       last_gate = gate;
       last_stage = stage;
       display_changed = true;
-    }
+    }*/
 
     if(display_changed)
     {
@@ -526,14 +517,10 @@ class DU_SEQ_Interface : public DUINO_Interface {
  private:
   void update_clock()
   {
-    if(seq_values.clock_ext)
+    Timer1.detachInterrupt();
+    if(!seq_values.clock_ext)
     {
-      Timer1.detachInterrupt();
-    }
-    else
-    {
-      Timer1.setPeriod(seq_values.clock_period);
-      Timer1.attachInterrupt(clock_isr);
+      Timer1.attachInterrupt(clock_isr, seq_values.clock_period);
     }
   }
 
@@ -544,7 +531,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
   unsigned long bpm_to_us(uint8_t bpm)
   {
-    return 6000000 / (unsigned long)bpm;
+    return 750000 / (unsigned long)bpm;
   }
 
   void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SSD1306::SSD1306Color color)
@@ -719,7 +706,7 @@ ENCODER_ISR(interface->encoder);
 
 void clock_isr()
 {
-  clock_gate = !seq_values.clock_ext || function->gt_read(GT3);
+  clock_gate = seq_values.clock_ext ? function->gt_read_debounce(GT3) : !clock_gate;
 
   if(clock_gate)
   {
@@ -737,7 +724,6 @@ void clock_isr()
 void reset_isr()
 {
   stage = step = 0;
-  retrigger = true;
 }
 
 void setup()
