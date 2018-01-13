@@ -95,7 +95,8 @@ class DUINO_SSD1306
   void ssd1306_command(uint8_t c);
   void begin();
 
-  void display();
+  void display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end);
+  void display_all();
 
   void clear_display();
 

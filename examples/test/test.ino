@@ -152,7 +152,7 @@ class DU_Test_Interface : public DUINO_Interface {
     display->draw_char(112, 47, '5', DUINO_SSD1306::White);
     display->draw_char(112, 57, '6', DUINO_SSD1306::White);
 
-    display->display();
+    display->display_all();
   }
 
   virtual void loop()
@@ -196,7 +196,7 @@ class DU_Test_Interface : public DUINO_Interface {
     display_gtio();
 
     // update display
-    display->display();
+    display->display_all();
   }
 
  private:

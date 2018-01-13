@@ -185,6 +185,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     main_selected = 2;
     top_selected = 0;
     display_changed = false;
+    gate_changed = false;
     last_gate = false;
     last_stage = 0;
 
@@ -293,7 +294,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
 
     invert_current_selection();
-    display->display();
+    display->display_all();
   }
 
   virtual void loop()
@@ -487,7 +488,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
 
     // display gate
-    /*if(!retrigger && (gate != last_gate || stage != last_stage))
+    if(gate != last_gate || stage != last_stage)
     {
       if(gate)
       {
@@ -504,13 +505,18 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
       last_gate = gate;
       last_stage = stage;
-      display_changed = true;
-    }*/
+      gate_changed = true;
+    }
 
     if(display_changed)
     {
-      display->display();
+      display->display_all();
       display_changed = false;
+    }
+    else if(gate_changed)
+    {
+      display->display(0, 127, 1, 1);
+      gate_changed = false;
     }
   }
 
@@ -662,12 +668,12 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
   void display_gate(uint8_t stage)
   {
-    display->fill_rect(16 * stage + 6, 13, 4, 4, DUINO_SSD1306::White);
+    display->fill_rect(16 * stage + 6, 12, 4, 4, DUINO_SSD1306::White);
   }
 
   void clear_gate()
   {
-    display->fill_rect(6, 13, 116, 4, DUINO_SSD1306::Black);
+    display->fill_rect(6, 12, 116, 4, DUINO_SSD1306::Black);
   }
 
   uint8_t main_selected;  // 0 - save, 1 - top, 2 - pitch, 3 - steps, 4 - gate, 5 - slew
@@ -677,7 +683,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
   bool last_gate;
   uint8_t last_stage;
 
-  bool display_changed;
+  bool display_changed, gate_changed;
 
   struct DU_SEQ_Parameter_Values {
     int8_t stage_pitch[8];

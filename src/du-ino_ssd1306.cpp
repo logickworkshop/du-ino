@@ -48,6 +48,9 @@ void DUINO_SSD1306::begin()
 {
   // initialize I2C
   Wire.begin();
+#ifdef TWBR
+  TWBR = 12;
+#endif
 
   // initialization sequence
   ssd1306_command(SSD1306_DISPLAYOFF);
@@ -85,36 +88,42 @@ void DUINO_SSD1306::begin()
   ssd1306_command(SSD1306_DISPLAYON);
 }
 
-void DUINO_SSD1306::display()
+void DUINO_SSD1306::display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end)
 {
+  // set column address range
   ssd1306_command(SSD1306_COLUMNADDR);
-  ssd1306_command(0);
-  ssd1306_command(127);
+  ssd1306_command(col_start);
+  ssd1306_command(col_end);
 
+  // set page address range
   ssd1306_command(SSD1306_PAGEADDR);
-  ssd1306_command(0);
-  ssd1306_command(7);
+  ssd1306_command(page_start);
+  ssd1306_command(page_end);
 
-  // transmit buffer (fast mode)
-#ifdef TWBR
-  uint8_t twbrbackup = TWBR;
-  TWBR = 12;
-#endif
-  for(uint16_t i = 0; i < (SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8); ++i)
+  // transmit buffer
+  uint8_t count = 0;
+  Wire.beginTransmission(SSD1306_I2C_ADDRESS);
+  Wire.write(0x40);
+  for(uint8_t page = page_start; page <= page_end; ++page)
   {
-    Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-    Wire.write(0x40);
-    for(uint8_t x = 0; x < 16; ++x)
+    for(uint8_t col = col_start; col <= col_end; ++col)
     {
-      Wire.write(buffer[i]);
-      i++;
+      Wire.write(buffer[page * 128 + col]);
+      if(++count > 15)
+      {
+        count = 0;
+        Wire.endTransmission();
+        Wire.beginTransmission(SSD1306_I2C_ADDRESS);
+        Wire.write(0x40);
+      }
     }
-    i--;
-    Wire.endTransmission();
   }
-#ifdef TWBR
-  TWBR = twbrbackup;
-#endif
+  Wire.endTransmission();
+}
+
+void DUINO_SSD1306::display_all()
+{
+  display(0, 127, 0, 7);
 }
 
 void DUINO_SSD1306::clear_display()

@@ -174,7 +174,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
       display->draw_char(32 * i + 13, 56, label[i], DUINO_SSD1306::White);
     }
 
-    display->display();
+    display->display_all();
   }
 
   virtual void loop()
@@ -252,7 +252,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
 
     if(display_changed)
     {
-      display->display();
+      display->display_all();
       display_changed = false;
     }
   }

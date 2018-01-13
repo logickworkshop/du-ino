@@ -40,7 +40,7 @@ void DUINO_Interface::begin()
     // initialize display
     display->begin();
     display->clear_display(); 
-    display->display();
+    display->display_all();
 
     // initialize encoder
     encoder->begin();
