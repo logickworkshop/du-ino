@@ -44,18 +44,12 @@ enum Intonation {
 };
 
 static const unsigned char gate_mode_icons[] PROGMEM = {
-  0x00, 0x00, 0x06, 0x60, 0x0E, 0x70, 0x1C, 0x38, 0x38, 0x1C, 0x70, 0x0E, 0xE0, 0x07, 0xC0, 0x03, // GATE_NONE
-  0xC0, 0x03, 0xE0, 0x07, 0x70, 0x0E, 0x38, 0x1C, 0x1C, 0x38, 0x0E, 0x70, 0x06, 0x60, 0x00, 0x00,
-  0x00, 0x00, 0xC0, 0x03, 0x30, 0x0C, 0x88, 0x11, 0xE4, 0x27, 0xF4, 0x2F, 0xF2, 0x4F, 0xFA, 0x5F, // GATE_1SHT
-  0xFA, 0x5F, 0xF2, 0x4F, 0xF4, 0x2F, 0xE4, 0x27, 0x88, 0x11, 0x30, 0x0C, 0xC0, 0x03, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x78, 0x00, 0x7E, 0x00, 0x7F, 0x80, 0x79, 0x80, 0x00, 0x9E, 0x78, 0xFE, 0x7F, // GATE_REPT
-  0xFE, 0x7F, 0x9E, 0x78, 0x80, 0x00, 0x80, 0x79, 0x00, 0x7F, 0x00, 0x7E, 0x00, 0x78, 0x00, 0x00,
-  0x00, 0x00, 0x80, 0x01, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, // GATE_LONG
-  0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0xC0, 0x03, 0x80, 0x01, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x1F, 0x00, 0x20, 0x00, 0x40, 0x80, 0x40, 0x80, 0x43, 0x80, 0x4F, 0xFC, 0x7F, // GATE_EXT1
-  0xFC, 0x7F, 0x80, 0x4F, 0x80, 0x43, 0xA4, 0x40, 0x3E, 0x40, 0x20, 0x20, 0x00, 0x1F, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x1F, 0x00, 0x20, 0x00, 0x40, 0x80, 0x40, 0x80, 0x43, 0x80, 0x4F, 0xFC, 0x7F, // GATE_EXT2
-  0xFC, 0x7F, 0x80, 0x4F, 0xA4, 0x43, 0xB2, 0x40, 0x2A, 0x40, 0x24, 0x20, 0x00, 0x1F, 0x00, 0x00
+  0x00, 0x22, 0x14, 0x08, 0x14, 0x22, 0x00,
+  0x1C, 0x22, 0x5D, 0x5D, 0x5D, 0x22, 0x1C,
+  0x7C, 0x00, 0x7F, 0x00, 0x7F, 0x00, 0x7C,
+  0x08, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x08,
+  0x30, 0x40, 0x52, 0x5F, 0x50, 0x40, 0x30,
+  0x30, 0x40, 0x59, 0x55, 0x52, 0x40, 0x30
 };
 
 static const unsigned char semitone_lt[12] = {'C', 'C', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'A', 'B', 'B'};
@@ -184,8 +178,10 @@ class DU_SEQ_Interface : public DUINO_Interface {
     // initialize interface
     main_selected = 2;
     top_selected = 0;
-    display_changed = false;
-    gate_changed = false;
+    for(uint8_t i = 0; i < 6; ++i)
+    {
+      display_changed[i] = false;
+    }
     last_gate = false;
     last_stage = 0;
 
@@ -266,28 +262,28 @@ class DU_SEQ_Interface : public DUINO_Interface {
     update_clock();
 
     // draw global elements
-    display->draw_char(38, 2, '0' + params.vals.stage_count, DUINO_SSD1306::White);
-    display->draw_char(47, 2, params.vals.diradd_mode ? 'A' : 'D', DUINO_SSD1306::White);
+    display->draw_char(10, 12, '0' + params.vals.stage_count, DUINO_SSD1306::White);
+    display->draw_char(22, 12, params.vals.diradd_mode ? 'A' : 'D', DUINO_SSD1306::White);
     for(uint8_t i = 0; i < 2; ++i)
     {
-      display->draw_vline(56 + i * 22, 2, 7, DUINO_SSD1306::White);
-      display->draw_hline(57 + i * 22, 2, 16, DUINO_SSD1306::White);
-      display->draw_hline(57 + i * 22, 8, 16, DUINO_SSD1306::White);
-      display->draw_vline(73 + i * 22, 2, 7, DUINO_SSD1306::White);
+      display->draw_vline(59 + i * 25, 12, 7, DUINO_SSD1306::White);
+      display->draw_hline(60 + i * 25, 12, 16, DUINO_SSD1306::White);
+      display->draw_hline(60 + i * 25, 18, 16, DUINO_SSD1306::White);
+      display->draw_vline(76 + i * 25, 12, 7, DUINO_SSD1306::White);
     }
-    display_slew_rate(57, 3, params.vals.slew_rate, DUINO_SSD1306::White);
-    display_gate_time(79, 3, params.vals.gate_time, DUINO_SSD1306::White);
-    display_clock(100, 2, params.vals.clock_bpm, DUINO_SSD1306::White);
+    display_slew_rate(60, 13, params.vals.slew_rate, DUINO_SSD1306::White);
+    display_gate_time(85, 13, params.vals.gate_time, DUINO_SSD1306::White);
+    display_clock(109, 12, params.vals.clock_bpm, DUINO_SSD1306::White);
 
     // draw step elements
     for(uint8_t i = 0; i < 8; ++i)
     {
       // pitch
-      display_note(16 * i, 20, params.vals.stage_pitch[i], DUINO_SSD1306::White);
+      display_note(16 * i, 32, params.vals.stage_pitch[i], DUINO_SSD1306::White);
       // steps
-      display_steps(16 * i, 35, params.vals.stage_steps[i], DUINO_SSD1306::White);
+      display->draw_char(16 * i + 1, 49, '0' + params.vals.stage_steps[i], DUINO_SSD1306::White);
       // gate mode
-      display->draw_icon_16(16 * i, 42, gate_mode_icons, (GateMode)params.vals.stage_gate[i], DUINO_SSD1306::White);
+      display->draw_icon_7(16 * i + 8, 49, gate_mode_icons, (GateMode)params.vals.stage_gate[i], DUINO_SSD1306::White);
       // slew
       display->fill_rect(16 * i + 1, 59, 14, 4, DUINO_SSD1306::White);
       display->fill_rect(16 * i + 2 + 6 * (~(params.vals.stage_slew >> i) & 1), 60, 6, 2, DUINO_SSD1306::Black);
@@ -308,7 +304,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
       main_selected++;
       main_selected %= 6;
       invert_current_selection();
-      display_changed = true;
     }
     else if(b == DUINO_Encoder::Clicked)
     {
@@ -318,6 +313,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
         case 0: // save
           save_params(0, params.bytes, 30);
           display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display_changed[0] = true;
           break;
         case 1: // top
           invert_current_selection();
@@ -332,7 +328,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
           invert_current_selection();
           break;
       }
-      display_changed = true;
     }
 
     // handle encoder spin
@@ -357,8 +352,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
                 params.vals.stage_count = 8;
               }
               seq_values.stage_count = params.vals.stage_count;
-              display->fill_rect(37, 1, 7, 9, DUINO_SSD1306::White);
-              display->draw_char(38, 2, '0' + params.vals.stage_count, DUINO_SSD1306::Black);
+              display->fill_rect(10, 12, 5, 7, DUINO_SSD1306::White);
+              display->draw_char(10, 12, '0' + params.vals.stage_count, DUINO_SSD1306::Black);
               break;
             case 1: // dir/add
               if(v < 0)
@@ -370,8 +365,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
                 params.vals.diradd_mode = 1;
               }
               seq_values.diradd_mode = (bool)params.vals.diradd_mode;
-              display->fill_rect(46, 1, 7, 9, DUINO_SSD1306::White);
-              display->draw_char(47, 2, params.vals.diradd_mode ? 'A' : 'D', DUINO_SSD1306::Black);
+              display->fill_rect(22, 12, 5, 7, DUINO_SSD1306::White);
+              display->draw_char(22, 12, params.vals.diradd_mode ? 'A' : 'D', DUINO_SSD1306::Black);
               break;
             case 2: // slew
               params.vals.slew_rate += v;
@@ -384,8 +379,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
                 params.vals.slew_rate = 16;
               }
               seq_values.slew_rate = params.vals.slew_rate;
-              display->fill_rect(57, 3, 16, 5, DUINO_SSD1306::White);
-              display_slew_rate(57, 3, params.vals.slew_rate, DUINO_SSD1306::Black);
+              display->fill_rect(60, 13, 16, 5, DUINO_SSD1306::White);
+              display_slew_rate(60, 13, params.vals.slew_rate, DUINO_SSD1306::Black);
               break;
             case 3: // gate
               params.vals.gate_time += v;
@@ -398,8 +393,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
                 params.vals.gate_time = 16;
               }
               seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
-              display->fill_rect(79, 3, 16, 5, DUINO_SSD1306::White);
-              display_gate_time(79, 3, params.vals.gate_time, DUINO_SSD1306::Black);
+              display->fill_rect(85, 13, 16, 5, DUINO_SSD1306::White);
+              display_gate_time(85, 13, params.vals.gate_time, DUINO_SSD1306::Black);
               break;
             case 4: // clock
               params.vals.clock_bpm += v;
@@ -413,11 +408,12 @@ class DU_SEQ_Interface : public DUINO_Interface {
               }
               seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
               seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-              display->fill_rect(99, 1, 19, 9, DUINO_SSD1306::White);
-              display_clock(100, 2, params.vals.clock_bpm, DUINO_SSD1306::Black);
+              display->fill_rect(109, 12, 17, 7, DUINO_SSD1306::White);
+              display_clock(109, 12, params.vals.clock_bpm, DUINO_SSD1306::Black);
               update_clock();
               break;
           }
+          display_changed[1] = true;
           break;
         case 2: // pitch
           params.vals.stage_pitch[stage_selected] += v;
@@ -430,8 +426,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
             params.vals.stage_pitch[stage_selected] = 119;
           }
           seq_values.stage_cv[stage_selected] = note_to_cv(params.vals.stage_pitch[stage_selected]);
-          display->fill_rect(16 * stage_selected, 20, 16, 15, DUINO_SSD1306::White);
-          display_note(16 * stage_selected, 20, params.vals.stage_pitch[stage_selected], DUINO_SSD1306::Black);
+          display->fill_rect(16 * stage_selected, 32, 16, 15, DUINO_SSD1306::White);
+          display_note(16 * stage_selected, 32, params.vals.stage_pitch[stage_selected], DUINO_SSD1306::Black);
+          display_changed[3] = true;
           break;
         case 3: // steps
           params.vals.stage_steps[stage_selected] += v;
@@ -444,8 +441,10 @@ class DU_SEQ_Interface : public DUINO_Interface {
             params.vals.stage_steps[stage_selected] = 8;
           }
           seq_values.stage_steps[stage_selected] = params.vals.stage_steps[stage_selected];
-          display->fill_rect(16 * stage_selected, 35, 16, 7, DUINO_SSD1306::White);
-          display_steps(16 * stage_selected, 35, params.vals.stage_steps[stage_selected], DUINO_SSD1306::Black);
+          display->fill_rect(16 * stage_selected + 1, 49, 5, 7, DUINO_SSD1306::White);
+          display->draw_char(16 * stage_selected + 1, 49, '0' + params.vals.stage_steps[stage_selected],
+              DUINO_SSD1306::Black);
+          display_changed[4] = true;
           break;
         case 4: // gate
           params.vals.stage_gate[stage_selected] += v;
@@ -458,9 +457,10 @@ class DU_SEQ_Interface : public DUINO_Interface {
             params.vals.stage_gate[stage_selected] = 5;
           }
           seq_values.stage_gate[stage_selected] = (GateMode)params.vals.stage_gate[stage_selected];
-          display->fill_rect(16 * stage_selected, 42, 16, 16, DUINO_SSD1306::White);
-          display->draw_icon_16(16 * stage_selected, 42, gate_mode_icons,
+          display->fill_rect(16 * stage_selected + 8, 49, 7, 7, DUINO_SSD1306::White);
+          display->draw_icon_7(16 * stage_selected + 8, 49, gate_mode_icons,
               (GateMode)params.vals.stage_gate[stage_selected], DUINO_SSD1306::Black);
+          display_changed[4] = true;
           break;
         case 5: // slew
           if(v < 0)
@@ -474,17 +474,21 @@ class DU_SEQ_Interface : public DUINO_Interface {
           seq_values.stage_slew[stage_selected] = (bool)((params.vals.stage_slew >> stage_selected) & 1);
           display->fill_rect(16 * stage_selected + 1, 59, 14, 4, DUINO_SSD1306::Black);
           display->fill_rect(16 * stage_selected + 2 + 6 * (~(params.vals.stage_slew >> stage_selected) & 1), 60, 6, 2,
-              DUINO_SSD1306::White);  
+              DUINO_SSD1306::White);
+          display_changed[5] = true;
           break;
       }
 
       // mark save box
       if(main_selected)
       {
-        display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+        if(saved)
+        {
+          saved = false;
+          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display_changed[0] = true;
+        }
       }
-
-      display_changed = (bool)main_selected;
     }
 
     // display gate
@@ -494,29 +498,40 @@ class DU_SEQ_Interface : public DUINO_Interface {
       {
         if(stage != last_stage)
         {
-          clear_gate();
+          display_gate(last_stage, DUINO_SSD1306::Black);
         }
-        display_gate(stage);
+        display_gate(stage, DUINO_SSD1306::White);
       }
       else
       {
-        clear_gate();
+        display_gate(last_stage, DUINO_SSD1306::Black);
       }
 
       last_gate = gate;
       last_stage = stage;
-      gate_changed = true;
+      display_changed[2] = true;
     }
 
-    if(display_changed)
+    // update display
+    if(display_changed[0])
     {
-      display->display_all();
-      display_changed = false;
+      display->display(121, 127, 0, 0);
     }
-    else if(gate_changed)
+    if(display_changed[1])
     {
-      display->display(0, 127, 1, 1);
-      gate_changed = false;
+      display->display(9, 126, 1, 2);
+    }
+    if(display_changed[2])
+    {
+      display->display(6, 121, 3, 3);
+    }
+    if(display_changed[3])
+    {
+      display->display(0, 127, 4, 5);
+    }
+    if(display_changed[5])
+    {
+      display->display(0, 127, display_changed[4] ? 6 : 7, 7);
     }
   }
 
@@ -598,82 +613,57 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
   }
 
-  void display_steps(int16_t x, int16_t y, int8_t steps, DUINO_SSD1306::SSD1306Color color)
-  {
-    // draw center line
-    display->draw_hline(x + 1, y + 3, 14, color);
-
-    // draw top pips
-    for(uint8_t i = 0; i < 4; ++i)
-    {
-      if(i + 1 > steps)
-      {
-        break;
-      }
-      display->fill_rect(x + 1 + i * 4, y + 1, 2, 2, color);
-    }
-
-    // draw bottom pips
-    for(uint8_t i = 0; i < 4; ++i)
-    {
-      if(i + 5 > steps)
-      {
-        break;
-      }
-      display->fill_rect(x + 13 - i * 4, y + 4, 2, 2, color);
-    }
-  }
-
   void invert_current_selection()
   {
     switch(main_selected)
     {
       case 0: // save
         display->fill_rect(121, 0, 7, 7, DUINO_SSD1306::Inverse);
+        display_changed[0] = true;
         break;
       case 1: // top
         switch(top_selected)
         {
           case 0: // count
-            display->fill_rect(37, 1, 7, 9, DUINO_SSD1306::Inverse);
+            display->fill_rect(9, 11, 7, 9, DUINO_SSD1306::Inverse);
             break;
           case 1: // dir/add
-            display->fill_rect(46, 1, 7, 9, DUINO_SSD1306::Inverse);
+            display->fill_rect(21, 11, 7, 9, DUINO_SSD1306::Inverse);
             break;
           case 2: // slew
-            display->fill_rect(55, 1, 20, 9, DUINO_SSD1306::Inverse);
+            display->fill_rect(58, 11, 20, 9, DUINO_SSD1306::Inverse);
             break;
           case 3: // gate
-            display->fill_rect(77, 1, 20, 9, DUINO_SSD1306::Inverse);
+            display->fill_rect(83, 11, 20, 9, DUINO_SSD1306::Inverse);
             break;
           case 4: // clock
-            display->fill_rect(99, 1, 19, 9, DUINO_SSD1306::Inverse);
+            display->fill_rect(108, 11, 19, 9, DUINO_SSD1306::Inverse);
             break;
         }
+        display_changed[1] = true;
         break;
       case 2: // pitch
-        display->fill_rect(16 * stage_selected, 20, 16, 15, DUINO_SSD1306::Inverse);
+        display->fill_rect(16 * stage_selected, 32, 16, 15, DUINO_SSD1306::Inverse);
+        display_changed[3] = true;
         break;
       case 3: // steps
-        display->fill_rect(16 * stage_selected, 35, 16, 7, DUINO_SSD1306::Inverse);
+        display->fill_rect(16 * stage_selected, 48, 7, 9, DUINO_SSD1306::Inverse);
+        display_changed[4] = true;
         break;
       case 4: // gate
-        display->fill_rect(16 * stage_selected, 42, 16, 16, DUINO_SSD1306::Inverse);
+        display->fill_rect(16 * stage_selected + 7, 48, 9, 9, DUINO_SSD1306::Inverse);
+        display_changed[4] = true;
         break;
       case 5: // slew
         display->fill_rect(16 * stage_selected, 58, 16, 6, DUINO_SSD1306::Inverse);
+        display_changed[5] = true;
         break;
     }
   }
 
-  void display_gate(uint8_t stage)
+  void display_gate(uint8_t stage, DUINO_SSD1306::SSD1306Color color)
   {
-    display->fill_rect(16 * stage + 6, 12, 4, 4, DUINO_SSD1306::White);
-  }
-
-  void clear_gate()
-  {
-    display->fill_rect(6, 12, 116, 4, DUINO_SSD1306::Black);
+    display->fill_rect(16 * stage + 6, 26, 4, 4, color);
   }
 
   uint8_t main_selected;  // 0 - save, 1 - top, 2 - pitch, 3 - steps, 4 - gate, 5 - slew
@@ -683,7 +673,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
   bool last_gate;
   uint8_t last_stage;
 
-  bool display_changed, gate_changed;
+  bool display_changed[6];
 
   struct DU_SEQ_Parameter_Values {
     int8_t stage_pitch[8];
