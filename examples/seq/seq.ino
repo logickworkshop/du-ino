@@ -26,7 +26,7 @@
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 
-#define DIGITAL_THRESH 1.25 // V
+#define DIGITAL_THRESH 3.0 // V
 
 enum GateMode {
   GATE_NONE = 0,
@@ -72,7 +72,7 @@ volatile DU_SEQ_Values seq_values;
 
 volatile uint8_t stage;
 volatile uint8_t step;
-volatile bool gate, clock_gate, retrigger;
+volatile bool gate, clock_gate, retrigger, reverse;
 
 void clock_isr();
 void reset_isr();
@@ -143,10 +143,10 @@ class DU_SEQ_Function : public DUINO_Function {
         }
         break;
       case GATE_EXT1:
-        gate = cv_read(CI2) > DIGITAL_THRESH;
+        gate = gt_read(GT1);
         break;
       case GATE_EXT2:
-        gate = cv_read(CI3) > DIGITAL_THRESH;
+        gate = gt_read(GT2);
         break;
     }
 
@@ -156,6 +156,26 @@ class DU_SEQ_Function : public DUINO_Function {
     // set gate and clock states
     gt_out(GT5, gate);
     gt_out(GT6, cached_clock_gate);
+
+    // update reverse setting
+    if(!seq_values.diradd_mode)
+    {
+      reverse = cv_read(CI1) > DIGITAL_THRESH;
+    }
+  }
+
+  uint8_t address_to_stage()
+  {
+    int8_t stage = (int8_t)cv_read(CI1) * 1.6;
+    if(stage < 0)
+    {
+      stage = 0;
+    }
+    else if(stage > 7)
+    {
+      stage = 7;
+    }
+    return (uint8_t)stage;
   }
 
  private:
@@ -184,6 +204,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     last_gate = false;
     last_stage = 0;
+    last_diradd_mode = false;
+    last_reverse = false;
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
@@ -262,8 +284,13 @@ class DU_SEQ_Interface : public DUINO_Interface {
     update_clock();
 
     // draw global elements
+    for(uint8_t i = 0; i < 6; ++i)
+    {
+      display->draw_vline(2 + i, 18 - i, i + 1, DUINO_SSD1306::White);
+    }
     display->draw_char(10, 12, '0' + params.vals.stage_count, DUINO_SSD1306::White);
     display->draw_char(22, 12, params.vals.diradd_mode ? 'A' : 'D', DUINO_SSD1306::White);
+    display->draw_char(30, 12, 0x10, DUINO_SSD1306::White);
     for(uint8_t i = 0; i < 2; ++i)
     {
       display->draw_vline(59 + i * 25, 12, 7, DUINO_SSD1306::White);
@@ -491,6 +518,17 @@ class DU_SEQ_Interface : public DUINO_Interface {
       }
     }
 
+    // display reverse/address
+    if(seq_values.diradd_mode != last_diradd_mode
+        || (!seq_values.diradd_mode && reverse != last_reverse)
+        || (seq_values.diradd_mode && stage != last_stage))
+    {
+      display_reverse_address(30, 12);
+      last_diradd_mode = seq_values.diradd_mode;
+      last_reverse = reverse;
+      display_changed[1] = true;
+    }
+
     // display gate
     if(gate != last_gate || stage != last_stage)
     {
@@ -613,6 +651,20 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
   }
 
+  void display_reverse_address(int16_t x, int16_t y)
+  {
+    display->fill_rect(x, y, 5, 7, DUINO_SSD1306::Black);
+
+    if(seq_values.diradd_mode)
+    {
+      display->draw_char(30, 12, '1' + stage, DUINO_SSD1306::White);
+    }
+    else
+    {
+      display->draw_char(30, 12, 0x10 + (unsigned char)reverse, DUINO_SSD1306::White);
+    }
+  }
+
   void invert_current_selection()
   {
     switch(main_selected)
@@ -672,6 +724,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
   bool last_gate;
   uint8_t last_stage;
+  bool last_diradd_mode;
+  bool last_reverse;
 
   bool display_changed[6];
 
@@ -710,7 +764,8 @@ void clock_isr()
     step %= seq_values.stage_steps[stage];
     if(!step)
     {
-      stage++;
+      stage = seq_values.diradd_mode ? function->address_to_stage() : (reverse ?
+          (stage ? stage - 1 : seq_values.stage_count - 1) : stage + 1);
       stage %= seq_values.stage_count;
     }
     retrigger = true;
