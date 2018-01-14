@@ -409,6 +409,26 @@ void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Co
     draw_char(x + 6 * i++, y, *(text + i), color);
 }
 
+void DUINO_SSD1306::draw_icon_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color)
+{
+  // bound check
+  if(((x + 7) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 7) < 0) || (y >= SSD1306_LCDHEIGHT))
+    return;
+
+  // draw pixels from icon map
+  for(int8_t i = 0; i < 7; ++i)
+  {
+    uint8_t line = pgm_read_byte(&map[c * 7 + i]);
+    for(int8_t j = 0; j < 7; ++j, line >>= 1)
+    {
+      if(line & 1)
+      {
+        draw_pixel(x + i, y + j, color);
+      }
+    }
+  }
+}
+
 void DUINO_SSD1306::draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color)
 {
   // bound check
