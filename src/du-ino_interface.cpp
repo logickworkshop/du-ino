@@ -27,6 +27,7 @@
 DUINO_Interface::DUINO_Interface()
   : display(new DUINO_SSD1306())
   , encoder(new DUINO_Encoder(9, 10, 12))
+  , saved(false)
 {
 
 }
@@ -52,10 +53,17 @@ void DUINO_Interface::begin()
 
 void DUINO_Interface::save_params(int address, uint8_t * start, int length)
 {
+  if(saved)
+  {
+    return;
+  }
+
   for(int i = 0; i < length; ++i)
   {
     EEPROM.write(address + i, *(start + i));
   }
+
+  saved = true;
 }
 
 void DUINO_Interface::load_params(int address, uint8_t * start, int length)
@@ -64,4 +72,6 @@ void DUINO_Interface::load_params(int address, uint8_t * start, int length)
   {
     *(start + i) = EEPROM.read(address + i);
   }
+
+  saved = true;
 }

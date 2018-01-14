@@ -41,6 +41,9 @@ class DUINO_Interface {
 
   DUINO_SSD1306 * display;
   DUINO_Encoder * encoder;
+
+ protected:
+  bool saved;
 };
 
 #endif // DUINO_INTERFACE_H_
