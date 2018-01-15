@@ -268,7 +268,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     seq_values.slew_rate = params.vals.slew_rate;
 
-    if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 30)
+    if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 99)
     {
       params.vals.clock_bpm = 0;
     }
@@ -429,9 +429,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.clock_bpm = 0;
               }
-              else if(params.vals.clock_bpm > 30)
+              else if(params.vals.clock_bpm > 99)
               {
-                params.vals.clock_bpm = 30;
+                params.vals.clock_bpm = 99;
               }
               seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
               seq_values.clock_ext = !(bool)params.vals.clock_bpm;
@@ -590,7 +590,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
   unsigned long bpm_to_us(uint8_t bpm)
   {
-    return 750000 / (unsigned long)bpm;
+    return 3000000 / (unsigned long)bpm;
   }
 
   void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SSD1306::SSD1306Color color)
