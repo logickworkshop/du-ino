@@ -268,12 +268,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     seq_values.slew_rate = params.vals.slew_rate;
 
-    if(params.vals.gate_time < 0 || params.vals.gate_time > 16)
-    {
-      params.vals.gate_time = 8;
-    }
-    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
-    
     if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 30)
     {
       params.vals.clock_bpm = 0;
@@ -282,6 +276,12 @@ class DU_SEQ_Interface : public DUINO_Interface {
     seq_values.clock_ext = !(bool)params.vals.clock_bpm;
     Timer1.initialize();
     update_clock();
+
+    if(params.vals.gate_time < 0 || params.vals.gate_time > 16)
+    {
+      params.vals.gate_time = 8;
+    }
+    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
 
     // draw global elements
     for(uint8_t i = 0; i < 6; ++i)
