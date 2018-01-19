@@ -75,6 +75,7 @@ volatile bool gate, clock_gate, retrigger, reverse;
 
 DUINO_Filter * slew_filter;
 
+void clock_ext_isr();
 void clock_isr();
 void reset_isr();
 
@@ -86,8 +87,7 @@ class DU_SEQ_Function : public DUINO_Function {
   
   virtual void setup()
   {
-    // TODO: attach GT3 to hardware clock isr that sets clock to EXT
-    gt_attach_interrupt(GT3, clock_isr, CHANGE);
+    gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
   }
 
@@ -205,6 +205,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     last_stage = 0;
     last_diradd_mode = false;
     last_reverse = false;
+    ext_clock_received = false;
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
@@ -550,6 +551,16 @@ class DU_SEQ_Interface : public DUINO_Interface {
       display_changed[2] = true;
     }
 
+    // update clock from input
+    if(ext_clock_received)
+    {
+      bool clock_selected = (main_selected == 1) && (top_selected == 4);
+      display->fill_rect(109, 12, 17, 7, clock_selected ? DUINO_SSD1306::White : DUINO_SSD1306::Black);
+      display_clock(109, 12, params.vals.clock_bpm, clock_selected ? DUINO_SSD1306::Black : DUINO_SSD1306::White);
+      display_changed[1] = true;
+      ext_clock_received = false;
+    }
+
     // update display
     if(display_changed[0])
     {
@@ -571,6 +582,14 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       display->display(0, 127, display_changed[4] ? 6 : 7, 7);
     }
+  }
+
+  void set_clock_ext()
+  {
+    params.vals.clock_bpm = 0;
+    seq_values.clock_ext = true;
+    ext_clock_received = true;
+    update_clock();
   }
 
  private:
@@ -730,6 +749,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
   bool last_diradd_mode;
   bool last_reverse;
 
+  bool ext_clock_received;
+
   bool display_changed[6];
 
   struct DU_SEQ_Parameter_Values {
@@ -756,6 +777,16 @@ DU_SEQ_Function * function;
 DU_SEQ_Interface * interface;
 
 ENCODER_ISR(interface->encoder);
+
+void clock_ext_isr()
+{
+  if(!seq_values.clock_ext)
+  {
+    interface->set_clock_ext();
+  }
+
+  clock_isr();
+}
 
 void clock_isr()
 {
