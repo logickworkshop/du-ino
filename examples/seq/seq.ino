@@ -25,7 +25,6 @@
 #include <du-ino_dsp.h>
 #include <TimerOne.h>
 #include <avr/pgmspace.h>
-#include <util/atomic.h>
 
 #define DIGITAL_THRESH 3.0 // V
 
@@ -79,6 +78,8 @@ DUINO_Filter * slew_filter;
 void clock_isr();
 void reset_isr();
 
+void update_clock();
+
 class DU_SEQ_Function : public DUINO_Function {
  public:
   DU_SEQ_Function() : DUINO_Function(0b0111111111) { }
@@ -93,14 +94,11 @@ class DU_SEQ_Function : public DUINO_Function {
   virtual void loop()
   {
     // cache stage, step, and clock gate (so that each loop is "atomic")
-    ATOMIC_BLOCK(ATOMIC_FORCEON)
-    {
-      cached_stage = stage;
-      cached_step = step;
-      cached_clock_gate = clock_gate;
-      cached_retrigger = retrigger;
-      retrigger = false;
-    }
+    cached_stage = stage;
+    cached_step = step;
+    cached_clock_gate = clock_gate;
+    cached_retrigger = retrigger;
+    retrigger = false;
 
     if(cached_retrigger)
     {
@@ -276,7 +274,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
     seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
     seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-    Timer1.initialize();
     update_clock();
 
     if(params.vals.gate_time < 0 || params.vals.gate_time > 16)
@@ -576,15 +573,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
   }
 
-  void update_clock()
-  {
-    Timer1.detachInterrupt();
-    if(!seq_values.clock_ext)
-    {
-      Timer1.attachInterrupt(clock_isr, seq_values.clock_period);
-    }
-  }
-
  private:
   float note_to_cv(int8_t note)
   {
@@ -790,13 +778,24 @@ void clock_isr()
 void reset_isr()
 {
   stage = step = 0;
-  interface->update_clock();
+  update_clock();
+}
+
+void update_clock()
+{
+  Timer1.detachInterrupt();
+  if(!seq_values.clock_ext)
+  {
+    Timer1.attachInterrupt(clock_isr, seq_values.clock_period);
+  }
 }
 
 void setup()
 {
   stage = step = 0;
   gate = clock_gate = retrigger = false;
+
+  Timer1.initialize();
 
   slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
