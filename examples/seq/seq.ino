@@ -571,7 +571,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
   }
 
- private:
   void update_clock()
   {
     Timer1.detachInterrupt();
@@ -581,6 +580,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     }
   }
 
+ private:
   float note_to_cv(int8_t note)
   {
     return ((float)note - 36.0) / 12.0;
