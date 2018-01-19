@@ -69,3 +69,9 @@ void DUINO_Filter::set_frequency(float frequency)
 {
   tau = 1e6 / (TWO_PI * frequency);
 }
+
+void DUINO_Filter::set_tau(float tau_s)
+{
+  // convert to microseconds
+  tau = tau_s * 1e6;
+}

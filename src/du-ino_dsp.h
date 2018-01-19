@@ -40,6 +40,7 @@ class DUINO_Filter
   float filter(float value);
 
   void set_frequency(float frequency);
+  void set_tau(float tau_s);
 
  private:
   FilterType ft;
