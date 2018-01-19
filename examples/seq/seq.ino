@@ -567,7 +567,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       display->display(0, 127, 4, 5);
     }
-    if(display_changed[5])
+    if(display_changed[4] || display_changed[5])
     {
       display->display(0, 127, display_changed[4] ? 6 : 7, 7);
     }
