@@ -22,6 +22,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_interface.h>
+#include <du-ino_dsp.h>
 #include <TimerOne.h>
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
@@ -62,7 +63,7 @@ struct DU_SEQ_Values {
   bool stage_slew[8];
   uint8_t stage_count;
   bool diradd_mode;
-  uint8_t slew_rate;
+  float slew_hz;
   uint16_t gate_ms;
   unsigned long clock_period;
   bool clock_ext;
@@ -72,6 +73,8 @@ volatile DU_SEQ_Values seq_values;
 
 volatile uint8_t stage, step;
 volatile bool gate, clock_gate, retrigger, reverse;
+
+DUINO_Filter * slew_filter;
 
 void clock_isr();
 void reset_isr();
@@ -85,7 +88,6 @@ class DU_SEQ_Function : public DUINO_Function {
     // TODO: attach GT3 to hardware clock isr that sets clock to EXT
     gt_attach_interrupt(GT3, clock_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
-
   }
 
   virtual void loop()
@@ -149,7 +151,8 @@ class DU_SEQ_Function : public DUINO_Function {
     }
 
     // set pitch CV state
-    cv_out(CO1, seq_values.stage_cv[cached_stage]);
+    float slew_cv = slew_filter->filter(seq_values.stage_cv[cached_stage]);
+    cv_out(CO1, seq_values.stage_slew[cached_stage] ? slew_cv : seq_values.stage_cv[cached_stage]);
 
     // set gate and clock states
     gt_out(GT5, gate);
@@ -264,7 +267,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
     {
       params.vals.slew_rate = 8;
     }
-    seq_values.slew_rate = params.vals.slew_rate;
+    seq_values.slew_hz = slew_hz(params.vals.slew_rate);
+    slew_filter->set_frequency(seq_values.slew_hz);
 
     if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 99)
     {
@@ -403,7 +407,8 @@ class DU_SEQ_Interface : public DUINO_Interface {
               {
                 params.vals.slew_rate = 16;
               }
-              seq_values.slew_rate = params.vals.slew_rate;
+              seq_values.slew_hz = slew_hz(params.vals.slew_rate);
+              slew_filter->set_frequency(seq_values.slew_hz);
               display->fill_rect(60, 13, 16, 5, DUINO_SSD1306::White);
               display_slew_rate(60, 13, params.vals.slew_rate, DUINO_SSD1306::Black);
               break;
@@ -589,6 +594,18 @@ class DU_SEQ_Interface : public DUINO_Interface {
   unsigned long bpm_to_us(uint8_t bpm)
   {
     return 3000000 / (unsigned long)bpm;
+  }
+
+  float slew_hz(uint8_t slew_rate)
+  {
+    if(slew_rate)
+    {
+      return (float)(17 - slew_rate) / 4.0;
+    }
+    else
+    {
+      return 65536.0;
+    }
   }
 
   void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SSD1306::SSD1306Color color)
@@ -780,6 +797,8 @@ void setup()
 {
   stage = step = 0;
   gate = clock_gate = retrigger = false;
+
+  slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
   function = new DU_SEQ_Function();
   interface = new DU_SEQ_Interface();
