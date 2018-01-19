@@ -70,8 +70,7 @@ struct DU_SEQ_Values {
 
 volatile DU_SEQ_Values seq_values;
 
-volatile uint8_t stage;
-volatile uint8_t step;
+volatile uint8_t stage, step;
 volatile bool gate, clock_gate, retrigger, reverse;
 
 void clock_isr();
@@ -87,7 +86,6 @@ class DU_SEQ_Function : public DUINO_Function {
     gt_attach_interrupt(GT3, clock_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
 
-    gate = clock_gate = retrigger = false;
   }
 
   virtual void loop()
@@ -780,6 +778,9 @@ void reset_isr()
 
 void setup()
 {
+  stage = step = 0;
+  gate = clock_gate = retrigger = false;
+
   function = new DU_SEQ_Function();
   interface = new DU_SEQ_Interface();
 
