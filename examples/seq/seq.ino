@@ -166,16 +166,16 @@ class DU_SEQ_Function : public DUINO_Function {
 
   uint8_t address_to_stage()
   {
-    int8_t stage = (int8_t)cv_read(CI1) * 1.6;
-    if(stage < 0)
+    int8_t addr_stage = (int8_t)cv_read(CI1) * 1.6;
+    if(addr_stage < 0)
     {
-      stage = 0;
+      addr_stage = 0;
     }
     else if(stage > 7)
     {
-      stage = 7;
+      addr_stage = 7;
     }
-    return (uint8_t)stage;
+    return (uint8_t)addr_stage;
   }
 
  private:
