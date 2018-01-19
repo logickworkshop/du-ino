@@ -775,6 +775,7 @@ void clock_isr()
 void reset_isr()
 {
   stage = step = 0;
+  interface->update_clock();
 }
 
 void setup()
