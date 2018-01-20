@@ -102,16 +102,16 @@ class DU_SEQ_Function : public DUINO_Function {
 
     if(cached_retrigger)
     {
+      // drop gate at start of stage
       if(!cached_step)
       {
-        // drop gate and clock at start of stage
-        gt_out(GT_MULTI | (1 << GT5) | (1 << GT6), false);
+        gt_out(GT5, false);
       }
-      else
-      {
-        // drop clock each retrigger
-        gt_out(GT6, false);
-      }
+
+      // drop clock each step
+      gt_out(GT6, false);
+
+      // update step clock time
       clock_time = millis();
     }
 
@@ -338,9 +338,12 @@ class DU_SEQ_Interface : public DUINO_Interface {
       switch(main_selected)
       {
         case 0: // save
-          save_params(0, params.bytes, 30);
-          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
-          display_changed[0] = true;
+          if(!saved)
+          {
+            save_params(0, params.bytes, 30);
+            display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+            display_changed[0] = true;
+          }
           break;
         case 1: // top
           invert_current_selection();
