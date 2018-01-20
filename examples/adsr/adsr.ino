@@ -23,7 +23,7 @@
 #include <du-ino_function.h>
 #include <du-ino_interface.h>
 
-#define ENV_PEAK              5.0
+#define ENV_PEAK              10.0 // V
 #define ENV_SATURATION        1.581976
 #define ENV_DECAY_COEFF       -2.0
 #define ENV_RELEASE_COEFF     -2.0
@@ -108,6 +108,7 @@ class DU_ADSR_Function : public DUINO_Function {
       }
 
       cv_out(CO1, cv_current);
+      cv_out(CO3, cv_current / 2.0);
     }
     else if(gate)
     {
