@@ -88,7 +88,7 @@ class DU_SEQ_Function : public DUINO_Function {
   virtual void setup()
   {
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
-    gt_attach_interrupt(GT4, reset_isr, RISING);
+    gt_attach_interrupt(GT4, reset_isr, FALLING);
   }
 
   virtual void loop()
@@ -338,7 +338,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
           {
             save_params(0, params.bytes, 30);
             display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
-            display->display(121, 127, 0, 0);
+            display->display(123, 125, 0, 0);
           }
           break;
         case 1: // top
@@ -517,7 +517,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
         {
           saved = false;
           display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
-          display->display(121, 127, 0, 0);
+          display->display(123, 125, 0, 0);
         }
       }
     }
@@ -536,24 +536,25 @@ class DU_SEQ_Interface : public DUINO_Interface {
     // display gate
     if(gate != last_gate || stage != last_stage)
     {
+      uint8_t last_stage_cached = last_stage;
+      last_gate = gate;
+      last_stage = stage;
+
       if(gate)
       {
-        if(stage != last_stage)
+        if(stage != last_stage_cached)
         {
-          display_gate(last_stage, DUINO_SSD1306::Black);
+          display_gate(last_stage_cached, DUINO_SSD1306::Black);
         }
         display_gate(stage, DUINO_SSD1306::White);
       }
       else
       {
-        display_gate(last_stage, DUINO_SSD1306::Black);
+        display_gate(last_stage_cached, DUINO_SSD1306::Black);
       }
 
-      display->display(16 * last_stage + 6, 16 * last_stage + 9, 3, 3);
+      display->display(16 * last_stage_cached + 6, 16 * last_stage_cached + 9, 3, 3);
       display->display(16 * stage + 6, 16 * stage + 9, 3, 3);
-
-      last_gate = gate;
-      last_stage = stage;
     }
 
     // update clock from input
