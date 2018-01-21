@@ -31,6 +31,8 @@
 
 #define V_MAX                 43
 
+#define DEBOUNCE_MS           100 // ms
+
 struct DU_ADSR_Values {
   uint16_t A;  // ms
   uint16_t D;  // ms
@@ -38,12 +40,15 @@ struct DU_ADSR_Values {
   uint16_t R;  // ms
 };
 
-DU_ADSR_Values adsr_values;
+DU_ADSR_Values adsr_values[2];
 volatile bool gate, retrigger;
+volatile uint8_t selected_env;
+volatile unsigned long debounce;
 
 static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 
 void gate_isr();
+void switch_isr();
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
@@ -51,16 +56,19 @@ class DU_ADSR_Function : public DUINO_Function {
   
   virtual void setup()
   {
+    env = 0;
     gate_time = 0;
     release_time = 0;
-    retrigger = false;
+
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
+    gt_attach_interrupt(GT4, switch_isr, FALLING);
   }
 
   virtual void loop()
   {
     if(retrigger)
     {
+      env = selected_env;
       gate_time = 0;
       release_time = 0;
       retrigger = false;
@@ -71,16 +79,16 @@ class DU_ADSR_Function : public DUINO_Function {
       if(gate)
       {
         uint16_t elapsed = millis() - gate_time;
-        if(elapsed < adsr_values.A)
+        if(elapsed < adsr_values[env].A)
         {
           // attack
-          cv_current = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values.A))));
+          cv_current = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values[env].A))));
         }
         else
         {
           // decay/sustain
-          cv_current = adsr_values.S + (ENV_PEAK - adsr_values.S)
-              * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values.A) / float(adsr_values.D)));
+          cv_current = adsr_values[env].S + (ENV_PEAK - adsr_values[env].S)
+              * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values[env].A) / float(adsr_values[env].D)));
         }
       }
       else
@@ -88,10 +96,10 @@ class DU_ADSR_Function : public DUINO_Function {
         if(release_time)
         {
           uint16_t elapsed = millis() - release_time;
-          if(elapsed < adsr_values.R * ENV_RELEASE_HOLD)
+          if(elapsed < adsr_values[env].R * ENV_RELEASE_HOLD)
           {
             // release
-            cv_current = exp(ENV_RELEASE_COEFF * (float(elapsed) / float(adsr_values.R))) * cv_released;
+            cv_current = exp(ENV_RELEASE_COEFF * (float(elapsed) / float(adsr_values[env].R))) * cv_released;
           }
           else
           {
@@ -113,11 +121,12 @@ class DU_ADSR_Function : public DUINO_Function {
     else if(gate)
     {
       gate_time = millis()
-          - (unsigned long)(-float(adsr_values.A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
+          - (unsigned long)(-float(adsr_values[env].A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
     }
   }
 
  private:
+  uint8_t env;
   unsigned long gate_time;
   unsigned long release_time;
   float cv_current;
@@ -130,11 +139,13 @@ class DU_ADSR_Interface : public DUINO_Interface {
   {
     // initialize interface
     selected = 0;
-    display_changed = false;
+    saving = false;
+    last_selected_env = 0;
+    last_gate = false;
 
     // load/initialize ADSR values
-    load_params(0, (uint8_t *)v, 4);
-    for(uint8_t i = 0; i < 4; ++i)
+    load_params(0, (uint8_t *)v, 8);
+    for(uint8_t i = 0; i < 8; ++i)
     {
       if(v[i] < 0)
       {
@@ -144,15 +155,15 @@ class DU_ADSR_Interface : public DUINO_Interface {
       {
         v[i] = V_MAX;
       }
+      v_last[i] = v[i];
     }
-    v_last[0] = v[0];
-    v_last[1] = v[1];
-    v_last[2] = v[2];
-    v_last[3] = v[3]; 
-    adsr_values.A = uint16_t(v[0]) * 24;
-    adsr_values.D = uint16_t(v[1]) * 24;
-    adsr_values.S = (float(v[2]) / float(V_MAX)) * ENV_PEAK;
-    adsr_values.R = uint16_t(v[3]) * 24;
+    for(uint8_t e = 0; e < 8; ++e)
+    {
+      adsr_values[e].A = uint16_t(v[2 * e]) * 24;
+      adsr_values[e].D = uint16_t(v[2 * e + 1]) * 24;
+      adsr_values[e].S = (float(v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
+      adsr_values[e].R = uint16_t(v[2 * e + 3]) * 24;
+    }
 
     // draw title
     display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
@@ -161,19 +172,21 @@ class DU_ADSR_Interface : public DUINO_Interface {
     // draw save box
     display->fill_rect(122, 1, 5, 5, DUINO_SSD1306::White);
 
-    // draw sliders
-    for(uint8_t i = 0; i < 4; ++i)
+    // draw envelope indicators
+    display->draw_char(47, 56, 0x11, DUINO_SSD1306::White);
+    display->draw_char(54, 56, '1', DUINO_SSD1306::White);
+    display->draw_char(69, 56, '2', DUINO_SSD1306::White);
+    display->draw_char(76, 56, 0x10, DUINO_SSD1306::White);
+
+    // draw sliders & labels
+    for(uint8_t i = 0; i < 8; ++i)
     {
-      display->fill_rect(32 * i + 11, 51 - v[i], 9, 3, DUINO_SSD1306::White);
+      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SSD1306::White);
+      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SSD1306::White);
     }
 
-    // draw labels
-    display->fill_rect(11, 55, 9, 9, DUINO_SSD1306::White);
-    display->draw_char(13, 56, label[0], DUINO_SSD1306::Black);
-    for(uint8_t i = 1; i < 4; ++i)
-    {
-      display->draw_char(32 * i + 13, 56, label[i], DUINO_SSD1306::White);
-    }
+    display->fill_rect(1, 55, 9, 9, DUINO_SSD1306::Inverse);
+    display->fill_rect(53, 55, 7, 9, DUINO_SSD1306::Inverse);
 
     display->display_all();
   }
@@ -184,26 +197,27 @@ class DU_ADSR_Interface : public DUINO_Interface {
     DUINO_Encoder::Button b = encoder->get_button();
     if(b == DUINO_Encoder::DoubleClicked)
     {
+      invert_current_selection();
       saving = !saving;
-      display->fill_rect(121, 0, 7, 7, DUINO_SSD1306::Inverse);
-      display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Inverse);
-      display_changed = true;
+      invert_current_selection();
     }
     else if(b == DUINO_Encoder::Clicked)
     {
       if(saving)
       {
-        save_params(0, v, 4);
-        display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
-        display_changed = true;
+        if(!saved)
+        {
+          save_params(0, v, 8);
+          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display->display(123, 125, 0, 0);
+        }
       }
       else
       {
-        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Inverse);
+        invert_current_selection();
         selected++;
-        selected %= 4;
-        display->fill_rect(32 * selected + 11, 55, 9, 9, DUINO_SSD1306::Inverse);
-        display_changed = true;
+        selected %= 8;
+        invert_current_selection();
       }
     }
 
@@ -222,27 +236,34 @@ class DU_ADSR_Interface : public DUINO_Interface {
       if(v[selected] != v_last[selected])
       {
         // mark save box
-        display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+        if(saved)
+        {
+          saved = false;
+          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display->display(123, 125, 0, 0);
+        }
 
         // update slider
-        display->fill_rect(32 * selected + 11, 51 - v_last[selected], 9, 3, DUINO_SSD1306::Black);
-        display->fill_rect(32 * selected + 11, 51 - v[selected], 9, 3, DUINO_SSD1306::White);
-        display_changed = true;
+        uint16_t col = 11 * (selected % 4) + (selected > 3 ? 85 : 1);
+        display->fill_rect(col, 51 - v_last[selected], 9, 3, DUINO_SSD1306::Black);
+        display->fill_rect(col, 51 - v[selected], 9, 3, DUINO_SSD1306::White);
+        display->display(col, col + 8, 1, 6);
 
         // update ADSR value
-        switch(selected)
+        uint8_t e = selected > 3 ? 1 : 0;
+        switch(selected % 4)
         {
           case 0:
-            adsr_values.A = uint16_t(v[selected]) * 24;
+            adsr_values[e].A = uint16_t(v[selected]) * 24;
             break;
           case 1:
-            adsr_values.D = uint16_t(v[selected]) * 24;
+            adsr_values[e].D = uint16_t(v[selected]) * 24;
             break;
           case 2:
-            adsr_values.S = (float(v[selected]) / float(V_MAX)) * ENV_PEAK;
+            adsr_values[e].S = (float(v[selected]) / float(V_MAX)) * ENV_PEAK;
             break;
           case 3:
-            adsr_values.R = uint16_t(v[selected]) * 24;
+            adsr_values[e].R = uint16_t(v[selected]) * 24;
             break;
         }
 
@@ -251,18 +272,53 @@ class DU_ADSR_Interface : public DUINO_Interface {
       }
     }
 
-    if(display_changed)
+    // display selected envelope
+    if(selected_env != last_selected_env)
     {
-      display->display_all();
-      display_changed = false;
+      last_selected_env = selected_env;
+      display->fill_rect(53, 55, 7, 9, DUINO_SSD1306::Inverse);
+      display->fill_rect(68, 55, 7, 9, DUINO_SSD1306::Inverse);
+      display->display(53, 74, 6, 7);
+    }
+
+    // display gate
+    if(gate != last_gate)
+    {
+      last_gate = gate;
+      if(gate)
+      {
+        display->draw_char(60, 25, 0x0D, DUINO_SSD1306::White);
+      }
+      else
+      {
+        display->fill_rect(60, 25, 5, 7, DUINO_SSD1306::Black);
+      }
+      display->display(60, 64, 3, 3);
     }
   }
 
  private:
+  void invert_current_selection()
+  {
+    if(saving)
+    {
+      display->fill_rect(121, 0, 7, 7, DUINO_SSD1306::Inverse);
+      display->display(121, 127, 0, 0);
+    }
+    else
+    {
+      display->fill_rect(11 * (selected % 4) + (selected > 3 ? 85 : 1), 55, 9, 9, DUINO_SSD1306::Inverse);
+      display->display(11 * (selected % 4) + (selected > 3 ? 85 : 1), 11 * (selected % 4) + (selected > 3 ? 93 : 9),
+          6, 7);
+    }
+    delay(1);  // FIXME: SSD1306 unstable without this (too many I2C txs too quickly?)
+  }
+
   uint8_t selected;
-  int8_t v[4], v_last[4];
-  bool display_changed;
   bool saving;
+  int8_t v[8], v_last[8];
+  uint8_t last_selected_env;
+  bool last_gate;
 };
 
 DU_ADSR_Function * function;
@@ -277,9 +333,21 @@ void gate_isr()
     retrigger = true;
 }
 
+void switch_isr()
+{
+  if(millis() - debounce > DEBOUNCE_MS)
+  {
+    selected_env++;
+    selected_env %= 2;
+    debounce = millis();
+  }
+}
+
 void setup()
 {
-  gate = 0;
+  gate = retrigger = false;
+  selected_env = 0;
+  debounce = 0;
 
   function = new DU_ADSR_Function();
   interface = new DU_ADSR_Interface();
