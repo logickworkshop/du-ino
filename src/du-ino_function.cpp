@@ -25,7 +25,7 @@
 
 #define TRIG_MS     5
 
-DUINO_Function::DUINO_Function(uint16_t sc)
+DUINO_Function::DUINO_Function(uint8_t sc)
 {
   set_switch_config(sc);
 
@@ -76,7 +76,7 @@ bool DUINO_Function::gt_read(uint8_t jack)
 
 bool DUINO_Function::gt_read_debounce(uint8_t jack)
 {
-  if(jack < 4 && switch_config & (1 << jack))
+  if(switch_config & (1 << jack))
   {
     uint16_t buffer = 0x5555;
     while(buffer && buffer != 0xFFFF)
@@ -95,7 +95,7 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
 {
   if(!(jack & GT_MULTI))
   {
-    if(jack < 6 && out_mask & (1 << jack))
+    if((~switch_config & 0xFF) & (1 << jack))
     {
       digitalWrite(jack, on ? HIGH : LOW);
       if(trig)
@@ -107,14 +107,14 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
   }
   else
   {
-    for(uint8_t i = 0; i < 6; ++i)
-      if(jack & out_mask & (1 << i))
+    for(uint8_t i = 0; i < 4; ++i)
+      if(jack & (~switch_config & 0xFF) & (1 << i))
         digitalWrite(i, on ? HIGH : LOW);
     if(trig)
     {
       delay(TRIG_MS);
-      for(uint8_t i = 0; i < 6; ++i)
-        if(jack & out_mask & (1 << i))
+      for(uint8_t i = 0; i < 4; ++i)
+        if(jack & (~switch_config & 0xFF) & (1 << i))
           digitalWrite(i, on ? LOW : HIGH);
     }
   }
@@ -151,12 +151,11 @@ void DUINO_Function::gt_detach_interrupt(uint8_t jack)
   detachInterrupt(digitalPinToInterrupt(jack));
 }
 
-void DUINO_Function::set_switch_config(uint16_t sc)
+void DUINO_Function::set_switch_config(uint8_t sc)
 {
   switch_config = sc;
-  out_mask = 0x30 | (~sc & 0x0F);
 
   // configure digital pins
-  for(uint8_t i = 0; i < 6; ++i)
-    pinMode(i, out_mask & (1 << i) ? OUTPUT : INPUT);
+  for(uint8_t i = 0; i < 4; ++i)
+    pinMode(i, sc & (1 << i) ? INPUT : OUTPUT);
 }
