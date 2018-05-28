@@ -52,7 +52,7 @@ void switch_isr();
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
-  DU_ADSR_Function() : DUINO_Function(0b1011001100) { }
+  DU_ADSR_Function() : DUINO_Function(0b10111100) { }
   
   virtual void setup()
   {
@@ -166,27 +166,27 @@ class DU_ADSR_Interface : public DUINO_Interface {
     }
 
     // draw title
-    display->draw_du_logo_sm(0, 0, DUINO_SSD1306::White);
-    display->draw_text(16, 0, "ADSR/VCA", DUINO_SSD1306::White);
+    display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
+    display->draw_text(16, 0, "ADSR/VCA", DUINO_SH1106::White);
 
     // draw save box
-    display->fill_rect(122, 1, 5, 5, DUINO_SSD1306::White);
+    display->fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
 
     // draw envelope indicators
-    display->draw_char(47, 56, 0x11, DUINO_SSD1306::White);
-    display->draw_char(54, 56, '1', DUINO_SSD1306::White);
-    display->draw_char(69, 56, '2', DUINO_SSD1306::White);
-    display->draw_char(76, 56, 0x10, DUINO_SSD1306::White);
+    display->draw_char(47, 56, 0x11, DUINO_SH1106::White);
+    display->draw_char(54, 56, '1', DUINO_SH1106::White);
+    display->draw_char(69, 56, '2', DUINO_SH1106::White);
+    display->draw_char(76, 56, 0x10, DUINO_SH1106::White);
 
     // draw sliders & labels
     for(uint8_t i = 0; i < 8; ++i)
     {
-      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SSD1306::White);
-      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SSD1306::White);
+      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SH1106::White);
+      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SH1106::White);
     }
 
-    display->fill_rect(1, 55, 9, 9, DUINO_SSD1306::Inverse);
-    display->fill_rect(53, 55, 7, 9, DUINO_SSD1306::Inverse);
+    display->fill_rect(1, 55, 9, 9, DUINO_SH1106::Inverse);
+    display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
 
     display->display_all();
   }
@@ -208,7 +208,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
         if(!saved)
         {
           save_params(0, v, 8);
-          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
           display->display(123, 125, 0, 0);
         }
       }
@@ -239,14 +239,14 @@ class DU_ADSR_Interface : public DUINO_Interface {
         if(saved)
         {
           saved = false;
-          display->fill_rect(123, 2, 3, 3, DUINO_SSD1306::Black);
+          display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
           display->display(123, 125, 0, 0);
         }
 
         // update slider
         uint16_t col = 11 * (selected % 4) + (selected > 3 ? 85 : 1);
-        display->fill_rect(col, 51 - v_last[selected], 9, 3, DUINO_SSD1306::Black);
-        display->fill_rect(col, 51 - v[selected], 9, 3, DUINO_SSD1306::White);
+        display->fill_rect(col, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
+        display->fill_rect(col, 51 - v[selected], 9, 3, DUINO_SH1106::White);
         display->display(col, col + 8, 1, 6);
 
         // update ADSR value
@@ -276,8 +276,8 @@ class DU_ADSR_Interface : public DUINO_Interface {
     if(selected_env != last_selected_env)
     {
       last_selected_env = selected_env;
-      display->fill_rect(53, 55, 7, 9, DUINO_SSD1306::Inverse);
-      display->fill_rect(68, 55, 7, 9, DUINO_SSD1306::Inverse);
+      display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
+      display->fill_rect(68, 55, 7, 9, DUINO_SH1106::Inverse);
       display->display(53, 74, 6, 7);
     }
 
@@ -287,11 +287,11 @@ class DU_ADSR_Interface : public DUINO_Interface {
       last_gate = gate;
       if(gate)
       {
-        display->draw_char(60, 25, 0x0D, DUINO_SSD1306::White);
+        display->draw_char(60, 25, 0x0D, DUINO_SH1106::White);
       }
       else
       {
-        display->fill_rect(60, 25, 5, 7, DUINO_SSD1306::Black);
+        display->fill_rect(60, 25, 5, 7, DUINO_SH1106::Black);
       }
       display->display(60, 64, 3, 3);
     }
@@ -302,16 +302,16 @@ class DU_ADSR_Interface : public DUINO_Interface {
   {
     if(saving)
     {
-      display->fill_rect(121, 0, 7, 7, DUINO_SSD1306::Inverse);
+      display->fill_rect(121, 0, 7, 7, DUINO_SH1106::Inverse);
       display->display(121, 127, 0, 0);
     }
     else
     {
-      display->fill_rect(11 * (selected % 4) + (selected > 3 ? 85 : 1), 55, 9, 9, DUINO_SSD1306::Inverse);
+      display->fill_rect(11 * (selected % 4) + (selected > 3 ? 85 : 1), 55, 9, 9, DUINO_SH1106::Inverse);
       display->display(11 * (selected % 4) + (selected > 3 ? 85 : 1), 11 * (selected % 4) + (selected > 3 ? 93 : 9),
           6, 7);
     }
-    delay(1);  // FIXME: SSD1306 unstable without this (too many I2C txs too quickly?)
+    delay(1);  // FIXME: SH1106 unstable without this (too many I2C txs too quickly?)
   }
 
   uint8_t selected;
