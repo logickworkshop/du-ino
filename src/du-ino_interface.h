@@ -24,7 +24,7 @@
 #define DUINO_INTERFACE_H_
 
 #include "Arduino.h"
-#include "du-ino_ssd1306.h"
+#include "du-ino_sh1106.h"
 #include "du-ino_encoder.h"
 
 class DUINO_Interface {
@@ -39,7 +39,7 @@ class DUINO_Interface {
   void save_params(int address, uint8_t * start, int length);
   void load_params(int address, uint8_t * start, int length);
 
-  DUINO_SSD1306 * display;
+  DUINO_SH1106 * display;
   DUINO_Encoder * encoder;
 
  protected:

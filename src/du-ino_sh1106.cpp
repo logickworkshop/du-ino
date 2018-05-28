@@ -16,147 +16,142 @@
  *   |/\|    |__|    |  \    |  \    .__)    |  |    |__|    |             ##
  *
  *
- * DU-INO Arduino Library - SSD1306 Display Module
+ * DU-INO Arduino Library - SH1106 Display Module
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
 #include <stdlib.h>
-#include <Wire.h>
+#include <SPI.h>
 #include <avr/pgmspace.h>
 
 #include "du-ino_font5x7.h"
-#include "du-ino_ssd1306.h"
+#include "du-ino_SH1106.h"
 
-static uint8_t buffer[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8];
+static uint8_t buffer[SH1106_LCDHEIGHT * SH1106_LCDWIDTH / 8];
 
-DUINO_SSD1306::DUINO_SSD1306()
+DUINO_SH1106::DUINO_SH1106(uint8_t ss, uint8_t dc)
+  : pin_ss(ss)
+  , pin_dc(dc)
 {
-
+  pinMode(pin_ss, OUTPUT);
+  pinMode(pin_dc, OUTPUT);
 }
 
-void DUINO_SSD1306::ssd1306_command(uint8_t c)
+void DUINO_SH1106::sh1106_command(uint8_t command)
 {
-  // send I2C command
-  uint8_t control = 0x00;
-  Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-  Wire.write(control);
-  Wire.write(c);
-  Wire.endTransmission();
+  digitalWrite(pin_ss, HIGH);
+  digitalWrite(pin_dc, LOW);
+  digitalWrite(pin_ss, LOW);
+  (void)SPI.transfer(command);
+  digitalWrite(pin_ss, HIGH);
 }
 
-void DUINO_SSD1306::begin()
+void DUINO_SH1106::begin()
 {
-  // initialize I2C
-  Wire.begin();
-#ifdef TWBR
-  TWBR = 12;
-#endif
+  // hold chip deselect
+  digitalWrite(pin_ss, HIGH);
+
+  // hold DC low
+  digitalWrite(pin_dc, LOW);
+
+  // initialize SPI
+  SPI.begin();
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
 
   // initialization sequence
-  ssd1306_command(SSD1306_DISPLAYOFF);
-
-  ssd1306_command(SSD1306_SETDISPLAYCLOCKDIV);
-  ssd1306_command(0x80);
-
-  ssd1306_command(SSD1306_SETMULTIPLEX);
-  ssd1306_command(SSD1306_LCDHEIGHT - 1);
-
-  ssd1306_command(SSD1306_SETDISPLAYOFFSET);
-  ssd1306_command(0x0);
-  ssd1306_command(SSD1306_SETSTARTLINE | 0x0);
-  ssd1306_command(SSD1306_CHARGEPUMP);
-  ssd1306_command(0x14);
-  ssd1306_command(SSD1306_MEMORYMODE);
-  ssd1306_command(0x00);
-  ssd1306_command(SSD1306_SEGREMAP | 0x1);
-  ssd1306_command(SSD1306_COMSCANDEC);
-
-  ssd1306_command(SSD1306_SETCOMPINS);
-  ssd1306_command(0x12);
-  ssd1306_command(SSD1306_SETCONTRAST);
-  ssd1306_command(0xCF);
-
-  ssd1306_command(SSD1306_SETPRECHARGE);
-  ssd1306_command(0xF1);
-  ssd1306_command(SSD1306_SETVCOMDETECT);
-  ssd1306_command(0x40);
-  ssd1306_command(SSD1306_DISPLAYALLON_RESUME);
-  ssd1306_command(SSD1306_NORMALDISPLAY);
-
-  ssd1306_command(SSD1306_DEACTIVATE_SCROLL);
-
-  ssd1306_command(SSD1306_DISPLAYON);
+  sh1106_command(SH1106_DISPLAYOFF);
+  sh1106_command(SH1106_SETDISPLAYCLOCKDIV);
+  sh1106_command(0x80);
+  sh1106_command(SH1106_SETMULTIPLEX);
+  sh1106_command(SH1106_LCDHEIGHT - 1);
+  sh1106_command(SH1106_SETDISPLAYOFFSET);
+  sh1106_command(0x00);
+  sh1106_command(SH1106_SETSTARTLINE);
+  sh1106_command(SH1106_CHARGEPUMP);
+  sh1106_command(0x14);
+  sh1106_command(SH1106_MEMORYMODE);
+  sh1106_command(0x00);
+  sh1106_command(SH1106_SEGREMAP | 0x01);
+  sh1106_command(SH1106_COMSCANDEC);
+  sh1106_command(SH1106_SETCOMPINS);
+  sh1106_command(0x12);
+  sh1106_command(SH1106_SETCONTRAST);
+  sh1106_command(0xCF);
+  sh1106_command(SH1106_SETPRECHARGE);
+  sh1106_command(0xF1);
+  sh1106_command(SH1106_SETVCOMDETECT);
+  sh1106_command(0x40);
+  sh1106_command(SH1106_DISPLAYALLON_RESUME);
+  sh1106_command(SH1106_NORMALDISPLAY);
+  sh1106_command(SH1106_DISPLAYON);
 }
 
-void DUINO_SSD1306::display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end)
+void DUINO_SH1106::display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end)
 {
-  // set column address range
-  ssd1306_command(SSD1306_COLUMNADDR);
-  ssd1306_command(col_start);
-  ssd1306_command(col_end);
-
-  // set page address range
-  ssd1306_command(SSD1306_PAGEADDR);
-  ssd1306_command(page_start);
-  ssd1306_command(page_end);
-
-  // transmit buffer
-  uint8_t count = 0;
-  Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-  Wire.write(0x40);
-  for(uint8_t page = page_start; page <= page_end; ++page)
+  int p = 0;
+  uint8_t i, j, k;
+  
+  // TODO: use the column and page values, or rework with new (or no) parameters and update examples
+  for(i = 0; i < 8; ++i)
   {
-    for(uint8_t col = col_start; col <= col_end; ++col)
+    // FIXME: command needs a #define
+    sh1106_command(0xB0 + i);
+    sh1106_command(SH1106_SETLOWCOLUMN | 0x02);
+    sh1106_command(SH1106_SETHIGHCOLUMN);
+    
+    for(j = 0; j < 8; ++j)
     {
-      Wire.write(buffer[page * 128 + col]);
-      if(++count > 15)
+      digitalWrite(pin_ss, HIGH);
+      digitalWrite(pin_dc, HIGH);
+      digitalWrite(pin_ss, LOW);
+      for(k = 0; k < 16; ++k, ++p)
       {
-        count = 0;
-        Wire.endTransmission();
-        Wire.beginTransmission(SSD1306_I2C_ADDRESS);
-        Wire.write(0x40);
+        (void)SPI.transfer(buffer[p]);
       }
+      digitalWrite(pin_ss, HIGH);
     }
   }
-  Wire.endTransmission();
 }
 
-void DUINO_SSD1306::display_all()
+void DUINO_SH1106::display_all()
 {
-  display(0, 127, 0, 7);
+  // TODO: update when the display function respects these values again
+  display(0, 0, 0, 0);
 }
 
-void DUINO_SSD1306::clear_display()
+void DUINO_SH1106::clear_display()
 {
   // clear buffer
-  memset(buffer, 0, SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8);
+  memset(buffer, 0, SH1106_LCDHEIGHT * SH1106_LCDWIDTH / 8);
 }
 
-void DUINO_SSD1306::draw_pixel(int16_t x, int16_t y, SSD1306Color color)
+void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, SH1106Color color)
 {
   // bound check
-  if ((x < 0) || (x >= SSD1306_LCDWIDTH) || (y < 0) || (y >= SSD1306_LCDHEIGHT))
+  if ((x < 0) || (x >= SH1106_LCDWIDTH) || (y < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
   // set pixel value
   switch(color)
   {
     case Black:
-      buffer[x + (y / 8) * SSD1306_LCDWIDTH] &= ~(1 << (y & 7));
+      buffer[x + (y / 8) * SH1106_LCDWIDTH] &= ~(1 << (y & 7));
       break;
     case White:
-      buffer[x + (y / 8) * SSD1306_LCDWIDTH] |=  (1 << (y & 7));
+      buffer[x + (y / 8) * SH1106_LCDWIDTH] |=  (1 << (y & 7));
       break;
     case Inverse:
-      buffer[x + (y / 8) * SSD1306_LCDWIDTH] ^=  (1 << (y & 7));
+      buffer[x + (y / 8) * SH1106_LCDWIDTH] ^=  (1 << (y & 7));
       break;
   }
 }
 
-void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color color)
+void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color)
 {
   // bound check
-  if((y < 0) || (y >= SSD1306_LCDHEIGHT))
+  if((y < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
   // clip at edges of display
@@ -165,9 +160,9 @@ void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color col
     w += x;
     x = 0;
   }
-  if((x + w) > SSD1306_LCDWIDTH)
+  if((x + w) > SH1106_LCDWIDTH)
   {
-    w = (SSD1306_LCDWIDTH - x);
+    w = (SH1106_LCDWIDTH - x);
   }
 
   // check width
@@ -175,7 +170,7 @@ void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color col
     return;
 
   // initialize buffer pointer
-  register uint8_t * bp = buffer + ((y / 8) * SSD1306_LCDWIDTH) + x;
+  register uint8_t * bp = buffer + ((y / 8) * SH1106_LCDWIDTH) + x;
 
   // initialize pixel mask
   register uint8_t mask = 1 << (y & 7);
@@ -204,10 +199,10 @@ void DUINO_SSD1306::draw_hline(int16_t x, int16_t y, int16_t w, SSD1306Color col
   }
 }
 
-void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color color)
+void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color)
 {
   // bound check
-  if((x < 0) || (x >= SSD1306_LCDWIDTH))
+  if((x < 0) || (x >= SH1106_LCDWIDTH))
     return;
 
   // clip at edges of display
@@ -216,9 +211,9 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
     h += y;
     y = 0;
   }
-  if((y + h) > SSD1306_LCDHEIGHT)
+  if((y + h) > SH1106_LCDHEIGHT)
   {
-    h = (SSD1306_LCDHEIGHT - y);
+    h = (SH1106_LCDHEIGHT - y);
   }
 
   // check height
@@ -230,7 +225,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
   register uint8_t rh = h;
 
   // set up the pointer for fast movement through the buffer
-  register uint8_t *bp = buffer + ((ry / 8) * SSD1306_LCDWIDTH) + x;
+  register uint8_t *bp = buffer + ((ry / 8) * SH1106_LCDWIDTH) + x;
 
   // first partial byte
   register uint8_t mod = (ry & 7);
@@ -265,7 +260,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
       return;
 
     rh -= mod;
-    bp += SSD1306_LCDWIDTH;
+    bp += SH1106_LCDWIDTH;
   }
 
   // solid bytes
@@ -276,7 +271,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
       do
       {
         *bp = ~(*bp);
-        bp += SSD1306_LCDWIDTH;
+        bp += SH1106_LCDWIDTH;
         rh -= 8;
       }
       while(rh >= 8);
@@ -288,7 +283,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
       do
       {
         *bp = val;
-        bp += SSD1306_LCDWIDTH;
+        bp += SH1106_LCDWIDTH;
         rh -= 8;
       }
       while(rh >= 8);
@@ -318,7 +313,7 @@ void DUINO_SSD1306::draw_vline(int16_t x, int16_t y, int16_t h, SSD1306Color col
   }
 }
 
-void DUINO_SSD1306::draw_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color color)
+void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color color)
 {
   register int8_t x = 0;
   register int8_t y = r;
@@ -343,7 +338,7 @@ void DUINO_SSD1306::draw_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color 
   }
 }
 
-void DUINO_SSD1306::fill_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color color)
+void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color color)
 {
   register int8_t x = 0;
   register int8_t y = r;
@@ -368,23 +363,23 @@ void DUINO_SSD1306::fill_circle(int16_t xc, int16_t yc, int16_t r, SSD1306Color 
   }
 }
 
-void DUINO_SSD1306::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SSD1306Color color)
+void DUINO_SH1106::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SH1106Color color)
 {
   // draw filled rectangle as a series of vlines
   for(int16_t i = x; i < x + w; ++i)
     draw_vline(i, y, h, color);
 }
 
-void DUINO_SSD1306::fill_screen(SSD1306Color color)
+void DUINO_SH1106::fill_screen(SH1106Color color)
 {
   // full-screen filled rectangle
-  fill_rect(0, 0, SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, color);
+  fill_rect(0, 0, SH1106_LCDWIDTH, SH1106_LCDHEIGHT, color);
 }
 
-void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Color color)
+void DUINO_SH1106::draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 5) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 7) < 0) || (y >= SSD1306_LCDHEIGHT))
+  if(((x + 5) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
   // draw pixels from ASCII 5x7 font map
@@ -401,7 +396,7 @@ void DUINO_SSD1306::draw_char(int16_t x, int16_t y, unsigned char c, SSD1306Colo
   }
 }
 
-void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Color color)
+void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, SH1106Color color)
 {
   // draw characters with 1-pixel spacing
   register int8_t i = 0;
@@ -409,10 +404,10 @@ void DUINO_SSD1306::draw_text(int16_t x, int16_t y, const char * text, SSD1306Co
     draw_char(x + 6 * i++, y, *(text + i), color);
 }
 
-void DUINO_SSD1306::draw_icon_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color)
+void DUINO_SH1106::draw_icon_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 7) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 7) < 0) || (y >= SSD1306_LCDHEIGHT))
+  if(((x + 7) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
   // draw pixels from icon map
@@ -429,10 +424,10 @@ void DUINO_SSD1306::draw_icon_7(int16_t x, int16_t y, const unsigned char * map,
   }
 }
 
-void DUINO_SSD1306::draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SSD1306Color color)
+void DUINO_SH1106::draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 16) < 0) || (x >= SSD1306_LCDWIDTH) || ((y + 16) < 0) || (y >= SSD1306_LCDHEIGHT))
+  if(((x + 16) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 16) < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
   // draw pixels from icon map
@@ -454,7 +449,7 @@ void DUINO_SSD1306::draw_icon_16(int16_t x, int16_t y, const unsigned char * map
   }
 }
 
-void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)
+void DUINO_SH1106::draw_du_logo_lg(int16_t x, int16_t y, SH1106Color color)
 {
   fill_circle(x + 19, y + 19, 19, color);
   fill_circle(x + 59, y + 19, 19, color);
@@ -462,7 +457,7 @@ void DUINO_SSD1306::draw_du_logo_lg(int16_t x, int16_t y, SSD1306Color color)
   fill_rect(x + 39, y, 40, 21, color);
 }
 
-void DUINO_SSD1306::draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color)
+void DUINO_SH1106::draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color)
 {
   draw_vline(x, y, 5, color);
   draw_vline(x + 1, y, 6, color);
@@ -476,7 +471,7 @@ void DUINO_SSD1306::draw_du_logo_sm(int16_t x, int16_t y, SSD1306Color color)
   draw_vline(x + 13, y, 5, color);
 }
 
-void DUINO_SSD1306::draw_logick_logo(int16_t x, int16_t y, SSD1306Color color)
+void DUINO_SH1106::draw_logick_logo(int16_t x, int16_t y, SH1106Color color)
 {
   fill_rect(x, y, 2, 10, color);
   fill_rect(x + 3, y + 4, 2, 6, color);
@@ -507,7 +502,7 @@ void DUINO_SSD1306::draw_logick_logo(int16_t x, int16_t y, SSD1306Color color)
   draw_vline(x + 37, y + 14, 2, color);
 }
 
-inline void DUINO_SSD1306::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
+inline void DUINO_SH1106::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color)
 {
   draw_pixel(xc + x, yc + y, color);
   draw_pixel(xc + x, yc - y, color);
@@ -519,7 +514,7 @@ inline void DUINO_SSD1306::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int
   draw_pixel(xc - y, yc - x, color);
 }
 
-inline void DUINO_SSD1306::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SSD1306Color color)
+inline void DUINO_SH1106::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color)
 {
   draw_vline(xc + x, yc - y, y + y, color);
   draw_vline(xc + y, yc - x, x + x, color);

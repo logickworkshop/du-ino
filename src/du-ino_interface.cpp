@@ -25,7 +25,7 @@
 #include "du-ino_interface.h"
 
 DUINO_Interface::DUINO_Interface()
-  : display(new DUINO_SSD1306())
+  : display(new DUINO_SH1106(5, 4))
   , encoder(new DUINO_Encoder(9, 10, 12))
   , saved(false)
 {
