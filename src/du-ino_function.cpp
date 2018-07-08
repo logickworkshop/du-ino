@@ -95,7 +95,7 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
 {
   if(!(jack & GT_MULTI))
   {
-    if((~switch_config & 0xFF) & (1 << jack))
+    if((~switch_config) & (1 << jack))
     {
       digitalWrite(jack, on ? HIGH : LOW);
       if(trig)
@@ -108,13 +108,13 @@ void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
   else
   {
     for(uint8_t i = 0; i < 4; ++i)
-      if(jack & (~switch_config & 0xFF) & (1 << i))
+      if(jack & (~switch_config) & (1 << i))
         digitalWrite(i, on ? HIGH : LOW);
     if(trig)
     {
       delay(TRIG_MS);
       for(uint8_t i = 0; i < 4; ++i)
-        if(jack & (~switch_config & 0xFF) & (1 << i))
+        if(jack & (~switch_config) & (1 << i))
           digitalWrite(i, on ? LOW : HIGH);
     }
   }
