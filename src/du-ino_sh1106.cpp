@@ -69,8 +69,6 @@ void DUINO_SH1106::begin()
   sh1106_command(SH1106_SETDISPLAYOFFSET);
   sh1106_command(0x00);
   sh1106_command(SH1106_SETSTARTLINE);
-  sh1106_command(SH1106_CHARGEPUMP);
-  sh1106_command(0x14);
   sh1106_command(SH1106_SEGREMAP | 0x01);
   sh1106_command(SH1106_COMSCANDEC);
   sh1106_command(SH1106_SETCOMPINS);

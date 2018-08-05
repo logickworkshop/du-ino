@@ -40,7 +40,6 @@
 #define SH1106_SETPUMPVOLTAGE                           0x30
 #define SH1106_SETSTARTLINE                             0x40
 #define SH1106_SETCONTRAST                              0x81
-#define SH1106_CHARGEPUMP                               0x8D
 #define SH1106_SEGREMAP                                 0xA0
 #define SH1106_DISPLAYALLON_RESUME                      0xA4
 #define SH1106_DISPLAYALLON                             0xA5
