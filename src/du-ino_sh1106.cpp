@@ -71,8 +71,6 @@ void DUINO_SH1106::begin()
   sh1106_command(SH1106_SETSTARTLINE);
   sh1106_command(SH1106_CHARGEPUMP);
   sh1106_command(0x14);
-  sh1106_command(SH1106_MEMORYMODE);
-  sh1106_command(0x00);
   sh1106_command(SH1106_SEGREMAP | 0x01);
   sh1106_command(SH1106_COMSCANDEC);
   sh1106_command(SH1106_SETCOMPINS);
@@ -90,35 +88,38 @@ void DUINO_SH1106::begin()
 
 void DUINO_SH1106::display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end)
 {
-  int p = 0;
-  uint8_t i, j, k;
+  uint8_t page, col, b;
   
   // TODO: use the column and page values, or rework with new (or no) parameters and update examples
-  for(i = 0; i < 8; ++i)
+  for(page = page_start; page <= page_end; ++page)
   {
     // FIXME: command needs a #define
-    sh1106_command(0xB0 + i);
-    sh1106_command(SH1106_SETLOWCOLUMN | 0x02);
-    sh1106_command(SH1106_SETHIGHCOLUMN);
+    sh1106_command(SH1106_SETPAGEADDR | page);
+    sh1106_command(SH1106_SETLOWCOLUMN | (col_start + 2) & 0x0F);
+    sh1106_command(SH1106_SETHIGHCOLUMN | (col_start + 2) >> 4);
     
-    for(j = 0; j < 8; ++j)
+    digitalWrite(pin_ss, HIGH);
+    digitalWrite(pin_dc, HIGH);
+    digitalWrite(pin_ss, LOW);
+
+    b = 1;
+    for(col = col_start; col <= col_end; ++col, ++b)
     {
-      digitalWrite(pin_ss, HIGH);
-      digitalWrite(pin_dc, HIGH);
-      digitalWrite(pin_ss, LOW);
-      for(k = 0; k < 16; ++k, ++p)
+      (void)SPI.transfer(buffer[page * SH1106_LCDWIDTH + col]);
+      if(b % 16)
       {
-        (void)SPI.transfer(buffer[p]);
+        digitalWrite(pin_ss, HIGH);
+        digitalWrite(pin_ss, LOW);
       }
-      digitalWrite(pin_ss, HIGH);
     }
+
+    digitalWrite(pin_ss, HIGH);
   }
 }
 
 void DUINO_SH1106::display_all()
 {
-  // TODO: update when the display function respects these values again
-  display(0, 0, 0, 0);
+  display(0, 127, 0, 7);
 }
 
 void DUINO_SH1106::clear_display()
