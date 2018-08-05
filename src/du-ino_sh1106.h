@@ -90,8 +90,8 @@ class DUINO_SH1106
   void draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color color);
   void draw_text(int16_t x, int16_t y, const char * text, SH1106Color color);
 
-  void draw_icon_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
-  void draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
+  void draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
+  void draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
 
   void draw_du_logo_lg(int16_t x, int16_t y, SH1106Color color);
   void draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color);

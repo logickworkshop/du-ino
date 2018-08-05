@@ -33,6 +33,10 @@
 
 #define DEBOUNCE_MS           100 // ms
 
+static const unsigned char icons[] PROGMEM = {
+  0x38, 0x78, 0x7f, 0x7f, 0x7f, 0x78, 0x38  // gate
+};
+
 struct DU_ADSR_Values {
   uint16_t A;  // ms
   uint16_t D;  // ms
@@ -287,13 +291,13 @@ class DU_ADSR_Interface : public DUINO_Interface {
       last_gate = gate;
       if(gate)
       {
-        display->draw_char(60, 25, 0x0D, DUINO_SH1106::White);
+        display->draw_bitmap_7(60, 25, icons, 0, DUINO_SH1106::White);
       }
       else
       {
-        display->fill_rect(60, 25, 5, 7, DUINO_SH1106::Black);
+        display->fill_rect(60, 25, 7, 7, DUINO_SH1106::Black);
       }
-      display->display(60, 64, 3, 3);
+      display->display(60, 66, 3, 3);
     }
   }
 
