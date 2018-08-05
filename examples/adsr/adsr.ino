@@ -157,7 +157,7 @@ class DU_ADSR_Interface : public DUINO_Interface {
       }
       v_last[i] = v[i];
     }
-    for(uint8_t e = 0; e < 8; ++e)
+    for(uint8_t e = 0; e < 2; ++e)
     {
       adsr_values[e].A = uint16_t(v[2 * e]) * 24;
       adsr_values[e].D = uint16_t(v[2 * e + 1]) * 24;
