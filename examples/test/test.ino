@@ -113,7 +113,6 @@ class DU_Test_Interface : public DUINO_Interface {
  public:
   virtual void setup()
   {
-    display_changed = false;
     last_calibration_value = 0;
 
     display->draw_logick_logo(0, 0, DUINO_SH1106::White);
@@ -240,7 +239,6 @@ class DU_Test_Interface : public DUINO_Interface {
     }
   }
 
-  bool display_changed;
   int8_t last_calibration_value;
 };
 
