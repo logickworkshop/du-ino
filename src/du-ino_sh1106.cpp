@@ -403,13 +403,13 @@ void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, SH1106Colo
     draw_char(x + 6 * i++, y, *(text + i), color);
 }
 
-void DUINO_SH1106::draw_icon_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
+void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
   if(((x + 7) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
-  // draw pixels from icon map
+  // draw pixels from map
   for(int8_t i = 0; i < 7; ++i)
   {
     uint8_t line = pgm_read_byte(&map[c * 7 + i]);
@@ -423,26 +423,21 @@ void DUINO_SH1106::draw_icon_7(int16_t x, int16_t y, const unsigned char * map, 
   }
 }
 
-void DUINO_SH1106::draw_icon_16(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
+void DUINO_SH1106::draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 16) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 16) < 0) || (y >= SH1106_LCDHEIGHT))
+  if(((x + 8) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 8) < 0) || (y >= SH1106_LCDHEIGHT))
     return;
 
-  // draw pixels from icon map
-  for(int8_t i = 0; i < 16; ++i)
+  // draw pixels from map
+  for(int8_t i = 0; i < 8; ++i)
   {
-    uint8_t line1 = pgm_read_byte(&map[c * 32 + i * 2]);
-    uint8_t line2 = pgm_read_byte(&map[c * 32 + i * 2 + 1]);
-    for(int8_t j = 0; j < 8; ++j, line1 >>= 1, line2 >>= 1)
+    uint8_t line = pgm_read_byte(&map[c * 8 + i]);
+    for(int8_t j = 0; j < 8; ++j, line >>= 1)
     {
-      if(line1 & 1)
+      if(line & 1)
       {
         draw_pixel(x + i, y + j, color);
-      }
-      if(line2 & 1)
-      {
-        draw_pixel(x + i, y + j + 8, color);
       }
     }
   }

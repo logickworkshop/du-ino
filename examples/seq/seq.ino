@@ -306,7 +306,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
       // steps
       display->draw_char(16 * i + 1, 49, '0' + params.vals.stage_steps[i], DUINO_SH1106::White);
       // gate mode
-      display->draw_icon_7(16 * i + 8, 49, gate_mode_icons, (GateMode)params.vals.stage_gate[i], DUINO_SH1106::White);
+      display->draw_bitmap_7(16 * i + 8, 49, gate_mode_icons, (GateMode)params.vals.stage_gate[i], DUINO_SH1106::White);
       // slew
       display->fill_rect(16 * i + 1, 59, 14, 4, DUINO_SH1106::White);
       display->fill_rect(16 * i + 2 + 6 * (~(params.vals.stage_slew >> i) & 1), 60, 6, 2, DUINO_SH1106::Black);
@@ -489,7 +489,7 @@ class DU_SEQ_Interface : public DUINO_Interface {
           }
           seq_values.stage_gate[stage_selected] = (GateMode)params.vals.stage_gate[stage_selected];
           display->fill_rect(16 * stage_selected + 8, 49, 7, 7, DUINO_SH1106::White);
-          display->draw_icon_7(16 * stage_selected + 8, 49, gate_mode_icons,
+          display->draw_bitmap_7(16 * stage_selected + 8, 49, gate_mode_icons,
               (GateMode)params.vals.stage_gate[stage_selected], DUINO_SH1106::Black);
           display->display(16 * stage_selected + 8, 16 * stage_selected + 14, 6, 7);
           break;
