@@ -40,10 +40,9 @@
 #define GT3         2
 #define GT4         3
 
-
 #define GT_MULTI    0x80
 // e.g. gt_out(GT_MULTI | (1 << GT4) | (1 << GT1), true);
-#define GT_ALL      0x0F
+#define GT_ALL      0x8F
 
 class DUINO_MCP4922;
 
