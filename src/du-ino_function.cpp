@@ -38,7 +38,7 @@ DUINO_Function::DUINO_Function(uint8_t sc)
 
   // configure DACs
   for(uint8_t i = 0; i < 2; ++i)
-    dac[i] = new DUINO_MCP4922(i + 6, 8);
+    dac[i] = new DUINO_MCP4922(7 - i, 8);
 }
 
 void DUINO_Function::begin()
