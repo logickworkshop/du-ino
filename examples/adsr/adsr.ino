@@ -22,6 +22,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_interface.h>
+#include <avr/pgmspace.h>
 
 #define ENV_PEAK              10.0 // V
 #define ENV_SATURATION        1.581976
