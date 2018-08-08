@@ -69,10 +69,10 @@ class DU_Test_Function : public DUINO_Function {
     cv[2] = cv_read(CI3);
     cv[3] = cv_read(CI4);
 
-    cv_out(CO1, float(calibration_value));
-    cv_out(CO2, float(calibration_value));
-    cv_out(CO3, float(calibration_value));
-    cv_out(CO4, float(calibration_value));
+    cv_out(CO1, (float)calibration_value);
+    cv_out(CO2, (float)calibration_value);
+    cv_out(CO3, (float)calibration_value);
+    cv_out(CO4, (float)calibration_value);
 
     if(gt_io != gt_io_last)
     {
