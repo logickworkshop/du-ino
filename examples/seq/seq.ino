@@ -26,8 +26,6 @@
 #include <TimerOne.h>
 #include <avr/pgmspace.h>
 
-#define DIGITAL_THRESH 3.0 // V
-
 enum GateMode {
   GATE_NONE = 0,
   GATE_1SHT = 1,
@@ -141,10 +139,10 @@ class DU_SEQ_Function : public DUINO_Function {
         }
         break;
       case GATE_EXT1:
-        gate = cv_read(CI2) > DIGITAL_THRESH;
+        gate = gt_read(CI2);
         break;
       case GATE_EXT2:
-        gate = cv_read(CI3) > DIGITAL_THRESH;
+        gate = gt_read(CI3);
         break;
     }
 
@@ -159,7 +157,7 @@ class DU_SEQ_Function : public DUINO_Function {
     // update reverse setting
     if(!seq_values.diradd_mode)
     {
-      reverse = cv_read(CI1) > DIGITAL_THRESH;
+      reverse = gt_read(CI1);
     }
   }
 

@@ -23,7 +23,8 @@
 #include "du-ino_mcp4922.h"
 #include "du-ino_function.h"
 
-#define TRIG_MS     5
+#define TRIG_MS           5   // ms
+#define DIGITAL_THRESH    3.0 // V
 
 DUINO_Function::DUINO_Function(uint8_t sc)
 {
@@ -50,31 +51,37 @@ void DUINO_Function::begin()
     dac[0]->begin();
     dac[1]->begin();
 
-    dac[0]->output(DUINO_MCP4922::A, 0x800);
-    dac[0]->output(DUINO_MCP4922::B, 0x800);
-    dac[1]->output(DUINO_MCP4922::A, 0x800);
-    dac[1]->output(DUINO_MCP4922::B, 0x800);
-
-    gt_out(GT_ALL, false);
+    gt_out_multi(0xFF, false);
 
     setup();
     initialized = true;
   }
 }
 
-bool DUINO_Function::gt_read(uint8_t jack)
+bool DUINO_Function::gt_read(Jack jack)
 {
-  if(jack < 4 && switch_config & (1 << jack))
+  switch(jack)
   {
-    return digitalRead(jack) == LOW ? true : false;
+    case GT1:
+    case GT2:
+    case GT3:
+    case GT4:
+      if(switch_config & (1 << jack))
+      {
+        return digitalRead(jack) == LOW ? true : false;
+      }
+      break;
+    case CI1:
+    case CI2:
+    case CI3:
+    case CI4:
+      return cv_read(jack) > DIGITAL_THRESH;
   }
-  else
-  { 
-    return false;
-  }
+
+  return false;
 }
 
-bool DUINO_Function::gt_read_debounce(uint8_t jack)
+bool DUINO_Function::gt_read_debounce(Jack jack)
 {
   if(switch_config & (1 << jack))
   {
@@ -91,48 +98,86 @@ bool DUINO_Function::gt_read_debounce(uint8_t jack)
   }
 }
 
-void DUINO_Function::gt_out(uint8_t jack, bool on, bool trig)
+void DUINO_Function::gt_out(Jack jack, bool on, bool trig)
 {
-  if(!(jack & GT_MULTI))
+  switch(jack)
   {
-    if((~switch_config) & (1 << jack))
-    {
-      digitalWrite(jack, on ? HIGH : LOW);
+    case GT1:
+    case GT2:
+    case GT3:
+    case GT4:
+      if((~switch_config) & (1 << jack))
+      {
+        digitalWrite(jack, on ? HIGH : LOW);
+        if(trig)
+        {
+          delay(TRIG_MS);
+          digitalWrite(jack, on ? LOW : HIGH);
+        }
+      }
+      break;
+    case CO1:
+    case CO2:
+    case CO3:
+    case CO4:
+      dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0xBFF);
       if(trig)
       {
         delay(TRIG_MS);
-        digitalWrite(jack, on ? LOW : HIGH);
+        dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0x800);
       }
-    }
+      break;
   }
-  else
+}
+
+void DUINO_Function::gt_out_multi(uint8_t jacks, bool on, bool trig)
+{
+  for(uint8_t i = 0; i < 4; ++i)
+    if(jacks & (~switch_config) & (1 << i))
+      digitalWrite(i, on ? HIGH : LOW);
+  for(uint8_t i = 4; i < 8; ++i)
+    if(jacks & (1 << i))
+      dac[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0xBFF : 0x800);
+
+  if(trig)
   {
+    delay(TRIG_MS);
     for(uint8_t i = 0; i < 4; ++i)
-      if(jack & (~switch_config) & (1 << i))
-        digitalWrite(i, on ? HIGH : LOW);
-    if(trig)
-    {
-      delay(TRIG_MS);
-      for(uint8_t i = 0; i < 4; ++i)
-        if(jack & (~switch_config) & (1 << i))
-          digitalWrite(i, on ? LOW : HIGH);
-    }
+      if(jacks & (~switch_config) & (1 << i))
+        digitalWrite(i, on ? LOW : HIGH);
+    for(uint8_t i = 4; i < 8; ++i)
+      if(jacks & (1 << i))
+        dac[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0x800 : 0xBFF);
   }
 }
 
-float DUINO_Function::cv_read(uint8_t jack)
+float DUINO_Function::cv_read(Jack jack)
 {
-  // value * (20 / (2^10 - 1)) - 10
-  return float(analogRead(jack)) * 0.019550342130987292 - 10.0;
+  switch(jack)
+  {
+    case CI1:
+      return cv_analog_read(A0);
+    case CI2:
+      return cv_analog_read(A1);
+    case CI3:
+      return cv_analog_read(A2);
+    case CI4:
+      return cv_analog_read(A3);
+    default:
+      return 0.0;
+  }
 }
 
-void DUINO_Function::cv_out(uint8_t jack, float value)
+void DUINO_Function::cv_out(Jack jack, float value)
 {
-  // (value + 10) * ((2^12 - 1) / 20)
-  uint16_t data = uint16_t((value + 10.0) * 204.75);
+  if(jack == CO1 || jack == CO2 || jack == CO3 || jack == CO4)
+  {
+    // (value + 10) * ((2^12 - 1) / 20)
+    uint16_t data = uint16_t((value + 10.0) * 204.75);
 
-  // DAC output
-  dac[jack >> 1]->output((DUINO_MCP4922::Channel)(jack & 1), data);
+    // DAC output
+    dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), data);
+  }
 }
 
 void DUINO_Function::cv_hold(bool state)
@@ -141,14 +186,20 @@ void DUINO_Function::cv_hold(bool state)
   dac[0]->hold(state);
 }
 
-void DUINO_Function::gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode)
+void DUINO_Function::gt_attach_interrupt(Jack jack, void (*isr)(void), int mode)
 {
-  attachInterrupt(digitalPinToInterrupt(jack), isr, mode);
+  if(jack == GT3 || jack == GT4)
+  {
+    attachInterrupt(digitalPinToInterrupt(jack), isr, mode);
+  }
 }
 
-void DUINO_Function::gt_detach_interrupt(uint8_t jack)
+void DUINO_Function::gt_detach_interrupt(Jack jack)
 {
-  detachInterrupt(digitalPinToInterrupt(jack));
+  if(jack == GT3 || jack == GT4)
+  {
+    detachInterrupt(digitalPinToInterrupt(jack));
+  }
 }
 
 void DUINO_Function::set_switch_config(uint8_t sc)
@@ -158,4 +209,10 @@ void DUINO_Function::set_switch_config(uint8_t sc)
   // configure digital pins
   for(uint8_t i = 0; i < 4; ++i)
     pinMode(i, sc & (1 << i) ? INPUT : OUTPUT);
+}
+
+float DUINO_Function::cv_analog_read(uint8_t pin)
+{
+  // value * (20 / (2^10 - 1)) - 10
+  return float(analogRead(pin)) * 0.019550342130987292 - 10.0;
 }

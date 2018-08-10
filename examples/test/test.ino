@@ -82,7 +82,7 @@ class DU_Test_Function : public DUINO_Function {
 
     if(gt_io)
     {
-      gt_out(GT_ALL, gt);
+      gt_out_multi(0x0F, gt);
     }
     else
     {

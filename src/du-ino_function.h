@@ -25,24 +25,20 @@
 
 #include "Arduino.h"
 
-#define CI1         A0
-#define CI2         A1
-#define CI3         A2
-#define CI4         A3
-
-#define CO1         0
-#define CO2         1
-#define CO3         3
-#define CO4         2
-
-#define GT1         0
-#define GT2         1
-#define GT3         2
-#define GT4         3
-
-#define GT_MULTI    0x80
-// e.g. gt_out(GT_MULTI | (1 << GT4) | (1 << GT1), true);
-#define GT_ALL      0x8F
+enum Jack {
+  GT1 = 0,
+  GT2 = 1,
+  GT3 = 2,
+  GT4 = 3,
+  CO1 = 4,
+  CO2 = 5,
+  CO3 = 7,
+  CO4 = 6,
+  CI1 = 8,
+  CI2 = 9,
+  CI3 = 10,
+  CI4 = 11
+};
 
 class DUINO_MCP4922;
 
@@ -55,20 +51,23 @@ class DUINO_Function {
   virtual void setup() {}
   virtual void loop() {}
 
-  bool gt_read(uint8_t jack);
-  bool gt_read_debounce(uint8_t jack);
-  void gt_out(uint8_t jack, bool on, bool trig = false);
+  bool gt_read(Jack jack);
+  bool gt_read_debounce(Jack jack);
+  void gt_out(Jack jack, bool on, bool trig = false);
+  void gt_out_multi(uint8_t jacks, bool on, bool trig = false);
 
-  float cv_read(uint8_t jack);
-  void cv_out(uint8_t jack, float value);
+  float cv_read(Jack jack);
+  void cv_out(Jack jack, float value);
   void cv_hold(bool state);
 
-  void gt_attach_interrupt(uint8_t jack, void (*isr)(void), int mode);
-  void gt_detach_interrupt(uint8_t jack);
+  void gt_attach_interrupt(Jack jack, void (*isr)(void), int mode);
+  void gt_detach_interrupt(Jack jack);
 
   void set_switch_config(uint8_t sc);
 
  private:
+  inline float cv_analog_read(uint8_t pin);
+
   DUINO_MCP4922 * dac[2];
 
   uint8_t switch_config;    // 0b{SC4 .. SC1}{SG4 .. SG1}
