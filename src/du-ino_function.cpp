@@ -20,6 +20,7 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+#include <EEPROM.h>
 #include "du-ino_mcp4922.h"
 #include "du-ino_function.h"
 
@@ -27,6 +28,9 @@
 #define DIGITAL_THRESH    3.0 // V
 
 DUINO_Function::DUINO_Function(uint8_t sc)
+  : display(new DUINO_SH1106(5, 4))
+  , encoder(new DUINO_Encoder(9, 10, 12))
+  , saved(false)
 {
   set_switch_config(sc);
 
@@ -48,10 +52,20 @@ void DUINO_Function::begin()
 
   if(!initialized)
   {
+    // initialize DACs
     dac[0]->begin();
     dac[1]->begin();
 
+    // initialize outputs
     gt_out_multi(0xFF, false);
+
+    // initialize display
+    display->begin();
+    display->clear_display(); 
+    display->display_all();
+
+    // initialize encoder
+    encoder->begin();
 
     setup();
     initialized = true;
@@ -200,6 +214,31 @@ void DUINO_Function::gt_detach_interrupt(Jack jack)
   {
     detachInterrupt(digitalPinToInterrupt(jack));
   }
+}
+
+void DUINO_Function::save_params(int address, uint8_t * start, int length)
+{
+  if(saved)
+  {
+    return;
+  }
+
+  for(int i = 0; i < length; ++i)
+  {
+    EEPROM.write(address + i, *(start + i));
+  }
+
+  saved = true;
+}
+
+void DUINO_Function::load_params(int address, uint8_t * start, int length)
+{
+  for(int i = 0; i < length; ++i)
+  {
+    *(start + i) = EEPROM.read(address + i);
+  }
+
+  saved = true;
 }
 
 void DUINO_Function::set_switch_config(uint8_t sc)

@@ -21,7 +21,6 @@
  */
 
 #include <du-ino_function.h>
-#include <du-ino_interface.h>
 #include <avr/pgmspace.h>
 
 #define ENV_PEAK              10.0 // V
@@ -45,7 +44,6 @@ struct DU_ADSR_Values {
   uint16_t R;  // ms
 };
 
-DU_ADSR_Values adsr_values[2];
 volatile bool gate, retrigger;
 volatile uint8_t selected_env;
 volatile unsigned long debounce;
@@ -64,9 +62,60 @@ class DU_ADSR_Function : public DUINO_Function {
     env = 0;
     gate_time = 0;
     release_time = 0;
+    selected = 0;
+    saving = false;
+    last_selected_env = 0;
+    last_gate = false;
 
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
     gt_attach_interrupt(GT4, switch_isr, FALLING);
+
+    // load/initialize ADSR values
+    load_params(0, (uint8_t *)v, 8);
+    for(uint8_t i = 0; i < 8; ++i)
+    {
+      if(v[i] < 0)
+      {
+        v[i] = 0;
+      }
+      else if(v[i] > V_MAX)
+      {
+        v[i] = V_MAX;
+      }
+      v_last[i] = v[i];
+    }
+    for(uint8_t e = 0; e < 2; ++e)
+    {
+      adsr_values[e].A = uint16_t(v[2 * e]) * 24;
+      adsr_values[e].D = uint16_t(v[2 * e + 1]) * 24;
+      adsr_values[e].S = (float(v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
+      adsr_values[e].R = uint16_t(v[2 * e + 3]) * 24;
+    }
+
+    // draw title
+    display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
+    display->draw_text(16, 0, "ADSR/VCA", DUINO_SH1106::White);
+
+    // draw save box
+    display->fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
+
+    // draw envelope indicators
+    display->draw_char(47, 56, 0x11, DUINO_SH1106::White);
+    display->draw_char(54, 56, '1', DUINO_SH1106::White);
+    display->draw_char(69, 56, '2', DUINO_SH1106::White);
+    display->draw_char(76, 56, 0x10, DUINO_SH1106::White);
+
+    // draw sliders & labels
+    for(uint8_t i = 0; i < 8; ++i)
+    {
+      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SH1106::White);
+      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SH1106::White);
+    }
+
+    display->fill_rect(1, 55, 9, 9, DUINO_SH1106::Inverse);
+    display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
+
+    display->display_all();
   }
 
   virtual void loop()
@@ -128,76 +177,7 @@ class DU_ADSR_Function : public DUINO_Function {
       gate_time = millis()
           - (unsigned long)(-float(adsr_values[env].A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
     }
-  }
 
- private:
-  uint8_t env;
-  unsigned long gate_time;
-  unsigned long release_time;
-  float cv_current;
-  float cv_released;
-};
-
-class DU_ADSR_Interface : public DUINO_Interface {
- public:
-  virtual void setup()
-  {
-    // initialize interface
-    selected = 0;
-    saving = false;
-    last_selected_env = 0;
-    last_gate = false;
-
-    // load/initialize ADSR values
-    load_params(0, (uint8_t *)v, 8);
-    for(uint8_t i = 0; i < 8; ++i)
-    {
-      if(v[i] < 0)
-      {
-        v[i] = 0;
-      }
-      else if(v[i] > V_MAX)
-      {
-        v[i] = V_MAX;
-      }
-      v_last[i] = v[i];
-    }
-    for(uint8_t e = 0; e < 2; ++e)
-    {
-      adsr_values[e].A = uint16_t(v[2 * e]) * 24;
-      adsr_values[e].D = uint16_t(v[2 * e + 1]) * 24;
-      adsr_values[e].S = (float(v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
-      adsr_values[e].R = uint16_t(v[2 * e + 3]) * 24;
-    }
-
-    // draw title
-    display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
-    display->draw_text(16, 0, "ADSR/VCA", DUINO_SH1106::White);
-
-    // draw save box
-    display->fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
-
-    // draw envelope indicators
-    display->draw_char(47, 56, 0x11, DUINO_SH1106::White);
-    display->draw_char(54, 56, '1', DUINO_SH1106::White);
-    display->draw_char(69, 56, '2', DUINO_SH1106::White);
-    display->draw_char(76, 56, 0x10, DUINO_SH1106::White);
-
-    // draw sliders & labels
-    for(uint8_t i = 0; i < 8; ++i)
-    {
-      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SH1106::White);
-      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SH1106::White);
-    }
-
-    display->fill_rect(1, 55, 9, 9, DUINO_SH1106::Inverse);
-    display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
-
-    display->display_all();
-  }
-
-  virtual void loop()
-  {
     // handle encoder button press
     DUINO_Encoder::Button b = encoder->get_button();
     if(b == DUINO_Encoder::DoubleClicked)
@@ -319,6 +299,10 @@ class DU_ADSR_Interface : public DUINO_Interface {
     delay(1);  // FIXME: SH1106 unstable without this (too many I2C txs too quickly?)
   }
 
+  DU_ADSR_Values adsr_values[2];
+  uint8_t env;
+  unsigned long gate_time, release_time;
+  float cv_current, cv_released;
   uint8_t selected;
   bool saving;
   int8_t v[8], v_last[8];
@@ -327,9 +311,8 @@ class DU_ADSR_Interface : public DUINO_Interface {
 };
 
 DU_ADSR_Function * function;
-DU_ADSR_Interface * interface;
 
-ENCODER_ISR(interface->encoder);
+ENCODER_ISR(function->encoder);
 
 void gate_isr()
 {
@@ -355,14 +338,11 @@ void setup()
   debounce = 0;
 
   function = new DU_ADSR_Function();
-  interface = new DU_ADSR_Interface();
 
   function->begin();
-  interface->begin();
 }
 
 void loop()
 {
   function->loop();
-  interface->loop();
 }

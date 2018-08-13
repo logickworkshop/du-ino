@@ -21,16 +21,12 @@
  */
 
 #include <du-ino_function.h>
-#include <du-ino_interface.h>
 
 #define GT_INT_DISPLAY_TIME   1000
 
 volatile uint8_t gt_state;
 volatile bool gt3_retrigger, gt4_retrigger;
 volatile unsigned long gt3_retrigger_time, gt4_retrigger_time;
-int8_t calibration_value;
-bool gt, gt_io;
-float cv[4];
 
 void gt3_isr();
 void gt4_isr();
@@ -44,7 +40,44 @@ class DU_Test_Function : public DUINO_Function {
     gt_attach_interrupt(GT3, gt3_isr, CHANGE);
     gt_attach_interrupt(GT4, gt4_isr, CHANGE);
 
-    gt_io_last = gt_io;
+    calibration_value = calibration_value_last = 0;
+    gt = gt_io = gt_io_last = false;
+
+    display->draw_logick_logo(0, 0, DUINO_SH1106::White);
+    display->draw_text(42, 3, "DU-INO TESTER", DUINO_SH1106::White);
+
+    // draw voltage values
+    display->draw_text(0, 17, "+10V", DUINO_SH1106::White);
+    display->draw_text(12, 37, "0V", DUINO_SH1106::White);
+    display->draw_text(0, 57, "-10V", DUINO_SH1106::White);
+
+    // draw markers
+    display->draw_hline(26, 20, 10, DUINO_SH1106::White);
+    display->draw_hline(26, 40, 10, DUINO_SH1106::White);
+    display->draw_hline(26, 60, 10, DUINO_SH1106::White);
+    for(uint8_t i = 0; i < 9; ++i)
+    {
+      display->draw_hline(30, 22 + 2 * i, 6, DUINO_SH1106::White);
+      display->draw_hline(30, 42 + 2 * i, 6, DUINO_SH1106::White);
+    }
+
+    // draw arrow
+    display_calibration_arrow();
+
+    // draw CV section
+    display->draw_text(48, 17, "CV IN", DUINO_SH1106::White);
+    display->draw_hline(48, 25, 35, DUINO_SH1106::White);
+
+    // draw GT section
+    display->draw_text(96, 17, "GT", DUINO_SH1106::White);
+    display_gtio_arrow();
+    display->draw_hline(96, 25, 24, DUINO_SH1106::White);
+    for(uint8_t i = 0; i < 4; ++i)
+    {
+      display->draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
+    }
+
+    display->display_all();
   }
 
   virtual void loop()
@@ -103,57 +136,7 @@ class DU_Test_Function : public DUINO_Function {
         gt_state &= ~2U;
       }
     }
-  }
 
- private:
-  bool gt_io_last;
-};
-
-class DU_Test_Interface : public DUINO_Interface {
- public:
-  virtual void setup()
-  {
-    last_calibration_value = 0;
-
-    display->draw_logick_logo(0, 0, DUINO_SH1106::White);
-    display->draw_text(42, 3, "DU-INO TESTER", DUINO_SH1106::White);
-
-    // draw voltage values
-    display->draw_text(0, 17, "+10V", DUINO_SH1106::White);
-    display->draw_text(12, 37, "0V", DUINO_SH1106::White);
-    display->draw_text(0, 57, "-10V", DUINO_SH1106::White);
-
-    // draw markers
-    display->draw_hline(26, 20, 10, DUINO_SH1106::White);
-    display->draw_hline(26, 40, 10, DUINO_SH1106::White);
-    display->draw_hline(26, 60, 10, DUINO_SH1106::White);
-    for(uint8_t i = 0; i < 9; ++i)
-    {
-      display->draw_hline(30, 22 + 2 * i, 6, DUINO_SH1106::White);
-      display->draw_hline(30, 42 + 2 * i, 6, DUINO_SH1106::White);
-    }
-
-    // draw arrow
-    display_calibration_arrow();
-
-    // draw CV section
-    display->draw_text(48, 17, "CV IN", DUINO_SH1106::White);
-    display->draw_hline(48, 25, 35, DUINO_SH1106::White);
-
-    // draw GT section
-    display->draw_text(96, 17, "GT", DUINO_SH1106::White);
-    display_gtio_arrow();
-    display->draw_hline(96, 25, 24, DUINO_SH1106::White);
-    for(uint8_t i = 0; i < 4; ++i)
-    {
-      display->draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
-    }
-
-    display->display_all();
-  }
-
-  virtual void loop()
-  {
     // handle encoder button press
     DUINO_Encoder::Button b = encoder->get_button();
     if(b == DUINO_Encoder::DoubleClicked)
@@ -180,9 +163,9 @@ class DU_Test_Interface : public DUINO_Interface {
     {
       calibration_value = -10;
     }
-    if(calibration_value != last_calibration_value)
+    if(calibration_value != calibration_value_last)
     {
-      last_calibration_value = calibration_value;
+      calibration_value_last = calibration_value;
       display_calibration_arrow();
     }
 
@@ -239,13 +222,14 @@ class DU_Test_Interface : public DUINO_Interface {
     }
   }
 
-  int8_t last_calibration_value;
+  int8_t calibration_value, calibration_value_last;
+  bool gt, gt_io, gt_io_last;
+  float cv[4];
 };
 
 DU_Test_Function * function;
-DU_Test_Interface * interface;
 
-ENCODER_ISR(interface->encoder);
+ENCODER_ISR(function->encoder);
 
 void gt3_isr()
 {
@@ -278,21 +262,15 @@ void gt4_isr()
 void setup()
 {
   function = new DU_Test_Function();
-  interface = new DU_Test_Interface();
 
   gt_state = 0;
   gt3_retrigger = gt4_retrigger = false;
   gt3_retrigger_time = gt4_retrigger_time = 0;
-  calibration_value = 0;
-  gt = false;
-  gt_io = false;
 
   function->begin();
-  interface->begin();
 }
 
 void loop()
 {
   function->loop();
-  interface->loop();
 }

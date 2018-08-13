@@ -24,6 +24,8 @@
 #define DUINO_FUNCTION_H_
 
 #include "Arduino.h"
+#include "du-ino_sh1106.h"
+#include "du-ino_encoder.h"
 
 enum Jack {
   GT1 = 0,
@@ -63,13 +65,20 @@ class DUINO_Function {
   void gt_attach_interrupt(Jack jack, void (*isr)(void), int mode);
   void gt_detach_interrupt(Jack jack);
 
+  void save_params(int address, uint8_t * start, int length);
+  void load_params(int address, uint8_t * start, int length);
+
   void set_switch_config(uint8_t sc);
 
- private:
+  DUINO_SH1106 * display;
+  DUINO_Encoder * encoder;
+
+ protected:
   inline float cv_analog_read(uint8_t pin);
 
   DUINO_MCP4922 * dac[2];
 
+  bool saved;
   uint8_t switch_config;    // 0b{SC4 .. SC1}{SG4 .. SG1}
 };
 

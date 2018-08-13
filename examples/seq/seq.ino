@@ -21,7 +21,6 @@
  */
 
 #include <du-ino_function.h>
-#include <du-ino_interface.h>
 #include <du-ino_dsp.h>
 #include <TimerOne.h>
 #include <avr/pgmspace.h>
@@ -85,114 +84,6 @@ class DU_SEQ_Function : public DUINO_Function {
   
   virtual void setup()
   {
-    gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
-    gt_attach_interrupt(GT4, reset_isr, FALLING);
-  }
-
-  virtual void loop()
-  {
-    // cache stage, step, and clock gate (so that each loop is "atomic")
-    cached_stage = stage;
-    cached_step = step;
-    cached_clock_gate = clock_gate;
-    cached_retrigger = retrigger;
-    retrigger = false;
-
-    if(cached_retrigger)
-    {
-      // drop gate at start of stage
-      if(!cached_step)
-      {
-        gt_out(GT1, false);
-      }
-
-      // drop clock each step
-      gt_out(GT2, false);
-
-      // update step clock time
-      clock_time = millis();
-    }
-
-    // set gate state
-    switch(seq_values.stage_gate[cached_stage])
-    {
-      case GATE_NONE:
-        gate = false;
-        break;
-      case GATE_1SHT:
-        if(!cached_step)
-        {
-          gate = partial_gate();
-        }
-        break;
-      case GATE_REPT:
-        gate = partial_gate();
-        break;
-      case GATE_LONG:
-        if(cached_step == seq_values.stage_steps[cached_stage] - 1)
-        {
-          gate = partial_gate();
-        }
-        else
-        {
-          gate = true;
-        }
-        break;
-      case GATE_EXT1:
-        gate = gt_read(CI2);
-        break;
-      case GATE_EXT2:
-        gate = gt_read(CI3);
-        break;
-    }
-
-    // set pitch CV state
-    float slew_cv = slew_filter->filter(seq_values.stage_cv[cached_stage]);
-    cv_out(CO1, seq_values.stage_slew[cached_stage] ? slew_cv : seq_values.stage_cv[cached_stage]);
-
-    // set gate and clock states
-    gt_out(GT1, gate);
-    gt_out(GT2, cached_clock_gate);
-
-    // update reverse setting
-    if(!seq_values.diradd_mode)
-    {
-      reverse = gt_read(CI1);
-    }
-  }
-
-  uint8_t address_to_stage()
-  {
-    int8_t addr_stage = (int8_t)(cv_read(CI1) * 1.6);
-    if(addr_stage < 0)
-    {
-      addr_stage = 0;
-    }
-    else if(stage > seq_values.stage_count - 1)
-    {
-      addr_stage = seq_values.stage_count - 1;
-    }
-    return (uint8_t)addr_stage;
-  }
-
- private:
-  bool partial_gate()
-  {
-    return (seq_values.clock_ext && cached_clock_gate)
-           || cached_retrigger
-           || ((millis() - clock_time) < seq_values.gate_ms);
-  }
-
-  uint8_t cached_stage, cached_step;
-  bool cached_clock_gate, cached_retrigger;
-  unsigned long clock_time;
-};
-
-class DU_SEQ_Interface : public DUINO_Interface {
- public:
-  virtual void setup()
-  {
-    // initialize interface
     main_selected = 2;
     top_selected = 0;
     last_gate = false;
@@ -200,6 +91,9 @@ class DU_SEQ_Interface : public DUINO_Interface {
     last_diradd_mode = false;
     last_reverse = false;
     ext_clock_received = false;
+
+    gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
+    gt_attach_interrupt(GT4, reset_isr, FALLING);
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
@@ -316,6 +210,75 @@ class DU_SEQ_Interface : public DUINO_Interface {
 
   virtual void loop()
   {
+    // cache stage, step, and clock gate (so that each loop is "atomic")
+    cached_stage = stage;
+    cached_step = step;
+    cached_clock_gate = clock_gate;
+    cached_retrigger = retrigger;
+    retrigger = false;
+
+    if(cached_retrigger)
+    {
+      // drop gate at start of stage
+      if(!cached_step)
+      {
+        gt_out(GT1, false);
+      }
+
+      // drop clock each step
+      gt_out(GT2, false);
+
+      // update step clock time
+      clock_time = millis();
+    }
+
+    // set gate state
+    switch(seq_values.stage_gate[cached_stage])
+    {
+      case GATE_NONE:
+        gate = false;
+        break;
+      case GATE_1SHT:
+        if(!cached_step)
+        {
+          gate = partial_gate();
+        }
+        break;
+      case GATE_REPT:
+        gate = partial_gate();
+        break;
+      case GATE_LONG:
+        if(cached_step == seq_values.stage_steps[cached_stage] - 1)
+        {
+          gate = partial_gate();
+        }
+        else
+        {
+          gate = true;
+        }
+        break;
+      case GATE_EXT1:
+        gate = gt_read(CI2);
+        break;
+      case GATE_EXT2:
+        gate = gt_read(CI3);
+        break;
+    }
+
+    // set pitch CV state
+    float slew_cv = slew_filter->filter(seq_values.stage_cv[cached_stage]);
+    cv_out(CO1, seq_values.stage_slew[cached_stage] ? slew_cv : seq_values.stage_cv[cached_stage]);
+
+    // set gate and clock states
+    gt_out(GT1, gate);
+    gt_out(GT2, cached_clock_gate);
+
+    // update reverse setting
+    if(!seq_values.diradd_mode)
+    {
+      reverse = gt_read(CI1);
+    }
+
     // handle encoder button press
     DUINO_Encoder::Button b = encoder->get_button();
     if(b == DUINO_Encoder::DoubleClicked)
@@ -574,7 +537,28 @@ class DU_SEQ_Interface : public DUINO_Interface {
     update_clock();
   }
 
+  uint8_t address_to_stage()
+  {
+    int8_t addr_stage = (int8_t)(cv_read(CI1) * 1.6);
+    if(addr_stage < 0)
+    {
+      addr_stage = 0;
+    }
+    else if(stage > seq_values.stage_count - 1)
+    {
+      addr_stage = seq_values.stage_count - 1;
+    }
+    return (uint8_t)addr_stage;
+  }
+
  private:
+  bool partial_gate()
+  {
+    return (seq_values.clock_ext && cached_clock_gate)
+           || cached_retrigger
+           || ((millis() - clock_time) < seq_values.gate_ms);
+  }
+
   float note_to_cv(int8_t note)
   {
     return ((float)note - 36.0) / 12.0;
@@ -726,17 +710,6 @@ class DU_SEQ_Interface : public DUINO_Interface {
     display->fill_rect(16 * stage + 6, 26, 4, 4, color);
   }
 
-  uint8_t main_selected;  // 0 - save, 1 - top, 2 - pitch, 3 - steps, 4 - gate, 5 - slew
-  uint8_t top_selected;   // 0 - count, 1 - dir/add, 2 - slew, 3 - gate, 4 - clock
-  uint8_t stage_selected;
-
-  bool last_gate;
-  uint8_t last_stage;
-  bool last_diradd_mode;
-  bool last_reverse;
-
-  bool ext_clock_received;
-
   struct DU_SEQ_Parameter_Values {
     int8_t stage_pitch[8];
     int8_t stage_steps[8];
@@ -755,18 +728,32 @@ class DU_SEQ_Interface : public DUINO_Interface {
   };
 
   DU_SEQ_Parameters params;
+
+  uint8_t cached_stage, cached_step;
+  bool cached_clock_gate, cached_retrigger;
+  unsigned long clock_time;
+
+  uint8_t main_selected;  // 0 - save, 1 - top, 2 - pitch, 3 - steps, 4 - gate, 5 - slew
+  uint8_t top_selected;   // 0 - count, 1 - dir/add, 2 - slew, 3 - gate, 4 - clock
+  uint8_t stage_selected;
+
+  bool last_gate;
+  uint8_t last_stage;
+  bool last_diradd_mode;
+  bool last_reverse;
+
+  bool ext_clock_received;
 };
 
 DU_SEQ_Function * function;
-DU_SEQ_Interface * interface;
 
-ENCODER_ISR(interface->encoder);
+ENCODER_ISR(function->encoder);
 
 void clock_ext_isr()
 {
   if(!seq_values.clock_ext)
   {
-    interface->set_clock_ext();
+    function->set_clock_ext();
   }
 
   clock_isr();
@@ -815,14 +802,11 @@ void setup()
   slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
   function = new DU_SEQ_Function();
-  interface = new DU_SEQ_Interface();
 
   function->begin();
-  interface->begin();
 }
 
 void loop()
 {
   function->loop();
-  interface->loop();
 }

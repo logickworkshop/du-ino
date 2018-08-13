@@ -21,7 +21,6 @@
  */
 
 #include <du-ino_function.h>
-#include <du-ino_interface.h>
 #include <du-ino_scales.h>
 #include <avr/pgmspace.h>
 
@@ -30,10 +29,7 @@ static const unsigned char icons[] PROGMEM = {
   0x60, 0x63, 0x0f, 0x0f, 0x0f, 0x63, 0x60  // trigger mode on
 };
 
-volatile bool trigger_mode, triggered;
-volatile int8_t key;
-volatile uint16_t scale;
-volatile uint8_t output_note;
+volatile bool triggered;
 
 void trig_isr();
 
@@ -43,103 +39,18 @@ class DU_Quantizer_Function : public DUINO_Function {
 
   virtual void setup()
   {
+    trigger_mode = false;
+    key = 0;
+    scale_id = 0;
+    scale = get_scale_by_id(scale_id);
     output_octave = 0;
-    gt_attach_interrupt(GT3, trig_isr, FALLING);
-  }
-
-  virtual void loop()
-  {
-    if(!trigger_mode || triggered)
-    {
-      if(!scale)
-      {
-        cv_out(CO1, 0.0);
-        output_octave = 0;
-        output_note = 0;
-        triggered = false;
-        return;
-      }
-
-      // read input
-      float input = cv_read(CI1);
-
-      // find a lower bound
-      int below_octave = (int)input - 1;
-      uint8_t below_note = 0;
-      while(!(scale & (1 << below_note)))
-      {
-        below_note++;
-      }
-
-      // find closest lower and upper values
-      int above_octave = below_octave, octave = below_octave;
-      uint8_t above_note = below_note, note = below_note;
-      while(note_cv(above_octave, key, above_note) < input)
-      {
-        note++;
-        if(note > 11)
-        {
-          note = 0;
-          octave++;
-        }
-
-        if(scale & (1 << note))
-        {
-          below_octave = above_octave;
-          below_note = above_note;
-          above_octave = octave;
-          above_note = note;
-        }
-      }
-
-      // output the nearer of the two values
-      float below = note_cv(below_octave, key, below_note);
-      float above = note_cv(above_octave, key, above_note);
-      if(input - below < above - input)
-      {
-        cv_out(CO1, below);
-        octave = below_octave;
-        note = below_note;
-      }
-      else
-      {
-        cv_out(CO1, above);
-        octave = above_octave;
-        note = above_note;
-      }
-
-      // send trigger and update display note if note has changed
-      if(octave != output_octave || note != output_note)
-      {
-        gt_out(GT1, true, true);
-        output_octave = octave;
-        output_note = note;
-      }
-
-      // reset trigger
-      triggered = false;
-    }
-  }
-
- private:
-  float note_cv(int octave, uint8_t key, uint8_t note)
-  {
-    return (float)octave + (float)key / 12.0 + (float)note / 12.0;
-  }
-
-  int output_octave;
-};
-
-class DU_Quantizer_Interface : public DUINO_Interface {
- public:
-  virtual void setup()
-  {
-    // initialize interface
+    output_note = 0;
     main_selected = false;
     top_selected = 2;
     note_selected = 0;
-    scale_id = 0;
     current_displayed_note = 0;
+
+    gt_attach_interrupt(GT3, trig_isr, FALLING);
 
     // draw top line
     display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
@@ -248,6 +159,77 @@ class DU_Quantizer_Interface : public DUINO_Interface {
 
   virtual void loop()
   {
+    if(!trigger_mode || triggered)
+    {
+      if(!scale)
+      {
+        cv_out(CO1, 0.0);
+        output_octave = 0;
+        output_note = 0;
+        triggered = false;
+        return;
+      }
+
+      // read input
+      float input = cv_read(CI1);
+
+      // find a lower bound
+      int below_octave = (int)input - 1;
+      uint8_t below_note = 0;
+      while(!(scale & (1 << below_note)))
+      {
+        below_note++;
+      }
+
+      // find closest lower and upper values
+      int above_octave = below_octave, octave = below_octave;
+      uint8_t above_note = below_note, note = below_note;
+      while(note_cv(above_octave, key, above_note) < input)
+      {
+        note++;
+        if(note > 11)
+        {
+          note = 0;
+          octave++;
+        }
+
+        if(scale & (1 << note))
+        {
+          below_octave = above_octave;
+          below_note = above_note;
+          above_octave = octave;
+          above_note = note;
+        }
+      }
+
+      // output the nearer of the two values
+      float below = note_cv(below_octave, key, below_note);
+      float above = note_cv(above_octave, key, above_note);
+      if(input - below < above - input)
+      {
+        cv_out(CO1, below);
+        octave = below_octave;
+        note = below_note;
+      }
+      else
+      {
+        cv_out(CO1, above);
+        octave = above_octave;
+        note = above_note;
+      }
+
+      // send trigger and update display note if note has changed
+      if(octave != output_octave || note != output_note)
+      {
+        gt_out(GT1, true, true);
+        output_octave = octave;
+        output_note = note;
+      }
+
+      // reset trigger
+      triggered = false;
+    }
+
     // handle encoder button press
     DUINO_Encoder::Button b = encoder->get_button();
     if(b == DUINO_Encoder::DoubleClicked)
@@ -261,7 +243,7 @@ class DU_Quantizer_Interface : public DUINO_Interface {
       if(main_selected)
       {
         scale ^= (1 << note_selected);
-        scale_id = scaleID(scale);
+        scale_id = get_id_from_scale(scale);
         display_scale();
         triggered = true;
       }
@@ -317,15 +299,7 @@ class DU_Quantizer_Interface : public DUINO_Interface {
             {
               scale_id = N_SCALES - 1;
             }
-            if(scale_id < 0)
-            {
-              scale = 0;
-            }
-            else
-            {
-              scale = (uint16_t)pgm_read_byte(&scales[scale_id * 5]) << 8
-                  | (uint16_t)pgm_read_byte(&scales[scale_id * 5 + 1]);
-            }
+            scale = get_scale_by_id(scale_id);
             display_scale();
             triggered = true;
             break;
@@ -343,6 +317,11 @@ class DU_Quantizer_Interface : public DUINO_Interface {
   }
 
  private:
+  float note_cv(int octave, uint8_t key, uint8_t note)
+  {
+    return (float)octave + (float)key / 12.0 + (float)note / 12.0;
+  }
+
   void get_note_indicator_coordinates(uint8_t note, uint16_t * x, uint16_t * y)
   {
     switch(note)
@@ -594,17 +573,21 @@ class DU_Quantizer_Interface : public DUINO_Interface {
     display->display(2, 124, 1, refresh_lower ? 7 : 4);
   }
 
+  bool trigger_mode;
+  int8_t key;
+  int scale_id;
+  uint16_t scale;
+  uint8_t output_note;
+  int output_octave;
   bool main_selected;
   uint8_t top_selected;  // 0 - trigger mode, 1 - key, 2 - scale
   int8_t note_selected;
-  int scale_id;
   uint8_t current_displayed_note;
 };
 
 DU_Quantizer_Function * function;
-DU_Quantizer_Interface * interface;
 
-ENCODER_ISR(interface->encoder);
+ENCODER_ISR(function->encoder);
 
 void trig_isr()
 {
@@ -614,20 +597,13 @@ void trig_isr()
 void setup()
 {
   function = new DU_Quantizer_Function();
-  interface = new DU_Quantizer_Interface();
 
-  trigger_mode = false;
   triggered = false;
-  key = 0;
-  scale = (uint16_t)pgm_read_byte(&scales[0]) << 8 | (uint16_t)pgm_read_byte(&scales[1]);
-  output_note = 0;
 
   function->begin();
-  interface->begin();
 }
 
 void loop()
 {
   function->loop();
-  interface->loop();
 }

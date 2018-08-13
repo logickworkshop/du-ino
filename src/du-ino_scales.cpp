@@ -22,7 +22,12 @@
 
 #include "du-ino_scales.h"
 
-int scaleID(uint16_t scale)
+uint16_t get_scale_by_id(int id)
+{
+  return (uint16_t)pgm_read_byte(&scales[id * 5]) << 8 | (uint16_t)pgm_read_byte(&scales[id * 5 + 1]);
+}
+
+int get_id_from_scale(uint16_t scale)
 {
   unsigned char scale_low = scale & 0xFF;
   unsigned char scale_high = scale >> 8;

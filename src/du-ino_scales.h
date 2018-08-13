@@ -61,6 +61,7 @@ static const unsigned char scales[] PROGMEM = {
   0b0000, 0b00000001, 'O', 'C', 'T'   // Octave Interval
 };
 
-int scaleID(uint16_t scale);
+uint16_t get_scale_by_id(int scale_id);
+int get_id_from_scale(uint16_t scale);
 
 #endif // DUINO_SCALES_H_
