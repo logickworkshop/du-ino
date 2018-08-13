@@ -30,7 +30,7 @@
 DUINO_Function::DUINO_Function(uint8_t sc)
   : display(new DUINO_SH1106(5, 4))
   , encoder(new DUINO_Encoder(9, 10, 12))
-  , saved(false)
+  , saved_(false)
 {
   set_switch_config(sc);
 
@@ -42,19 +42,21 @@ DUINO_Function::DUINO_Function(uint8_t sc)
   pinMode(A3, INPUT);
 
   // configure DACs
-  for(uint8_t i = 0; i < 2; ++i)
-    dac[i] = new DUINO_MCP4922(7 - i, 8);
+  for (uint8_t i = 0; i < 2; ++i)
+  {
+    dac_[i] = new DUINO_MCP4922(7 - i, 8);
+  }
 }
 
 void DUINO_Function::begin()
 {
   static bool initialized = false;
 
-  if(!initialized)
+  if (!initialized)
   {
     // initialize DACs
-    dac[0]->begin();
-    dac[1]->begin();
+    dac_[0]->begin();
+    dac_[1]->begin();
 
     // initialize outputs
     gt_out_multi(0xFF, false);
@@ -72,15 +74,15 @@ void DUINO_Function::begin()
   }
 }
 
-bool DUINO_Function::gt_read(Jack jack)
+bool DUINO_Function::gt_read(DUINO_Function::Jack jack)
 {
-  switch(jack)
+  switch (jack)
   {
     case GT1:
     case GT2:
     case GT3:
     case GT4:
-      if(switch_config & (1 << jack))
+      if (switch_config_ & (1 << jack))
       {
         return digitalRead(jack) == LOW ? true : false;
       }
@@ -95,12 +97,12 @@ bool DUINO_Function::gt_read(Jack jack)
   return false;
 }
 
-bool DUINO_Function::gt_read_debounce(Jack jack)
+bool DUINO_Function::gt_read_debounce(DUINO_Function::Jack jack)
 {
-  if(switch_config & (1 << jack))
+  if (switch_config_ & (1 << jack))
   {
     uint16_t buffer = 0x5555;
-    while(buffer && buffer != 0xFFFF)
+    while (buffer && buffer != 0xFFFF)
     {
       buffer = (buffer << 1) | digitalRead(jack);
     }
@@ -112,18 +114,18 @@ bool DUINO_Function::gt_read_debounce(Jack jack)
   }
 }
 
-void DUINO_Function::gt_out(Jack jack, bool on, bool trig)
+void DUINO_Function::gt_out(DUINO_Function::Jack jack, bool on, bool trig)
 {
-  switch(jack)
+  switch (jack)
   {
     case GT1:
     case GT2:
     case GT3:
     case GT4:
-      if((~switch_config) & (1 << jack))
+      if ((~switch_config_) & (1 << jack))
       {
         digitalWrite(jack, on ? HIGH : LOW);
-        if(trig)
+        if (trig)
         {
           delay(TRIG_MS);
           digitalWrite(jack, on ? LOW : HIGH);
@@ -134,11 +136,11 @@ void DUINO_Function::gt_out(Jack jack, bool on, bool trig)
     case CO2:
     case CO3:
     case CO4:
-      dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0xBFF);
-      if(trig)
+      dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0xBFF);
+      if (trig)
       {
         delay(TRIG_MS);
-        dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0x800);
+        dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0x800);
       }
       break;
   }
@@ -146,28 +148,44 @@ void DUINO_Function::gt_out(Jack jack, bool on, bool trig)
 
 void DUINO_Function::gt_out_multi(uint8_t jacks, bool on, bool trig)
 {
-  for(uint8_t i = 0; i < 4; ++i)
-    if(jacks & (~switch_config) & (1 << i))
+  for (uint8_t i = 0; i < 4; ++i)
+  {
+    if (jacks & (~switch_config_) & (1 << i))
+    {
       digitalWrite(i, on ? HIGH : LOW);
-  for(uint8_t i = 4; i < 8; ++i)
-    if(jacks & (1 << i))
-      dac[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0xBFF : 0x800);
+    }
+  }
+  for (uint8_t i = 4; i < 8; ++i)
+  {
+    if (jacks & (1 << i))
+    {
+      dac_[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0xBFF : 0x800);
+    }
+  }
 
-  if(trig)
+  if (trig)
   {
     delay(TRIG_MS);
-    for(uint8_t i = 0; i < 4; ++i)
-      if(jacks & (~switch_config) & (1 << i))
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+      if (jacks & (~switch_config_) & (1 << i))
+      {
         digitalWrite(i, on ? LOW : HIGH);
-    for(uint8_t i = 4; i < 8; ++i)
-      if(jacks & (1 << i))
-        dac[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0x800 : 0xBFF);
+      }
+    }
+    for (uint8_t i = 4; i < 8; ++i)
+    {
+      if (jacks & (1 << i))
+      {
+        dac_[(i - 4) >> 1]->output((DUINO_MCP4922::Channel)((i - 4) & 1), on ? 0x800 : 0xBFF);
+      }
+    }
   }
 }
 
-float DUINO_Function::cv_read(Jack jack)
+float DUINO_Function::cv_read(DUINO_Function::Jack jack)
 {
-  switch(jack)
+  switch (jack)
   {
     case CI1:
       return cv_analog_read(A0);
@@ -182,35 +200,35 @@ float DUINO_Function::cv_read(Jack jack)
   }
 }
 
-void DUINO_Function::cv_out(Jack jack, float value)
+void DUINO_Function::cv_out(DUINO_Function::Jack jack, float value)
 {
-  if(jack == CO1 || jack == CO2 || jack == CO3 || jack == CO4)
+  if (jack == CO1 || jack == CO2 || jack == CO3 || jack == CO4)
   {
     // (value + 10) * ((2^12 - 1) / 20)
     uint16_t data = uint16_t((value + 10.0) * 204.75);
 
     // DAC output
-    dac[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), data);
+    dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), data);
   }
 }
 
 void DUINO_Function::cv_hold(bool state)
 {
   // both DACs share the LDAC pin, so holding either will hold all four channels
-  dac[0]->hold(state);
+  dac_[0]->hold(state);
 }
 
-void DUINO_Function::gt_attach_interrupt(Jack jack, void (*isr)(void), int mode)
+void DUINO_Function::gt_attach_interrupt(DUINO_Function::Jack jack, void (*isr)(void), int mode)
 {
-  if(jack == GT3 || jack == GT4)
+  if (jack == GT3 || jack == GT4)
   {
     attachInterrupt(digitalPinToInterrupt(jack), isr, mode);
   }
 }
 
-void DUINO_Function::gt_detach_interrupt(Jack jack)
+void DUINO_Function::gt_detach_interrupt(DUINO_Function::Jack jack)
 {
-  if(jack == GT3 || jack == GT4)
+  if (jack == GT3 || jack == GT4)
   {
     detachInterrupt(digitalPinToInterrupt(jack));
   }
@@ -218,36 +236,38 @@ void DUINO_Function::gt_detach_interrupt(Jack jack)
 
 void DUINO_Function::save_params(int address, uint8_t * start, int length)
 {
-  if(saved)
+  if (saved_)
   {
     return;
   }
 
-  for(int i = 0; i < length; ++i)
+  for (int i = 0; i < length; ++i)
   {
     EEPROM.write(address + i, *(start + i));
   }
 
-  saved = true;
+  saved_ = true;
 }
 
 void DUINO_Function::load_params(int address, uint8_t * start, int length)
 {
-  for(int i = 0; i < length; ++i)
+  for (int i = 0; i < length; ++i)
   {
     *(start + i) = EEPROM.read(address + i);
   }
 
-  saved = true;
+  saved_ = true;
 }
 
 void DUINO_Function::set_switch_config(uint8_t sc)
 {
-  switch_config = sc;
+  switch_config_ = sc;
 
   // configure digital pins
-  for(uint8_t i = 0; i < 4; ++i)
+  for (uint8_t i = 0; i < 4; ++i)
+  {
     pinMode(i, sc & (1 << i) ? INPUT : OUTPUT);
+  }
 }
 
 float DUINO_Function::cv_analog_read(uint8_t pin)

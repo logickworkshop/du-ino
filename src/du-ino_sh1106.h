@@ -59,7 +59,7 @@
 
 class DUINO_SH1106 
 {
- public:
+public:
   enum SH1106Color
   {
     Black,
@@ -67,7 +67,6 @@ class DUINO_SH1106
     Inverse
   };
 
- public:
   DUINO_SH1106(uint8_t ss, uint8_t dc);
 
   void sh1106_command(uint8_t command);
@@ -97,12 +96,12 @@ class DUINO_SH1106
   void draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color);
   void draw_logick_logo(int16_t x, int16_t y, SH1106Color color);
 
- private:
+private:
   inline void draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color);
   inline void fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color);
 
-  const uint8_t pin_ss;
-  const uint8_t pin_dc;
+  const uint8_t pin_ss_;
+  const uint8_t pin_dc_;
 };
 
 #endif // DUINO_SH1106_H_

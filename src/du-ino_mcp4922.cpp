@@ -25,21 +25,21 @@
 #include "du-ino_mcp4922.h"
 
 DUINO_MCP4922::DUINO_MCP4922(uint8_t ss, uint8_t ldac)
-  : pin_ss(ss)
-  , pin_ldac(ldac)
+  : pin_ss_(ss)
+  , pin_ldac_(ldac)
 {
   // configure chip select for output
-  pinMode(pin_ss, OUTPUT);
-  pinMode(pin_ldac, OUTPUT);
+  pinMode(pin_ss_, OUTPUT);
+  pinMode(pin_ldac_, OUTPUT);
 }
 
 void DUINO_MCP4922::begin()
 {
   // hold chip deselect
-  digitalWrite(pin_ss, HIGH);
+  digitalWrite(pin_ss_, HIGH);
 
   // hold LDAC low
-  digitalWrite(pin_ldac, LOW);
+  digitalWrite(pin_ldac_, LOW);
 
   // configure SPI
   SPI.begin();
@@ -56,17 +56,17 @@ void DUINO_MCP4922::output(Channel channel, uint16_t data)
   data |= (channel << 15) | 0x7000;
 
   // chip select
-  digitalWrite(pin_ss, LOW);
+  digitalWrite(pin_ss_, LOW);
 
   // send command
   SPI.transfer((data & 0xff00) >> 8);
   SPI.transfer(data & 0xff);
 
   // chip deselect
-  digitalWrite(pin_ss, HIGH);
+  digitalWrite(pin_ss_, HIGH);
 }
 
 void DUINO_MCP4922::hold(bool state)
 {
-  digitalWrite(pin_ldac, state ? HIGH : LOW);
+  digitalWrite(pin_ldac_, state ? HIGH : LOW);
 }

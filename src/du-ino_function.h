@@ -27,25 +27,27 @@
 #include "du-ino_sh1106.h"
 #include "du-ino_encoder.h"
 
-enum Jack {
-  GT1 = 0,
-  GT2 = 1,
-  GT3 = 2,
-  GT4 = 3,
-  CO1 = 4,
-  CO2 = 5,
-  CO3 = 7,
-  CO4 = 6,
-  CI1 = 8,
-  CI2 = 9,
-  CI3 = 10,
-  CI4 = 11
-};
-
 class DUINO_MCP4922;
 
-class DUINO_Function {
- public:
+class DUINO_Function
+{
+public:
+  enum Jack
+  {
+    GT1 = 0,
+    GT2 = 1,
+    GT3 = 2,
+    GT4 = 3,
+    CO1 = 4,
+    CO2 = 5,
+    CO3 = 7,
+    CO4 = 6,
+    CI1 = 8,
+    CI2 = 9,
+    CI3 = 10,
+    CI4 = 11
+  };
+
   DUINO_Function(uint8_t sc);
 
   void begin();
@@ -76,10 +78,10 @@ class DUINO_Function {
  protected:
   inline float cv_analog_read(uint8_t pin);
 
-  DUINO_MCP4922 * dac[2];
+  DUINO_MCP4922 * dac_[2];
 
-  bool saved;
-  uint8_t switch_config;    // 0b{SC4 .. SC1}{SG4 .. SG1}
+  bool saved_;
+  uint8_t switch_config_;    // 0b{SC4 .. SC1}{SG4 .. SG1}
 };
 
 #endif // DUINO_FUNCTION_H_

@@ -190,7 +190,7 @@ class DU_ADSR_Function : public DUINO_Function {
     {
       if(saving)
       {
-        if(!saved)
+        if(!saved_)
         {
           save_params(0, v, 8);
           display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
@@ -221,9 +221,9 @@ class DU_ADSR_Function : public DUINO_Function {
       if(v[selected] != v_last[selected])
       {
         // mark save box
-        if(saved)
+        if(saved_)
         {
-          saved = false;
+          saved_ = false;
           display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
           display->display(123, 125, 0, 0);
         }
@@ -316,7 +316,7 @@ ENCODER_ISR(function->encoder);
 
 void gate_isr()
 {
-  gate = function->gt_read_debounce(GT3);
+  gate = function->gt_read_debounce(DUINO_Function::GT3);
   if(gate)
     retrigger = true;
 }

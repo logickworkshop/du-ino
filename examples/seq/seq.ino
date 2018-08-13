@@ -295,7 +295,7 @@ class DU_SEQ_Function : public DUINO_Function {
       switch(main_selected)
       {
         case 0: // save
-          if(!saved)
+          if(!saved_)
           {
             save_params(0, params.bytes, 30);
             display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
@@ -474,9 +474,9 @@ class DU_SEQ_Function : public DUINO_Function {
       // mark save box
       if(main_selected)
       {
-        if(saved)
+        if(saved_)
         {
-          saved = false;
+          saved_ = false;
           display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
           display->display(123, 125, 0, 0);
         }
@@ -761,7 +761,7 @@ void clock_ext_isr()
 
 void clock_isr()
 {
-  clock_gate = seq_values.clock_ext ? function->gt_read_debounce(GT3) : !clock_gate;
+  clock_gate = seq_values.clock_ext ? function->gt_read_debounce(DUINO_Function::GT3) : !clock_gate;
 
   if(clock_gate)
   {

@@ -23,36 +23,35 @@
 #include <stdlib.h>
 #include <SPI.h>
 #include <avr/pgmspace.h>
-
 #include "du-ino_font5x7.h"
 #include "du-ino_SH1106.h"
 
 static uint8_t buffer[SH1106_LCDHEIGHT * SH1106_LCDWIDTH / 8];
 
 DUINO_SH1106::DUINO_SH1106(uint8_t ss, uint8_t dc)
-  : pin_ss(ss)
-  , pin_dc(dc)
+  : pin_ss_(ss)
+  , pin_dc_(dc)
 {
-  pinMode(pin_ss, OUTPUT);
-  pinMode(pin_dc, OUTPUT);
+  pinMode(pin_ss_, OUTPUT);
+  pinMode(pin_dc_, OUTPUT);
 }
 
 void DUINO_SH1106::sh1106_command(uint8_t command)
 {
-  digitalWrite(pin_ss, HIGH);
-  digitalWrite(pin_dc, LOW);
-  digitalWrite(pin_ss, LOW);
+  digitalWrite(pin_ss_, HIGH);
+  digitalWrite(pin_dc_, LOW);
+  digitalWrite(pin_ss_, LOW);
   (void)SPI.transfer(command);
-  digitalWrite(pin_ss, HIGH);
+  digitalWrite(pin_ss_, HIGH);
 }
 
 void DUINO_SH1106::begin()
 {
   // hold chip deselect
-  digitalWrite(pin_ss, HIGH);
+  digitalWrite(pin_ss_, HIGH);
 
   // hold DC low
-  digitalWrite(pin_dc, LOW);
+  digitalWrite(pin_dc_, LOW);
 
   // initialize SPI
   SPI.begin();
@@ -89,29 +88,29 @@ void DUINO_SH1106::display(uint8_t col_start, uint8_t col_end, uint8_t page_star
   uint8_t page, col, b;
   
   // TODO: use the column and page values, or rework with new (or no) parameters and update examples
-  for(page = page_start; page <= page_end; ++page)
+  for (page = page_start; page <= page_end; ++page)
   {
     // FIXME: command needs a #define
     sh1106_command(SH1106_SETPAGEADDR | page);
     sh1106_command(SH1106_SETLOWCOLUMN | (col_start + 2) & 0x0F);
     sh1106_command(SH1106_SETHIGHCOLUMN | (col_start + 2) >> 4);
     
-    digitalWrite(pin_ss, HIGH);
-    digitalWrite(pin_dc, HIGH);
-    digitalWrite(pin_ss, LOW);
+    digitalWrite(pin_ss_, HIGH);
+    digitalWrite(pin_dc_, HIGH);
+    digitalWrite(pin_ss_, LOW);
 
     b = 1;
-    for(col = col_start; col <= col_end; ++col, ++b)
+    for (col = col_start; col <= col_end; ++col, ++b)
     {
       (void)SPI.transfer(buffer[page * SH1106_LCDWIDTH + col]);
-      if(b % 16)
+      if (b % 16)
       {
-        digitalWrite(pin_ss, HIGH);
-        digitalWrite(pin_ss, LOW);
+        digitalWrite(pin_ss_, HIGH);
+        digitalWrite(pin_ss_, LOW);
       }
     }
 
-    digitalWrite(pin_ss, HIGH);
+    digitalWrite(pin_ss_, HIGH);
   }
 }
 
@@ -130,10 +129,12 @@ void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, SH1106Color color)
 {
   // bound check
   if ((x < 0) || (x >= SH1106_LCDWIDTH) || (y < 0) || (y >= SH1106_LCDHEIGHT))
+  {
     return;
+  }
 
   // set pixel value
-  switch(color)
+  switch (color)
   {
     case Black:
       buffer[x + (y / 8) * SH1106_LCDWIDTH] &= ~(1 << (y & 7));
@@ -150,23 +151,27 @@ void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, SH1106Color color)
 void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color)
 {
   // bound check
-  if((y < 0) || (y >= SH1106_LCDHEIGHT))
+  if ((y < 0) || (y >= SH1106_LCDHEIGHT))
+  {
     return;
+  }
 
   // clip at edges of display
-  if(x < 0)
+  if (x < 0)
   {
     w += x;
     x = 0;
   }
-  if((x + w) > SH1106_LCDWIDTH)
+  if ((x + w) > SH1106_LCDWIDTH)
   {
     w = (SH1106_LCDWIDTH - x);
   }
 
   // check width
-  if(w <= 0)
+  if (w <= 0)
+  {
     return;
+  }
 
   // initialize buffer pointer
   register uint8_t * bp = buffer + ((y / 8) * SH1106_LCDWIDTH) + x;
@@ -174,23 +179,23 @@ void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color
   // initialize pixel mask
   register uint8_t mask = 1 << (y & 7);
 
-  switch(color)
+  switch (color)
   {
     case Black:
       mask = ~mask;
-      while(w--)
+      while (w--)
       {
         *bp++ &= mask;
       }
       break;
     case White:
-      while(w--)
+      while (w--)
       {
         *bp++ |= mask;
       }
       break;
     case Inverse:
-      while(w--)
+      while (w--)
       {
         *bp++ ^= mask;
       }
@@ -201,23 +206,27 @@ void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color
 void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color)
 {
   // bound check
-  if((x < 0) || (x >= SH1106_LCDWIDTH))
+  if ((x < 0) || (x >= SH1106_LCDWIDTH))
+  {
     return;
+  }
 
   // clip at edges of display
-  if(y < 0)
+  if (y < 0)
   {
     h += y;
     y = 0;
   }
-  if((y + h) > SH1106_LCDHEIGHT)
+  if ((y + h) > SH1106_LCDHEIGHT)
   {
     h = (SH1106_LCDHEIGHT - y);
   }
 
   // check height
-  if(h <= 0)
+  if (h <= 0)
+  {
     return;
+  }
 
   // use local byte registers for coordinates
   register uint8_t ry = y;
@@ -228,7 +237,7 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
 
   // first partial byte
   register uint8_t mod = (ry & 7);
-  if(mod)
+  if (mod)
   {
     // mask high bits
     mod = 8 - mod;
@@ -236,12 +245,12 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
     register uint8_t mask = premask[mod];
 
     // adjust the mask
-    if(rh < mod)
+    if (rh < mod)
     {
       mask &= (0XFF >> (mod - rh));
     }
 
-    switch(color)
+    switch (color)
     {
       case Black:
         *bp &= ~mask;
@@ -255,17 +264,19 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
     }
 
     // exit if complete
-    if(rh < mod)
+    if (rh < mod)
+    {
       return;
+    }
 
     rh -= mod;
     bp += SH1106_LCDWIDTH;
   }
 
   // solid bytes
-  if(rh >= 8)
+  if (rh >= 8)
   {
-    if(color == Inverse)
+    if (color == Inverse)
     {
       do
       {
@@ -273,7 +284,7 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
         bp += SH1106_LCDWIDTH;
         rh -= 8;
       }
-      while(rh >= 8);
+      while (rh >= 8);
     }
     else
     {
@@ -285,19 +296,19 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
         bp += SH1106_LCDWIDTH;
         rh -= 8;
       }
-      while(rh >= 8);
+      while (rh >= 8);
     }
   }
 
   // last partial byte
-  if(rh)
+  if (rh)
   {
     // mask low bits
     mod = rh & 7;
     static uint8_t postmask[8] = {0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F};
     register uint8_t mask = postmask[mod];
 
-    switch(color)
+    switch (color)
     {
       case Black:
         *bp &= ~mask;
@@ -319,12 +330,12 @@ void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color co
   register int8_t d = 3 - 2 * r;
 
   // Bresenham raster circle algorithm
-  while(y >= x)
+  while (y >= x)
   {
     draw_quadrants(xc, yc, x, y, color);
     x++;
 
-    if(d > 0)
+    if (d > 0)
     {
       y--; 
       d = d + 4 * (x - y) + 10;
@@ -344,7 +355,7 @@ void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color co
   register int8_t d = 3 - 2 * r;
 
   // same as draw_circle, but vlines instead of locus pixels
-  while(y >= x)
+  while (y >= x)
   {
     fill_quadrants(xc, yc, x, y, color);
     x++;
@@ -365,8 +376,10 @@ void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color co
 void DUINO_SH1106::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SH1106Color color)
 {
   // draw filled rectangle as a series of vlines
-  for(int16_t i = x; i < x + w; ++i)
+  for (int16_t i = x; i < x + w; ++i)
+  {
     draw_vline(i, y, h, color);
+  }
 }
 
 void DUINO_SH1106::fill_screen(SH1106Color color)
@@ -378,16 +391,18 @@ void DUINO_SH1106::fill_screen(SH1106Color color)
 void DUINO_SH1106::draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 5) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
+  if (((x + 5) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
+  {
     return;
+  }
 
   // draw pixels from ASCII 5x7 font map
-  for(int8_t i = 0; i < 5; ++i)
+  for (int8_t i = 0; i < 5; ++i)
   {
     uint8_t line = pgm_read_byte(&font5x7[c * 5 + i]);
-    for(int8_t j = 0; j < 8; ++j, line >>= 1)
+    for (int8_t j = 0; j < 8; ++j, line >>= 1)
     {
-      if(line & 1)
+      if (line & 1)
       {
         draw_pixel(x + i, y + j, color);
       }
@@ -399,23 +414,27 @@ void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, SH1106Colo
 {
   // draw characters with 1-pixel spacing
   register int8_t i = 0;
-  while(*(text + i))
+  while (*(text + i))
+  {
     draw_char(x + 6 * i++, y, *(text + i), color);
+  }
 }
 
 void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 7) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
+  if (((x + 7) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
+  {
     return;
+  }
 
   // draw pixels from map
-  for(int8_t i = 0; i < 7; ++i)
+  for (int8_t i = 0; i < 7; ++i)
   {
     uint8_t line = pgm_read_byte(&map[c * 7 + i]);
-    for(int8_t j = 0; j < 7; ++j, line >>= 1)
+    for (int8_t j = 0; j < 7; ++j, line >>= 1)
     {
-      if(line & 1)
+      if (line & 1)
       {
         draw_pixel(x + i, y + j, color);
       }
@@ -426,16 +445,18 @@ void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map
 void DUINO_SH1106::draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
 {
   // bound check
-  if(((x + 8) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 8) < 0) || (y >= SH1106_LCDHEIGHT))
+  if (((x + 8) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 8) < 0) || (y >= SH1106_LCDHEIGHT))
+  {
     return;
+  }
 
   // draw pixels from map
-  for(int8_t i = 0; i < 8; ++i)
+  for (int8_t i = 0; i < 8; ++i)
   {
     uint8_t line = pgm_read_byte(&map[c * 8 + i]);
-    for(int8_t j = 0; j < 8; ++j, line >>= 1)
+    for (int8_t j = 0; j < 8; ++j, line >>= 1)
     {
-      if(line & 1)
+      if (line & 1)
       {
         draw_pixel(x + i, y + j, color);
       }

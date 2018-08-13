@@ -34,7 +34,7 @@
 
 class DUINO_Encoder
 {
- public:
+public:
   enum Button {
     Open,
     Closed,
@@ -45,7 +45,6 @@ class DUINO_Encoder
     DoubleClicked
   };
 
- public:
   DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn);
 
   void begin();
@@ -54,15 +53,12 @@ class DUINO_Encoder
   int16_t get_value(void);
   Button get_button(void);
 
- private:
-  const uint8_t pin_a;
-  const uint8_t pin_b;
-  const uint8_t pin_btn;
+private:
+  const uint8_t pin_a_, pin_b_, pin_btn_;
 
-  volatile int16_t delta;
-  volatile int16_t last;
-  volatile uint16_t acceleration;
-  volatile Button button;
+  volatile int16_t delta_, last_;
+  volatile uint16_t acceleration_;
+  volatile Button button_;
 };
 
 #define ENCODER_ISR(encoder) ISR(TIMER2_OVF_vect) { (encoder)->service(); }

@@ -27,14 +27,13 @@
 
 class DUINO_Filter
 {
- public:
+public:
   enum FilterType
   {
     LowPass,
     HighPass
   };
 
- public:
   DUINO_Filter(FilterType type, float frequency, float value);
 
   float filter(float value);
@@ -42,11 +41,11 @@ class DUINO_Filter
   void set_frequency(float frequency);
   void set_tau(float tau_s);
 
- private:
-  FilterType ft;
-  float tau;
-  float in, out, last_out;
-  unsigned long last_time;
+private:
+  FilterType ft_;
+  float tau_;
+  float in_, out_, last_out_;
+  unsigned long last_time_;
 };
 
 #endif // DUINO_DSP_H_

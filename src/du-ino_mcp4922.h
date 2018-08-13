@@ -26,14 +26,13 @@
 #include "Arduino.h"
 
 class DUINO_MCP4922 {
- public:
+public:
   enum Channel
   {
     A = 0,
     B = 1
   };
 
- public:
   DUINO_MCP4922(uint8_t ss, uint8_t ldac);
 
   void begin();
@@ -41,9 +40,9 @@ class DUINO_MCP4922 {
   void output(Channel channel, uint16_t data);
   void hold(bool state);
 
- private:
-  const uint8_t pin_ss;
-  const uint8_t pin_ldac;
+private:
+  const uint8_t pin_ss_;
+  const uint8_t pin_ldac_;
 };
 
 #endif // DUINO_FUNCTION_H_
