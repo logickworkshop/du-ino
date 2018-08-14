@@ -32,8 +32,8 @@ public:
 
   DUINO_Widget();
 
-  virtual void invert(bool update_display = true);
-  bool inverted() const { return inverted_; }
+  virtual void invert(bool update_display = true) { }
+  virtual bool inverted() const { return false; }
 
   virtual void on_click();
   virtual void on_double_click();
@@ -44,8 +44,6 @@ public:
   void attach_scroll_callback(void (*callback)(int));
 
 protected:
-  bool inverted_;
-
   void (*click_callback_)();
   void (*double_click_callback_)();
   void (*scroll_callback_)(int);
@@ -59,6 +57,7 @@ public:
   void display();
 
   virtual void invert(bool update_display = true);
+  virtual bool inverted() const { return inverted_; }
 
   uint8_t x() const { return x_; }
   uint8_t y() const { return y_; }
@@ -66,7 +65,8 @@ public:
   uint8_t height() const { return height_; }
 
 protected:
-  uint8_t x_, y_, width_, height_;
+  const uint8_t x_, y_, width_, height_;
+  bool inverted_;
 };
 
 template <unsigned int N>
@@ -74,8 +74,8 @@ class DUINO_WidgetContainer : public DUINO_Widget
 {
 public:
   DUINO_WidgetContainer(Action t, unsigned int initial_selection = 0)
-      : type_(t)
-      , selected_(initial_selection)
+    : type_(t)
+    , selected_(initial_selection)
   {
     for (unsigned int i = 0; i < N; ++i)
     {
@@ -89,8 +89,14 @@ public:
     {
       children_[selected_]->invert(update_display);
     }
+  }
 
-    inverted_ = !inverted_;
+  virtual bool inverted() const
+  {
+    if (children_[selected_])
+    {
+      return children_[selected_]->inverted();
+    }
   }
 
   virtual void on_click()

@@ -24,16 +24,10 @@
 #include "du-ino_widgets.h"
 
 DUINO_Widget::DUINO_Widget()
-  : inverted_(false)
-  , click_callback_(NULL)
+  : click_callback_(NULL)
   , double_click_callback_(NULL)
   , scroll_callback_(NULL)
 {
-}
-
-void DUINO_Widget::invert(bool update_display)
-{
-  inverted_ = !inverted_;
 }
 
 void DUINO_Widget::on_click()
@@ -80,6 +74,7 @@ DUINO_DisplayWidget::DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, ui
   , y_(y)
   , width_(width)
   , height_(height)
+  , inverted_(false)
 {
 }
 
