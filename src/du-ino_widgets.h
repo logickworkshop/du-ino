@@ -69,15 +69,15 @@ protected:
   bool inverted_;
 };
 
-template <unsigned int N>
+template <uint8_t N>
 class DUINO_WidgetContainer : public DUINO_Widget
 {
 public:
-  DUINO_WidgetContainer(Action t, unsigned int initial_selection = 0)
+  DUINO_WidgetContainer(Action t, uint8_t initial_selection = 0)
     : type_(t)
     , selected_(initial_selection)
   {
-    for (unsigned int i = 0; i < N; ++i)
+    for (uint8_t i = 0; i < N; ++i)
     {
       children_[i] = NULL;
     } 
@@ -167,12 +167,12 @@ public:
     }
   }
 
-  void attach_child(DUINO_Widget * child, unsigned int position)
+  void attach_child(DUINO_Widget * child, uint8_t position)
   {
     children_[position] = child;
   }
 
-  void select(unsigned int selection)
+  void select(uint8_t selection)
   {
     invert_selected();
     if (selection < N)
