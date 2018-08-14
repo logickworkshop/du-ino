@@ -23,6 +23,16 @@
 #include "du-ino_sh1106.h"
 #include "du-ino_widgets.h"
 
+DUINO_Widget::DUINO_Widget()
+  : inverted_(false)
+{
+}
+
+void DUINO_Widget::invert(bool update_display)
+{
+  inverted_ = !inverted_;
+}
+
 DUINO_DisplayWidget::DUINO_DisplayWidget(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
     DUINO_SH1106 * display)
   : x_(x)
@@ -43,6 +53,8 @@ void DUINO_DisplayWidget::invert(bool update_display)
   {
     display_->display(x_, x_ + width_, y_ / 8, (y_ + width_) / 8);
   }
+
+  inverted_ = !inverted_;
 }
 
 void DUINO_DisplayWidget::on_click()
