@@ -61,6 +61,6 @@ private:
   volatile Button button_;
 };
 
-#define ENCODER_ISR(encoder) ISR(TIMER2_OVF_vect) { (encoder)->service(); }
+extern DUINO_Encoder Encoder;
 
 #endif // DUINO_ENCODER_H_

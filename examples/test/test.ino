@@ -43,41 +43,41 @@ class DU_Test_Function : public DUINO_Function {
     calibration_value = calibration_value_last = 0;
     gt = gt_io = gt_io_last = false;
 
-    display->draw_logick_logo(0, 0, DUINO_SH1106::White);
-    display->draw_text(42, 3, "DU-INO TESTER", DUINO_SH1106::White);
+    Display.draw_logick_logo(0, 0, DUINO_SH1106::White);
+    Display.draw_text(42, 3, "DU-INO TESTER", DUINO_SH1106::White);
 
     // draw voltage values
-    display->draw_text(0, 17, "+10V", DUINO_SH1106::White);
-    display->draw_text(12, 37, "0V", DUINO_SH1106::White);
-    display->draw_text(0, 57, "-10V", DUINO_SH1106::White);
+    Display.draw_text(0, 17, "+10V", DUINO_SH1106::White);
+    Display.draw_text(12, 37, "0V", DUINO_SH1106::White);
+    Display.draw_text(0, 57, "-10V", DUINO_SH1106::White);
 
     // draw markers
-    display->draw_hline(26, 20, 10, DUINO_SH1106::White);
-    display->draw_hline(26, 40, 10, DUINO_SH1106::White);
-    display->draw_hline(26, 60, 10, DUINO_SH1106::White);
+    Display.draw_hline(26, 20, 10, DUINO_SH1106::White);
+    Display.draw_hline(26, 40, 10, DUINO_SH1106::White);
+    Display.draw_hline(26, 60, 10, DUINO_SH1106::White);
     for(uint8_t i = 0; i < 9; ++i)
     {
-      display->draw_hline(30, 22 + 2 * i, 6, DUINO_SH1106::White);
-      display->draw_hline(30, 42 + 2 * i, 6, DUINO_SH1106::White);
+      Display.draw_hline(30, 22 + 2 * i, 6, DUINO_SH1106::White);
+      Display.draw_hline(30, 42 + 2 * i, 6, DUINO_SH1106::White);
     }
 
     // draw arrow
     display_calibration_arrow();
 
     // draw CV section
-    display->draw_text(48, 17, "CV IN", DUINO_SH1106::White);
-    display->draw_hline(48, 25, 35, DUINO_SH1106::White);
+    Display.draw_text(48, 17, "CV IN", DUINO_SH1106::White);
+    Display.draw_hline(48, 25, 35, DUINO_SH1106::White);
 
     // draw GT section
-    display->draw_text(96, 17, "GT", DUINO_SH1106::White);
+    Display.draw_text(96, 17, "GT", DUINO_SH1106::White);
     display_gtio_arrow();
-    display->draw_hline(96, 25, 24, DUINO_SH1106::White);
+    Display.draw_hline(96, 25, 24, DUINO_SH1106::White);
     for(uint8_t i = 0; i < 4; ++i)
     {
-      display->draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
+      Display.draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
     }
 
-    display->display_all();
+    Display.display_all();
   }
 
   virtual void loop()
@@ -138,7 +138,7 @@ class DU_Test_Function : public DUINO_Function {
     }
 
     // handle encoder button press
-    DUINO_Encoder::Button b = encoder->get_button();
+    DUINO_Encoder::Button b = Encoder.get_button();
     if(b == DUINO_Encoder::DoubleClicked)
     {
       gt_io = !gt_io;
@@ -154,7 +154,7 @@ class DU_Test_Function : public DUINO_Function {
     }
 
     // handle encoder spin
-    calibration_value += encoder->get_value();
+    calibration_value += Encoder.get_value();
     if(calibration_value > 10)
     {
       calibration_value = 10;
@@ -176,48 +176,48 @@ class DU_Test_Function : public DUINO_Function {
     display_gtio();
 
     // update display
-    display->display_all();
+    Display.display_all();
   }
 
  private:
   void display_calibration_arrow()
   {
-    display->fill_rect(37, 17, 5, 47, DUINO_SH1106::Black);
-    display->draw_char(37, 37 - 2 * calibration_value, 0x11, DUINO_SH1106::White);
+    Display.fill_rect(37, 17, 5, 47, DUINO_SH1106::Black);
+    Display.draw_char(37, 37 - 2 * calibration_value, 0x11, DUINO_SH1106::White);
   }
 
   void display_gtio_arrow()
   {
-    display->fill_rect(114, 17, 5, 7, DUINO_SH1106::Black);
-    display->draw_char(114, 17, 0x11 - (unsigned char)gt_io, DUINO_SH1106::White);
+    Display.fill_rect(114, 17, 5, 7, DUINO_SH1106::Black);
+    Display.draw_char(114, 17, 0x11 - (unsigned char)gt_io, DUINO_SH1106::White);
   }
 
   void display_cv_in()
   {
-    display->fill_rect(48, 27, 35, 37, DUINO_SH1106::Black);
+    Display.fill_rect(48, 27, 35, 37, DUINO_SH1106::Black);
     for(uint8_t i = 0; i < 4; ++i)
     {
       char value[7];
       dtostrf(cv[i], 6, 2, value);
-      display->draw_text(48, 27 + 10 * i, value, DUINO_SH1106::White);
+      Display.draw_text(48, 27 + 10 * i, value, DUINO_SH1106::White);
     }
   }
 
   void display_gtio()
   {
-    display->fill_rect(104, 27, 5, 37, DUINO_SH1106::Black);
-    display->fill_rect(120, 47, 5, 17, DUINO_SH1106::Black);
+    Display.fill_rect(104, 27, 5, 37, DUINO_SH1106::Black);
+    Display.fill_rect(120, 47, 5, 17, DUINO_SH1106::Black);
 
     // input & output for GT1 - GT4
     for(uint8_t i = 0; i < 4; ++i)
     {
       if((i == 2 && gt3_retrigger) || (i == 3) && gt4_retrigger)
       {
-        display->draw_char(104, 27 + 10 * i, 0x0F, DUINO_SH1106::White);
+        Display.draw_char(104, 27 + 10 * i, 0x0F, DUINO_SH1106::White);
       }
       else if((gt_io && gt) || (!gt_io && (gt_state & (1U << i))))
       {
-        display->draw_char(104, 27 + 10 * i, 0x04, DUINO_SH1106::White);
+        Display.draw_char(104, 27 + 10 * i, 0x04, DUINO_SH1106::White);
       }
     }
   }
@@ -229,11 +229,9 @@ class DU_Test_Function : public DUINO_Function {
 
 DU_Test_Function * function;
 
-ENCODER_ISR(function->encoder);
-
 void gt3_isr()
 {
-  if(function->gt_read_debounce(GT3))
+  if(function->gt_read_debounce(DUINO_Function::GT3))
   {
     gt_state |= 4U;
     gt3_retrigger = true;
@@ -247,7 +245,7 @@ void gt3_isr()
 
 void gt4_isr()
 {
-  if(function->gt_read_debounce(GT4))
+  if(function->gt_read_debounce(DUINO_Function::GT4))
   {
     gt_state |= 8U;
     gt4_retrigger = true;

@@ -104,4 +104,6 @@ private:
   const uint8_t pin_dc_;
 };
 
+extern DUINO_SH1106 Display;
+
 #endif // DUINO_SH1106_H_

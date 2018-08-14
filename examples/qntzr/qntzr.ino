@@ -53,104 +53,104 @@ class DU_Quantizer_Function : public DUINO_Function {
     gt_attach_interrupt(GT3, trig_isr, FALLING);
 
     // draw top line
-    display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
-    display->draw_text(16, 0, "QNTZR", DUINO_SH1106::White);
+    Display.draw_du_logo_sm(0, 0, DUINO_SH1106::White);
+    Display.draw_text(16, 0, "QNTZR", DUINO_SH1106::White);
 
     // draw C key
-    display->draw_vline(1, 11, 52, DUINO_SH1106::White);
-    display->draw_hline(2, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(2, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(11, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(12, 39, 5, DUINO_SH1106::White);
-    display->draw_vline(17, 39, 24, DUINO_SH1106::White);
+    Display.draw_vline(1, 11, 52, DUINO_SH1106::White);
+    Display.draw_hline(2, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(2, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(11, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(12, 39, 5, DUINO_SH1106::White);
+    Display.draw_vline(17, 39, 24, DUINO_SH1106::White);
 
     // draw Db key
-    display->draw_vline(13, 11, 27, DUINO_SH1106::White);
-    display->draw_hline(14, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(14, 37, 9, DUINO_SH1106::White);
-    display->draw_vline(23, 11, 27, DUINO_SH1106::White);
+    Display.draw_vline(13, 11, 27, DUINO_SH1106::White);
+    Display.draw_hline(14, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(14, 37, 9, DUINO_SH1106::White);
+    Display.draw_vline(23, 11, 27, DUINO_SH1106::White);
 
     // draw D key
-    display->draw_vline(19, 39, 24, DUINO_SH1106::White);
-    display->draw_hline(20, 39, 5, DUINO_SH1106::White);
-    display->draw_hline(20, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(25, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(26, 11, 3, DUINO_SH1106::White);
-    display->draw_vline(29, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(30, 39, 5, DUINO_SH1106::White);
-    display->draw_vline(35, 39, 24, DUINO_SH1106::White);
+    Display.draw_vline(19, 39, 24, DUINO_SH1106::White);
+    Display.draw_hline(20, 39, 5, DUINO_SH1106::White);
+    Display.draw_hline(20, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(25, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(26, 11, 3, DUINO_SH1106::White);
+    Display.draw_vline(29, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(30, 39, 5, DUINO_SH1106::White);
+    Display.draw_vline(35, 39, 24, DUINO_SH1106::White);
 
     // draw Eb key
-    display->draw_vline(31, 11, 27, DUINO_SH1106::White);
-    display->draw_hline(32, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(32, 37, 9, DUINO_SH1106::White);
-    display->draw_vline(41, 11, 27, DUINO_SH1106::White);
+    Display.draw_vline(31, 11, 27, DUINO_SH1106::White);
+    Display.draw_hline(32, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(32, 37, 9, DUINO_SH1106::White);
+    Display.draw_vline(41, 11, 27, DUINO_SH1106::White);
 
     // draw E key
-    display->draw_vline(37, 39, 24, DUINO_SH1106::White);
-    display->draw_hline(38, 39, 5, DUINO_SH1106::White);
-    display->draw_hline(38, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(43, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(44, 11, 9, DUINO_SH1106::White);
-    display->draw_vline(53, 11, 52, DUINO_SH1106::White);
+    Display.draw_vline(37, 39, 24, DUINO_SH1106::White);
+    Display.draw_hline(38, 39, 5, DUINO_SH1106::White);
+    Display.draw_hline(38, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(43, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(44, 11, 9, DUINO_SH1106::White);
+    Display.draw_vline(53, 11, 52, DUINO_SH1106::White);
 
     // draw F key
-    display->draw_vline(55, 11, 52, DUINO_SH1106::White);
-    display->draw_hline(56, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(56, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(65, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(66, 39, 5, DUINO_SH1106::White);
-    display->draw_vline(71, 39, 24, DUINO_SH1106::White);
+    Display.draw_vline(55, 11, 52, DUINO_SH1106::White);
+    Display.draw_hline(56, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(56, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(65, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(66, 39, 5, DUINO_SH1106::White);
+    Display.draw_vline(71, 39, 24, DUINO_SH1106::White);
 
     // draw Gb key
-    display->draw_vline(67, 11, 27, DUINO_SH1106::White);
-    display->draw_hline(68, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(68, 37, 9, DUINO_SH1106::White);
-    display->draw_vline(77, 11, 27, DUINO_SH1106::White);
+    Display.draw_vline(67, 11, 27, DUINO_SH1106::White);
+    Display.draw_hline(68, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(68, 37, 9, DUINO_SH1106::White);
+    Display.draw_vline(77, 11, 27, DUINO_SH1106::White);
 
     // draw G key
-    display->draw_vline(73, 39, 24, DUINO_SH1106::White);
-    display->draw_hline(74, 39, 5, DUINO_SH1106::White);
-    display->draw_hline(74, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(79, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(80, 11, 3, DUINO_SH1106::White);
-    display->draw_vline(83, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(84, 39, 5, DUINO_SH1106::White);
-    display->draw_vline(89, 39, 24, DUINO_SH1106::White);
+    Display.draw_vline(73, 39, 24, DUINO_SH1106::White);
+    Display.draw_hline(74, 39, 5, DUINO_SH1106::White);
+    Display.draw_hline(74, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(79, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(80, 11, 3, DUINO_SH1106::White);
+    Display.draw_vline(83, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(84, 39, 5, DUINO_SH1106::White);
+    Display.draw_vline(89, 39, 24, DUINO_SH1106::White);
 
     // draw Ab key
-    display->draw_vline(85, 11, 27, DUINO_SH1106::White);
-    display->draw_hline(86, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(86, 37, 9, DUINO_SH1106::White);
-    display->draw_vline(95, 11, 27, DUINO_SH1106::White);
+    Display.draw_vline(85, 11, 27, DUINO_SH1106::White);
+    Display.draw_hline(86, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(86, 37, 9, DUINO_SH1106::White);
+    Display.draw_vline(95, 11, 27, DUINO_SH1106::White);
 
     // draw A key
-    display->draw_vline(91, 39, 24, DUINO_SH1106::White);
-    display->draw_hline(92, 39, 5, DUINO_SH1106::White);
-    display->draw_hline(92, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(97, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(98, 11, 3, DUINO_SH1106::White);
-    display->draw_vline(101, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(102, 39, 5, DUINO_SH1106::White);
-    display->draw_vline(107, 39, 24, DUINO_SH1106::White);
+    Display.draw_vline(91, 39, 24, DUINO_SH1106::White);
+    Display.draw_hline(92, 39, 5, DUINO_SH1106::White);
+    Display.draw_hline(92, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(97, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(98, 11, 3, DUINO_SH1106::White);
+    Display.draw_vline(101, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(102, 39, 5, DUINO_SH1106::White);
+    Display.draw_vline(107, 39, 24, DUINO_SH1106::White);
 
     // draw Bb key
-    display->draw_vline(103, 11, 27, DUINO_SH1106::White);
-    display->draw_hline(104, 11, 9, DUINO_SH1106::White);
-    display->draw_hline(104, 37, 9, DUINO_SH1106::White);
-    display->draw_vline(113, 11, 27, DUINO_SH1106::White);
+    Display.draw_vline(103, 11, 27, DUINO_SH1106::White);
+    Display.draw_hline(104, 11, 9, DUINO_SH1106::White);
+    Display.draw_hline(104, 37, 9, DUINO_SH1106::White);
+    Display.draw_vline(113, 11, 27, DUINO_SH1106::White);
 
     // draw B key
-    display->draw_vline(109, 39, 24, DUINO_SH1106::White);
-    display->draw_hline(110, 39, 5, DUINO_SH1106::White);
-    display->draw_hline(110, 62, 15, DUINO_SH1106::White);
-    display->draw_vline(115, 11, 29, DUINO_SH1106::White);
-    display->draw_hline(116, 11, 9, DUINO_SH1106::White);
-    display->draw_vline(125, 11, 52, DUINO_SH1106::White);
+    Display.draw_vline(109, 39, 24, DUINO_SH1106::White);
+    Display.draw_hline(110, 39, 5, DUINO_SH1106::White);
+    Display.draw_hline(110, 62, 15, DUINO_SH1106::White);
+    Display.draw_vline(115, 11, 29, DUINO_SH1106::White);
+    Display.draw_hline(116, 11, 9, DUINO_SH1106::White);
+    Display.draw_vline(125, 11, 52, DUINO_SH1106::White);
 
     invert_note(current_displayed_note);
     invert_current_selection();
-    display->display_all();
+    Display.display_all();
 
     display_trigger_mode();
     display_key();
@@ -231,7 +231,7 @@ class DU_Quantizer_Function : public DUINO_Function {
     }
 
     // handle encoder button press
-    DUINO_Encoder::Button b = encoder->get_button();
+    DUINO_Encoder::Button b = Encoder.get_button();
     if(b == DUINO_Encoder::DoubleClicked)
     {
       invert_current_selection();
@@ -257,7 +257,7 @@ class DU_Quantizer_Function : public DUINO_Function {
     }
 
     // handle encoder spin
-    int16_t v = encoder->get_value();
+    int16_t v = Encoder.get_value();
     if(v)
     {
       if(main_selected)
@@ -383,25 +383,25 @@ class DU_Quantizer_Function : public DUINO_Function {
     {
       int16_t x, y;
       get_note_indicator_coordinates(note_selected, &x, &y);
-      display->draw_pixel(x, y, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 2, y, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 4, y, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 6, y, DUINO_SH1106::Inverse);
-      display->draw_pixel(x, y + 2, DUINO_SH1106::Inverse);
-      display->draw_pixel(x, y + 4, DUINO_SH1106::Inverse);
-      display->draw_pixel(x, y + 6, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 2, y + 6, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 4, y + 6, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 6, y + 6, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 6, y + 2, DUINO_SH1106::Inverse);
-      display->draw_pixel(x + 6, y + 4, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x, y, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 2, y, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 4, y, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 6, y, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x, y + 2, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x, y + 4, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x, y + 6, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 2, y + 6, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 4, y + 6, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 6, y + 6, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 6, y + 2, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 6, y + 4, DUINO_SH1106::Inverse);
       if(y == 29)
       {
-        display->display(x, x + 6, 3, 4);
+        Display.display(x, x + 6, 3, 4);
       }
       else
       {
-        display->display(x, x + 6, 6, 7);
+        Display.display(x, x + 6, 6, 7);
       }
     }
     else
@@ -409,16 +409,16 @@ class DU_Quantizer_Function : public DUINO_Function {
       switch(top_selected)
       {
         case 0: // trigger mode
-          display->fill_rect(76, 0, 9, 9, DUINO_SH1106::Inverse);
-          display->display(76, 84, 0, 1);
+          Display.fill_rect(76, 0, 9, 9, DUINO_SH1106::Inverse);
+          Display.display(76, 84, 0, 1);
           break;
         case 1: // key
-          display->fill_rect(90, 0, 13, 9, DUINO_SH1106::Inverse);
-          display->display(90, 102, 0, 1);
+          Display.fill_rect(90, 0, 13, 9, DUINO_SH1106::Inverse);
+          Display.display(90, 102, 0, 1);
           break;
         case 2: // scale
-          display->fill_rect(108, 0, 19, 9, DUINO_SH1106::Inverse);
-          display->display(108, 126, 0, 1);
+          Display.fill_rect(108, 0, 19, 9, DUINO_SH1106::Inverse);
+          Display.display(108, 126, 0, 1);
           break;
       }
     }
@@ -427,17 +427,17 @@ class DU_Quantizer_Function : public DUINO_Function {
   void display_trigger_mode()
   {
     bool selected = !main_selected && top_selected == 0;
-    display->fill_rect(77, 1, 7, 7, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
+    Display.fill_rect(77, 1, 7, 7, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
 
-    display->draw_bitmap_7(77, 1, icons, trigger_mode, selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
+    Display.draw_bitmap_7(77, 1, icons, trigger_mode, selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
 
-    display->display(77, 83, 0, 0);
+    Display.display(77, 83, 0, 0);
   }
 
   void display_key()
   {
     bool selected = !main_selected && top_selected == 1;
-    display->fill_rect(91, 1, 11, 7, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
+    Display.fill_rect(91, 1, 11, 7, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
 
     bool sharp = false;
     unsigned char letter;
@@ -476,24 +476,24 @@ class DU_Quantizer_Function : public DUINO_Function {
         break;
     }
 
-    display->draw_char(91, 1, letter, selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
+    Display.draw_char(91, 1, letter, selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
     if(sharp)
     {
-      display->draw_char(97, 1, '#', selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
+      Display.draw_char(97, 1, '#', selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
     }
 
-    display->display(91, 101, 0, 0);
+    Display.display(91, 101, 0, 0);
   }
 
   void display_scale()
   {
     bool selected = !main_selected && top_selected == 2;
-    display->fill_rect(108, 0, 19, 9, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
+    Display.fill_rect(108, 0, 19, 9, selected ? DUINO_SH1106::White : DUINO_SH1106::Black);
     if(scale_id > -1)
     {
       for(uint8_t i = 0; i < 3; ++i)
       {
-        display->draw_char(109 + i * 6, 1, pgm_read_byte(&scales[scale_id * 5 + 2 + i]),
+        Display.draw_char(109 + i * 6, 1, pgm_read_byte(&scales[scale_id * 5 + 2 + i]),
             selected ? DUINO_SH1106::Black : DUINO_SH1106::White);
       }
     }
@@ -507,10 +507,10 @@ class DU_Quantizer_Function : public DUINO_Function {
       {
         white = !white;
       }
-      display->fill_rect(x + 1, y + 1, 5, 5, white ? DUINO_SH1106::White : DUINO_SH1106::Black);
+      Display.fill_rect(x + 1, y + 1, 5, 5, white ? DUINO_SH1106::White : DUINO_SH1106::Black);
     }
 
-    display->display_all();
+    Display.display_all();
   }
 
   void invert_note(uint8_t note)
@@ -519,58 +519,58 @@ class DU_Quantizer_Function : public DUINO_Function {
     switch(note)
     {
       case 0:
-        display->fill_rect(2, 12, 9, 50, DUINO_SH1106::Inverse);
-        display->fill_rect(11, 40, 6, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(2, 12, 9, 50, DUINO_SH1106::Inverse);
+        Display.fill_rect(11, 40, 6, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 1:
-        display->fill_rect(14, 12, 9, 25, DUINO_SH1106::Inverse);
+        Display.fill_rect(14, 12, 9, 25, DUINO_SH1106::Inverse);
         break;
       case 2:
-        display->fill_rect(26, 12, 3, 28, DUINO_SH1106::Inverse);
-        display->fill_rect(20, 40, 15, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(26, 12, 3, 28, DUINO_SH1106::Inverse);
+        Display.fill_rect(20, 40, 15, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 3:
-        display->fill_rect(32, 12, 9, 25, DUINO_SH1106::Inverse);
+        Display.fill_rect(32, 12, 9, 25, DUINO_SH1106::Inverse);
         break;
       case 4:
-        display->fill_rect(44, 12, 9, 50, DUINO_SH1106::Inverse);
-        display->fill_rect(38, 40, 6, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(44, 12, 9, 50, DUINO_SH1106::Inverse);
+        Display.fill_rect(38, 40, 6, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 5:
-        display->fill_rect(56, 12, 9, 50, DUINO_SH1106::Inverse);
-        display->fill_rect(65, 40, 6, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(56, 12, 9, 50, DUINO_SH1106::Inverse);
+        Display.fill_rect(65, 40, 6, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 6:
-        display->fill_rect(68, 12, 9, 25, DUINO_SH1106::Inverse);
+        Display.fill_rect(68, 12, 9, 25, DUINO_SH1106::Inverse);
         break;
       case 7:
-        display->fill_rect(80, 12, 3, 28, DUINO_SH1106::Inverse);
-        display->fill_rect(74, 40, 15, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(80, 12, 3, 28, DUINO_SH1106::Inverse);
+        Display.fill_rect(74, 40, 15, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 8:
-        display->fill_rect(86, 12, 9, 25, DUINO_SH1106::Inverse);
+        Display.fill_rect(86, 12, 9, 25, DUINO_SH1106::Inverse);
         break;
       case 9:
-        display->fill_rect(98, 12, 3, 28, DUINO_SH1106::Inverse);
-        display->fill_rect(92, 40, 15, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(98, 12, 3, 28, DUINO_SH1106::Inverse);
+        Display.fill_rect(92, 40, 15, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
       case 10:
-        display->fill_rect(104, 12, 9, 25, DUINO_SH1106::Inverse);
+        Display.fill_rect(104, 12, 9, 25, DUINO_SH1106::Inverse);
         break;
       case 11:
-        display->fill_rect(116, 12, 9, 50, DUINO_SH1106::Inverse);
-        display->fill_rect(110, 40, 6, 22, DUINO_SH1106::Inverse);
+        Display.fill_rect(116, 12, 9, 50, DUINO_SH1106::Inverse);
+        Display.fill_rect(110, 40, 6, 22, DUINO_SH1106::Inverse);
         refresh_lower = true;
         break;
     }
 
-    display->display(2, 124, 1, refresh_lower ? 7 : 4);
+    Display.display(2, 124, 1, refresh_lower ? 7 : 4);
   }
 
   bool trigger_mode;
@@ -586,8 +586,6 @@ class DU_Quantizer_Function : public DUINO_Function {
 };
 
 DU_Quantizer_Function * function;
-
-ENCODER_ISR(function->encoder);
 
 void trig_isr()
 {

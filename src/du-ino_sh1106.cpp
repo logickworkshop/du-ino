@@ -536,3 +536,5 @@ inline void DUINO_SH1106::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int1
   draw_vline(xc - x, yc - y, y + y, color);
   draw_vline(xc - y, yc - x, x + x, color);
 }
+
+DUINO_SH1106 Display(5, 4);

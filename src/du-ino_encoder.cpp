@@ -208,3 +208,10 @@ DUINO_Encoder::Button DUINO_Encoder::get_button(void)
 
   return r;
 }
+
+DUINO_Encoder Encoder(9, 10, 12);
+
+ISR(TIMER2_OVF_vect)
+{
+  Encoder.service();
+}

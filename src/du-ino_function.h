@@ -28,6 +28,7 @@
 #include "du-ino_encoder.h"
 
 class DUINO_MCP4922;
+class DUINO_Widget;
 
 class DUINO_Function
 {
@@ -55,6 +56,9 @@ public:
   virtual void setup() {}
   virtual void loop() {}
 
+  void widget_setup(DUINO_Widget * top);
+  void widget_loop();
+
   bool gt_read(Jack jack);
   bool gt_read_debounce(Jack jack);
   void gt_out(Jack jack, bool on, bool trig = false);
@@ -72,13 +76,12 @@ public:
 
   void set_switch_config(uint8_t sc);
 
-  DUINO_SH1106 * display;
-  DUINO_Encoder * encoder;
-
  protected:
   inline float cv_analog_read(uint8_t pin);
 
   DUINO_MCP4922 * dac_[2];
+
+  DUINO_Widget * top_level_widget_;
 
   bool saved_;
   uint8_t switch_config_;    // 0b{SC4 .. SC1}{SG4 .. SG1}

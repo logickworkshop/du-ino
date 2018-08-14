@@ -93,29 +93,29 @@ class DU_ADSR_Function : public DUINO_Function {
     }
 
     // draw title
-    display->draw_du_logo_sm(0, 0, DUINO_SH1106::White);
-    display->draw_text(16, 0, "ADSR/VCA", DUINO_SH1106::White);
+    Display.draw_du_logo_sm(0, 0, DUINO_SH1106::White);
+    Display.draw_text(16, 0, "ADSR/VCA", DUINO_SH1106::White);
 
     // draw save box
-    display->fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
+    Display.fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
 
     // draw envelope indicators
-    display->draw_char(47, 56, 0x11, DUINO_SH1106::White);
-    display->draw_char(54, 56, '1', DUINO_SH1106::White);
-    display->draw_char(69, 56, '2', DUINO_SH1106::White);
-    display->draw_char(76, 56, 0x10, DUINO_SH1106::White);
+    Display.draw_char(47, 56, 0x11, DUINO_SH1106::White);
+    Display.draw_char(54, 56, '1', DUINO_SH1106::White);
+    Display.draw_char(69, 56, '2', DUINO_SH1106::White);
+    Display.draw_char(76, 56, 0x10, DUINO_SH1106::White);
 
     // draw sliders & labels
     for(uint8_t i = 0; i < 8; ++i)
     {
-      display->fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SH1106::White);
-      display->draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SH1106::White);
+      Display.fill_rect(11 * (i % 4) + (i > 3 ? 85 : 1), 51 - v[i], 9, 3, DUINO_SH1106::White);
+      Display.draw_char(11 * (i % 4) + (i > 3 ? 87 : 3), 56, label[i % 4], DUINO_SH1106::White);
     }
 
-    display->fill_rect(1, 55, 9, 9, DUINO_SH1106::Inverse);
-    display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
+    Display.fill_rect(1, 55, 9, 9, DUINO_SH1106::Inverse);
+    Display.fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
 
-    display->display_all();
+    Display.display_all();
   }
 
   virtual void loop()
@@ -179,7 +179,7 @@ class DU_ADSR_Function : public DUINO_Function {
     }
 
     // handle encoder button press
-    DUINO_Encoder::Button b = encoder->get_button();
+    DUINO_Encoder::Button b = Encoder.get_button();
     if(b == DUINO_Encoder::DoubleClicked)
     {
       invert_current_selection();
@@ -193,8 +193,8 @@ class DU_ADSR_Function : public DUINO_Function {
         if(!saved_)
         {
           save_params(0, v, 8);
-          display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
-          display->display(123, 125, 0, 0);
+          Display.fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
+          Display.display(123, 125, 0, 0);
         }
       }
       else
@@ -209,7 +209,7 @@ class DU_ADSR_Function : public DUINO_Function {
     // handle encoder spin
     if(!saving)
     {
-      v[selected] += encoder->get_value();
+      v[selected] += Encoder.get_value();
       if(v[selected] < 0)
       {
         v[selected] = 0;
@@ -224,15 +224,15 @@ class DU_ADSR_Function : public DUINO_Function {
         if(saved_)
         {
           saved_ = false;
-          display->fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
-          display->display(123, 125, 0, 0);
+          Display.fill_rect(123, 2, 3, 3, DUINO_SH1106::Black);
+          Display.display(123, 125, 0, 0);
         }
 
         // update slider
         uint16_t col = 11 * (selected % 4) + (selected > 3 ? 85 : 1);
-        display->fill_rect(col, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
-        display->fill_rect(col, 51 - v[selected], 9, 3, DUINO_SH1106::White);
-        display->display(col, col + 8, 1, 6);
+        Display.fill_rect(col, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
+        Display.fill_rect(col, 51 - v[selected], 9, 3, DUINO_SH1106::White);
+        Display.display(col, col + 8, 1, 6);
 
         // update ADSR value
         uint8_t e = selected > 3 ? 1 : 0;
@@ -261,9 +261,9 @@ class DU_ADSR_Function : public DUINO_Function {
     if(selected_env != last_selected_env)
     {
       last_selected_env = selected_env;
-      display->fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
-      display->fill_rect(68, 55, 7, 9, DUINO_SH1106::Inverse);
-      display->display(53, 74, 6, 7);
+      Display.fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
+      Display.fill_rect(68, 55, 7, 9, DUINO_SH1106::Inverse);
+      Display.display(53, 74, 6, 7);
     }
 
     // display gate
@@ -272,13 +272,13 @@ class DU_ADSR_Function : public DUINO_Function {
       last_gate = gate;
       if(gate)
       {
-        display->draw_bitmap_7(60, 25, icons, 0, DUINO_SH1106::White);
+        Display.draw_bitmap_7(60, 25, icons, 0, DUINO_SH1106::White);
       }
       else
       {
-        display->fill_rect(60, 25, 7, 7, DUINO_SH1106::Black);
+        Display.fill_rect(60, 25, 7, 7, DUINO_SH1106::Black);
       }
-      display->display(60, 66, 3, 3);
+      Display.display(60, 66, 3, 3);
     }
   }
 
@@ -287,13 +287,13 @@ class DU_ADSR_Function : public DUINO_Function {
   {
     if(saving)
     {
-      display->fill_rect(121, 0, 7, 7, DUINO_SH1106::Inverse);
-      display->display(121, 127, 0, 0);
+      Display.fill_rect(121, 0, 7, 7, DUINO_SH1106::Inverse);
+      Display.display(121, 127, 0, 0);
     }
     else
     {
-      display->fill_rect(11 * (selected % 4) + (selected > 3 ? 85 : 1), 55, 9, 9, DUINO_SH1106::Inverse);
-      display->display(11 * (selected % 4) + (selected > 3 ? 85 : 1), 11 * (selected % 4) + (selected > 3 ? 93 : 9),
+      Display.fill_rect(11 * (selected % 4) + (selected > 3 ? 85 : 1), 55, 9, 9, DUINO_SH1106::Inverse);
+      Display.display(11 * (selected % 4) + (selected > 3 ? 85 : 1), 11 * (selected % 4) + (selected > 3 ? 93 : 9),
           6, 7);
     }
     delay(1);  // FIXME: SH1106 unstable without this (too many I2C txs too quickly?)
@@ -311,8 +311,6 @@ class DU_ADSR_Function : public DUINO_Function {
 };
 
 DU_ADSR_Function * function;
-
-ENCODER_ISR(function->encoder);
 
 void gate_isr()
 {

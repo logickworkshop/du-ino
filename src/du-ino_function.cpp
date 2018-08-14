@@ -22,14 +22,14 @@
 
 #include <EEPROM.h>
 #include "du-ino_mcp4922.h"
+#include "du-ino_widgets.h"
 #include "du-ino_function.h"
 
 #define TRIG_MS           5   // ms
 #define DIGITAL_THRESH    3.0 // V
 
 DUINO_Function::DUINO_Function(uint8_t sc)
-  : display(new DUINO_SH1106(5, 4))
-  , encoder(new DUINO_Encoder(9, 10, 12))
+  : top_level_widget_(NULL)
   , saved_(false)
 {
   set_switch_config(sc);
@@ -62,15 +62,51 @@ void DUINO_Function::begin()
     gt_out_multi(0xFF, false);
 
     // initialize display
-    display->begin();
-    display->clear_display(); 
-    display->display_all();
+    Display.begin();
+    Display.clear_display(); 
+    Display.display_all();
 
     // initialize encoder
-    encoder->begin();
+    Encoder.begin();
 
     setup();
     initialized = true;
+  }
+}
+
+void DUINO_Function::widget_setup(DUINO_Widget * top)
+{
+  if (!top)
+  {
+    return;
+  }
+
+  top_level_widget_ = top;
+  top_level_widget_->invert(false);
+}
+
+void DUINO_Function::widget_loop()
+{
+  if (!top_level_widget_)
+  {
+    return;
+  }
+
+  // handle encoder button press
+  DUINO_Encoder::Button b = Encoder.get_button();
+  if(b == DUINO_Encoder::Clicked)
+  {
+    top_level_widget_->on_click();
+  }
+  else if(b == DUINO_Encoder::DoubleClicked)
+  {
+    top_level_widget_->on_double_click();
+  }
+
+  int16_t v = Encoder.get_value();
+  if(v)
+  {
+    top_level_widget_->on_scroll(v);
   }
 }
 
