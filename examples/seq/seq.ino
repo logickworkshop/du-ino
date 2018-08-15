@@ -238,13 +238,13 @@ class DU_SEQ_Function : public DUINO_Function {
     Display.draw_vline(widget_slew_->x() + 1, widget_slew_->y() + 1, 7, DUINO_SH1106::White);
     Display.draw_hline(widget_slew_->x() + 2, widget_slew_->y() + 1, 16, DUINO_SH1106::White);
     Display.draw_hline(widget_slew_->x() + 2, widget_slew_->y() + 7, 16, DUINO_SH1106::White);
-    Display.draw_vline(widget_slew_->x() + widget_slew_->width() - 1, widget_slew_->y() + 1, 7, DUINO_SH1106::White);
+    Display.draw_vline(widget_slew_->x() + widget_slew_->width() - 2, widget_slew_->y() + 1, 7, DUINO_SH1106::White);
     display_slew_rate(widget_slew_->x() + 2, widget_slew_->y() + 2, params.vals.slew_rate, DUINO_SH1106::White);
 
     Display.draw_vline(widget_gate_->x() + 1, widget_gate_->y() + 1, 7, DUINO_SH1106::White);
     Display.draw_hline(widget_gate_->x() + 2, widget_gate_->y() + 1, 16, DUINO_SH1106::White);
     Display.draw_hline(widget_gate_->x() + 2, widget_gate_->y() + 7, 16, DUINO_SH1106::White);
-    Display.draw_vline(widget_gate_->x() + widget_gate_->width() - 1, widget_slew_->y() + 1, 7, DUINO_SH1106::White);   
+    Display.draw_vline(widget_gate_->x() + widget_gate_->width() - 2, widget_slew_->y() + 1, 7, DUINO_SH1106::White);   
     display_gate_time(widget_gate_->x() + 2, widget_gate_->y() + 2, params.vals.gate_time, DUINO_SH1106::White);
 
     display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm, DUINO_SH1106::White);
