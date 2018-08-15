@@ -20,7 +20,6 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
-#include "du-ino_sh1106.h"
 #include "du-ino_widgets.h"
 
 DUINO_Widget::DUINO_Widget()
