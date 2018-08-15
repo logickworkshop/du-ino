@@ -82,43 +82,71 @@ public:
 
   void select(uint8_t selection)
   {
-    invert_selected();
+    const bool show = inverted();
+    if(show)
+    {
+      invert_selected();
+    }
     if (selection < N)
     {
       selected_ = selection;
     }
-    invert_selected();
+    if(show)
+    {
+      invert_selected();
+    }
   }
 
   void select_delta(int delta)
   {
-    invert_selected();
+    const bool show = inverted();
+    if(show)
+    {
+      invert_selected();
+    }
     selected_ += delta;
     selected_ %= N;
     if (selected_ < 0)
     {
       selected_ += N;
     }
-    invert_selected();
+    if(show)
+    {
+      invert_selected();
+    }
   }
 
   void select_prev()
   {
-    invert_selected();
+    const bool show = inverted();
+    if(show)
+    {
+      invert_selected();
+    }
     selected_--;
     if (selected_ < 0)
     {
       selected_ = N;
     }
-    invert_selected();
+    if(show)
+    {
+      invert_selected();
+    }
   }
 
   void select_next()
   {
-    invert_selected();
+    const bool show = inverted();
+    if(show)
+    {
+      invert_selected();
+    }
     selected_++;
     selected_ %= N;
-    invert_selected();
+    if(show)
+    {
+      invert_selected();
+    }
   }
 
   int selected() const { return selected_; }
@@ -142,13 +170,14 @@ public:
     , height_(height)
     , step_(step)
     , vertical_(vertical)
+    , inverted_(false)
     , DUINO_WidgetArray<N>(t, initial_selection)
   { }
 
   void display()
   {
-    Display.display(x(this->selected_), x(this->selected_) + width_, y(this->selected_) / 8,
-        (y(this->selected_) + height_) / 8);
+    Display.display(x(this->selected_), x(this->selected_) + width_ - 1, y(this->selected_) >> 3,
+        (y(this->selected_) + height_ - 1) >> 3);
   }
 
   virtual void invert(bool update_display = true)
@@ -361,7 +390,7 @@ public:
 protected:
   virtual void invert_selected()
   {
-    if (inverted() && children_[this->selected_])
+    if (children_[this->selected_])
     {
       children_[this->selected_]->invert();
     }
