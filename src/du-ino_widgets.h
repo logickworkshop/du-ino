@@ -200,7 +200,7 @@ public:
         break;
     }
 
-    if(this->ouble_click_callback_)
+    if(this->double_click_callback_)
     {
       this->double_click_callback_();
     }
