@@ -148,7 +148,7 @@ public:
   void display()
   {
     Display.display(x(this->selected_), x(this->selected_) + width_, y(this->selected_) / 8,
-        (y(this->selected_) + width_) / 8);
+        (y(this->selected_) + height_) / 8);
   }
 
   virtual void invert(bool update_display = true)
@@ -236,8 +236,8 @@ public:
   void attach_double_click_callback_i(void (*callback)(uint8_t)) { double_click_callback_i_ = callback; }
   void attach_scroll_callback_i(void (*callback)(uint8_t, int)) { scroll_callback_i_ = callback; }
 
-  uint8_t x(uint8_t i) const { return x_ + vertical_ ? 0 : i * step_; }
-  uint8_t y(uint8_t i) const { return y_ + vertical_ ? i * step_ : 0; }
+  uint8_t x(uint8_t i) const { return x_ + (vertical_ ? 0 : i * step_); }
+  uint8_t y(uint8_t i) const { return y_ + (vertical_ ? i * step_ : 0); }
   uint8_t width() const { return width_; }
   uint8_t height() const { return height_; }
 
