@@ -89,6 +89,9 @@ public:
   DUINO_WidgetArray(int t, uint8_t initial_selection = 0)
     : type_(t)
     , selected_(initial_selection)
+    , click_callback_array_(NULL)
+    , double_click_callback_array_(NULL)
+    , scroll_callback_array_(NULL)
   { }
 
   void select(uint8_t selection)
@@ -162,11 +165,94 @@ public:
 
   int selected() const { return selected_; }
 
+  virtual void on_click()
+  {
+    switch (type_)
+    {
+      case DUINO_Widget::Click:
+        select_next();
+        break;
+      default:
+        click_default();
+        if (click_callback_array_)
+        {
+          click_callback_array_(selected_);
+        }
+        break;
+    }
+
+    if(click_callback_)
+    {
+      click_callback_();
+    }
+  }
+
+  virtual void on_double_click()
+  {
+    switch (type_)
+    {
+      case DUINO_Widget::DoubleClick:
+        select_next();
+        break;
+      default:
+        double_click_default();
+        if(double_click_callback_array_)
+        {
+          double_click_callback_array_(selected_);
+        }
+        break;
+    }
+
+    if(double_click_callback_)
+    {
+      double_click_callback_();
+    }
+  }
+
+  virtual void on_scroll(int delta)
+  {
+    if(delta == 0)
+    {
+      return;
+    }
+
+    switch (type_)
+    {
+      case DUINO_Widget::Scroll:
+        select_delta(delta);
+        break;
+      default:
+        scroll_default(delta);
+        if(scroll_callback_array_)
+        {
+          scroll_callback_array_(selected_, delta);
+        }
+        break;
+    }
+
+    if(scroll_callback_)
+    {
+      scroll_callback_(delta);
+    }
+  }
+
+  void attach_click_callback_array(void (*callback)(uint8_t)) { click_callback_array_ = callback; }
+  void attach_double_click_callback_array(void (*callback)(uint8_t)) { double_click_callback_array_ = callback; }
+  void attach_scroll_callback_array(void (*callback)(uint8_t, int)) { scroll_callback_array_ = callback; }
+
 protected:
   virtual void invert_selected() = 0;
 
+  virtual void click_default() { }
+  virtual void double_click_default() { }
+  virtual void scroll_default(int delta) { }
+
   const Action type_;
   int selected_;
+
+  void (*click_callback_array_)(uint8_t);
+  void (*double_click_callback_array_)(uint8_t);
+  void (*scroll_callback_array_)(uint8_t, int);
 };
 
 template <uint8_t N>
@@ -206,78 +292,6 @@ public:
 
   virtual bool inverted() const { return inverted_; }
 
-  virtual void on_click()
-  {
-    switch (this->type_)
-    {
-      case DUINO_Widget::Click:
-        select_next();
-        break;
-      default:
-        if(click_callback_i_)
-        {
-          click_callback_i_(this->selected_);
-        }
-        break;
-    }
-
-    if(this->click_callback_)
-    {
-      this->click_callback_();
-    }
-  }
-
-  virtual void on_double_click()
-  {
-    switch (this->type_)
-    {
-      case DUINO_Widget::DoubleClick:
-        select_next();
-        break;
-      default:
-        if(double_click_callback_i_)
-        {
-          double_click_callback_i_(this->selected_);
-        }
-        break;
-    }
-
-    if(this->double_click_callback_)
-    {
-      this->double_click_callback_();
-    }
-  }
-
-  virtual void on_scroll(int delta)
-  {
-    if(delta == 0)
-    {
-      return;
-    }
-
-    switch (this->type_)
-    {
-      case DUINO_Widget::Scroll:
-        select_delta(delta);
-        break;
-      default:
-        if(scroll_callback_i_)
-        {
-          scroll_callback_i_(this->selected_, delta);
-        }
-        break;
-    }
-
-    if(this->scroll_callback_)
-    {
-      this->scroll_callback_(delta);
-    }
-  }
-
-  void attach_click_callback_i(void (*callback)(uint8_t)) { click_callback_i_ = callback; }
-  void attach_double_click_callback_i(void (*callback)(uint8_t)) { double_click_callback_i_ = callback; }
-  void attach_scroll_callback_i(void (*callback)(uint8_t, int)) { scroll_callback_i_ = callback; }
-
   uint8_t x(uint8_t i) const { return x_ + (vertical_ ? 0 : i * step_); }
   uint8_t y(uint8_t i) const { return y_ + (vertical_ ? i * step_ : 0); }
   uint8_t width() const { return width_; }
@@ -293,10 +307,6 @@ protected:
   const bool vertical_;
   const DUINO_Widget::InvertStyle style_;
   bool inverted_;
-
-  void (*click_callback_i_)(uint8_t);
-  void (*double_click_callback_i_)(uint8_t);
-  void (*scroll_callback_i_)(uint8_t, int);
 };
 
 template <uint8_t N>
@@ -328,78 +338,12 @@ public:
     }
   }
 
-  virtual void on_click()
-  {
-    switch (this->type_)
-    {
-      case DUINO_Widget::Click:
-        select_next();
-        break;
-      default:
-        if (children_[this->selected_])
-        {
-          children_[this->selected_]->on_click();
-        }
-        break;
-    }
-
-    if(this->click_callback_)
-    {
-      this->click_callback_();
-    }
-  }
-
-  virtual void on_double_click()
-  {
-    switch (this->type_)
-    {
-      case DUINO_Widget::DoubleClick:
-        select_next();
-        break;
-      default:
-        if (children_[this->selected_])
-        {
-          children_[this->selected_]->on_double_click();
-        }
-        break;
-    }
-
-    if(this->double_click_callback_)
-    {
-      this->double_click_callback_();
-    }
-  }
-
-  virtual void on_scroll(int delta)
-  {
-    if(delta == 0)
-    {
-      return;
-    }
-
-    switch (this->type_)
-    {
-      case DUINO_Widget::Scroll:
-        select_delta(delta);
-        break;
-      default:
-        if (children_[this->selected_])
-        {
-          children_[this->selected_]->on_scroll(delta);
-        }
-        break;
-    }
-
-    if(this->scroll_callback_)
-    {
-      this->scroll_callback_(delta);
-    }
-  }
-
   void attach_child(DUINO_Widget * child, uint8_t position)
   {
     children_[position] = child;
   }
+
+  DUINO_Widget * get_child(uint8_t i) { return children_[i]; }
 
 protected:
   virtual void invert_selected()
@@ -407,6 +351,30 @@ protected:
     if (children_[this->selected_])
     {
       children_[this->selected_]->invert();
+    }
+  }
+
+  virtual void click_default()
+  {
+    if (children_[this->selected_])
+    {
+      children_[this->selected_]->on_click();
+    }
+  }
+
+  virtual void double_click_default()
+  {
+    if (children_[this->selected_])
+    {
+      children_[this->selected_]->on_double_click();
+    }
+  }
+
+  virtual void scroll_default(int delta)
+  {
+    if (children_[this->selected_])
+    {
+      children_[this->selected_]->on_scroll(delta);
     }
   }
 

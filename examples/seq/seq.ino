@@ -123,19 +123,19 @@ class DU_SEQ_Function : public DUINO_Function {
     container_top_->attach_child(widget_clock_, 4);
     container_outer_->attach_child(container_top_, 1);
     widgets_pitch_ = new DUINO_MultiDisplayWidget<8>(0, 32, 16, 15, 16, false, DUINO_Widget::Full, DUINO_Widget::Click);
-    widgets_pitch_->attach_scroll_callback_i(s_pitch_scroll_callback);
+    widgets_pitch_->attach_scroll_callback_array(s_pitch_scroll_callback);
     widgets_pitch_->attach_click_callback(s_pitch_click_callback);
     container_outer_->attach_child(widgets_pitch_, 2);
     widgets_steps_ = new DUINO_MultiDisplayWidget<8>(0, 48, 7, 9, 16, false, DUINO_Widget::Full, DUINO_Widget::Click);
-    widgets_steps_->attach_scroll_callback_i(s_steps_scroll_callback);
+    widgets_steps_->attach_scroll_callback_array(s_steps_scroll_callback);
     widgets_steps_->attach_click_callback(s_steps_click_callback);
     container_outer_->attach_child(widgets_steps_, 3);
     widgets_gate_ = new DUINO_MultiDisplayWidget<8>(7, 48, 9, 9, 16, false, DUINO_Widget::Full, DUINO_Widget::Click);
-    widgets_gate_->attach_scroll_callback_i(s_gate_scroll_callback);
+    widgets_gate_->attach_scroll_callback_array(s_gate_scroll_callback);
     widgets_gate_->attach_click_callback(s_gate_click_callback);
     container_outer_->attach_child(widgets_gate_, 4);
     widgets_slew_ = new DUINO_MultiDisplayWidget<8>(0, 58, 16, 6, 16, false, DUINO_Widget::Full, DUINO_Widget::Click);
-    widgets_slew_->attach_scroll_callback_i(s_slew_scroll_callback);
+    widgets_slew_->attach_scroll_callback_array(s_slew_scroll_callback);
     widgets_slew_->attach_click_callback(s_slew_click_callback);
     container_outer_->attach_child(widgets_slew_, 5);
 
