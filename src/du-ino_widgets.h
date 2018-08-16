@@ -32,6 +32,14 @@ public:
     Scroll
   };
 
+  enum InvertStyle
+  {
+    Full,
+    Box,
+    DottedBox,
+    Corners
+  };
+
   DUINO_Widget();
 
   virtual void invert(bool update_display = true) { }
@@ -46,6 +54,8 @@ public:
   void attach_scroll_callback(void (*callback)(int));
 
 protected:
+  static void draw_invert(uint8_t x, uint8_t y, uint8_t width, uint8_t height, InvertStyle style);
+
   void (*click_callback_)();
   void (*double_click_callback_)();
   void (*scroll_callback_)(int);
@@ -54,7 +64,7 @@ protected:
 class DUINO_DisplayWidget : public DUINO_Widget
 {
 public:
-  DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+  DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height, InvertStyle style);
 
   void display();
 
@@ -68,6 +78,7 @@ public:
 
 protected:
   const uint8_t x_, y_, width_, height_;
+  const InvertStyle style_;
   bool inverted_;
 };
 
@@ -163,13 +174,14 @@ class DUINO_MultiDisplayWidget : public DUINO_WidgetArray<N>
 {
 public:
   DUINO_MultiDisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t step, bool vertical,
-    DUINO_Widget::Action t, uint8_t initial_selection = 0)
+    DUINO_Widget::InvertStyle style, DUINO_Widget::Action t, uint8_t initial_selection = 0)
     : x_(x)
     , y_(y)
     , width_(width)
     , height_(height)
     , step_(step)
     , vertical_(vertical)
+    , style_(style)
     , inverted_(false)
     , DUINO_WidgetArray<N>(t, initial_selection)
   { }
@@ -182,7 +194,8 @@ public:
 
   virtual void invert(bool update_display = true)
   {
-    Display.fill_rect(x(this->selected_), y(this->selected_), width_, height_, DUINO_SH1106::Inverse);
+    this->draw_invert(x(this->selected_), y(this->selected_), width_, height_, style_);
+
     if (update_display)
     {
       display();
@@ -278,6 +291,7 @@ protected:
 
   const uint8_t x_, y_, width_, height_, step_;
   const bool vertical_;
+  const DUINO_Widget::InvertStyle style_;
   bool inverted_;
 
   void (*click_callback_i_)(uint8_t);

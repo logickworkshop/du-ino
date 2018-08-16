@@ -72,14 +72,14 @@ class DU_ADSR_Function : public DUINO_Function {
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<2>(DUINO_Widget::DoubleClick, 1);
-    widget_save_ = new DUINO_DisplayWidget(121, 0, 7, 7);
+    widget_save_ = new DUINO_DisplayWidget(121, 0, 7, 7, DUINO_Widget::Full);
     widget_save_->attach_click_callback(save_click_callback);
     container_outer_->attach_child(widget_save_, 0);
     container_adsr_ = new DUINO_WidgetContainer<8>(DUINO_Widget::Click);
     for (uint8_t i = 0; i < 4; ++i)
     {
-      widgets_adsr_[i] = new DUINO_DisplayWidget(11 * i + 2, 55, 7, 9);
-      widgets_adsr_[i + 4] = new DUINO_DisplayWidget(11 * i + 86, 55, 7, 9);
+      widgets_adsr_[i] = new DUINO_DisplayWidget(11 * i + 2, 55, 7, 9, DUINO_Widget::Full);
+      widgets_adsr_[i + 4] = new DUINO_DisplayWidget(11 * i + 86, 55, 7, 9, DUINO_Widget::Full);
       container_adsr_->attach_child(widgets_adsr_[i], i);
       container_adsr_->attach_child(widgets_adsr_[i + 4], i + 4);
     }
