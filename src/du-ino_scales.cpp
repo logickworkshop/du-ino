@@ -24,7 +24,7 @@
 
 uint16_t get_scale_by_id(int id)
 {
-  if (id > 0 && id < N_SCALES)
+  if (id >= 0 && id < N_SCALES)
   {
     return (uint16_t)pgm_read_byte(&scales[id * 5]) << 8 | (uint16_t)pgm_read_byte(&scales[id * 5 + 1]);
   }
