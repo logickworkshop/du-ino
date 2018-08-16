@@ -87,7 +87,7 @@ void DUINO_Widget::draw_invert(uint8_t x, uint8_t y, uint8_t width, uint8_t heig
         Display.draw_pixel(x + i, y, DUINO_SH1106::Inverse);
         Display.draw_pixel(x + i, y + height - 1, DUINO_SH1106::Inverse);
       }
-      for(uint8_t i = 2; i < height; i += 2)
+      for(uint8_t i = 2; i < height - 2; i += 2)
       {
         Display.draw_pixel(x, y + i, DUINO_SH1106::Inverse);
         Display.draw_pixel(x + width - 1, y + i, DUINO_SH1106::Inverse);
