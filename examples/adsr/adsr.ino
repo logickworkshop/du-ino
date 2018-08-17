@@ -55,14 +55,7 @@ void gate_isr();
 void switch_isr();
 
 void save_click_callback();
-void adsr_scroll_callback_0(int delta);
-void adsr_scroll_callback_1(int delta);
-void adsr_scroll_callback_2(int delta);
-void adsr_scroll_callback_3(int delta);
-void adsr_scroll_callback_4(int delta);
-void adsr_scroll_callback_5(int delta);
-void adsr_scroll_callback_6(int delta);
-void adsr_scroll_callback_7(int delta);
+void adsr_scroll_callback(uint8_t selected, int delta);
 
 class DU_ADSR_Function : public DUINO_Function {
  public:
@@ -84,14 +77,7 @@ class DU_ADSR_Function : public DUINO_Function {
       container_adsr_->attach_child(widgets_adsr_[i + 4], i + 4);
     }
     container_outer_->attach_child(container_adsr_, 1);
-    widgets_adsr_[0]->attach_scroll_callback(adsr_scroll_callback_0);
-    widgets_adsr_[1]->attach_scroll_callback(adsr_scroll_callback_1);
-    widgets_adsr_[2]->attach_scroll_callback(adsr_scroll_callback_2);
-    widgets_adsr_[3]->attach_scroll_callback(adsr_scroll_callback_3);
-    widgets_adsr_[4]->attach_scroll_callback(adsr_scroll_callback_4);
-    widgets_adsr_[5]->attach_scroll_callback(adsr_scroll_callback_5);
-    widgets_adsr_[6]->attach_scroll_callback(adsr_scroll_callback_6);
-    widgets_adsr_[7]->attach_scroll_callback(adsr_scroll_callback_7);
+    container_adsr_->attach_scroll_callback_array(adsr_scroll_callback);
 
     env = 0;
     gate_time = 0;
@@ -334,14 +320,7 @@ void switch_isr()
 }
 
 void save_click_callback() { function->widget_save_click_callback(); }
-void adsr_scroll_callback_0(int delta) { function->widget_adsr_scroll_callback(0, delta); }
-void adsr_scroll_callback_1(int delta) { function->widget_adsr_scroll_callback(1, delta); }
-void adsr_scroll_callback_2(int delta) { function->widget_adsr_scroll_callback(2, delta); }
-void adsr_scroll_callback_3(int delta) { function->widget_adsr_scroll_callback(3, delta); }
-void adsr_scroll_callback_4(int delta) { function->widget_adsr_scroll_callback(4, delta); }
-void adsr_scroll_callback_5(int delta) { function->widget_adsr_scroll_callback(5, delta); }
-void adsr_scroll_callback_6(int delta) { function->widget_adsr_scroll_callback(6, delta); }
-void adsr_scroll_callback_7(int delta) { function->widget_adsr_scroll_callback(7, delta); }
+void adsr_scroll_callback(uint8_t selected, int delta) { function->widget_adsr_scroll_callback(selected, delta); }
 
 void setup()
 {
