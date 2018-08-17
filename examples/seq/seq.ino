@@ -22,8 +22,8 @@
 
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
+#include <du-ino_clock.h>
 #include <du-ino_dsp.h>
-#include <TimerOne.h>
 #include <avr/pgmspace.h>
 
 enum GateMode {
@@ -62,22 +62,20 @@ struct DU_SEQ_Values {
   bool diradd_mode;
   float slew_hz;
   uint16_t gate_ms;
-  unsigned long clock_period;
-  bool clock_ext;
 };
 
 volatile DU_SEQ_Values seq_values;
 
 volatile uint8_t stage, step;
-volatile bool gate, clock_gate, retrigger, reverse;
+volatile bool gate, reverse;
 
 DUINO_Filter * slew_filter;
 
 void clock_ext_isr();
-void clock_isr();
 void reset_isr();
 
-void update_clock();
+void clock_callback();
+void external_callback();
 
 void save_click_callback();
 void count_scroll_callback(int delta);
@@ -143,7 +141,10 @@ class DU_SEQ_Function : public DUINO_Function {
     last_stage = 0;
     last_diradd_mode = false;
     last_reverse = false;
-    ext_clock_received = false;
+
+    Clock.begin();
+    Clock.attach_clock_callback(clock_callback);
+    Clock.attach_external_callback(external_callback);
 
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, FALLING);
@@ -210,19 +211,24 @@ class DU_SEQ_Function : public DUINO_Function {
     seq_values.slew_hz = slew_hz(params.vals.slew_rate);
     slew_filter->set_frequency(seq_values.slew_hz);
 
-    if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 99)
+    if(params.vals.clock_bpm < 0 || params.vals.clock_bpm > 300)
     {
       params.vals.clock_bpm = 0;
     }
-    seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
-    seq_values.clock_ext = !(bool)params.vals.clock_bpm;
-    update_clock();
+    if(params.vals.clock_bpm)
+    {
+      Clock.set_bpm(params.vals.clock_bpm);
+    }
+    else
+    {
+      Clock.set_external();
+    }
 
     if(params.vals.gate_time < 0 || params.vals.gate_time > 16)
     {
       params.vals.gate_time = 8;
     }
-    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
+    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
 
     // draw global elements
     for(uint8_t i = 0; i < 6; ++i)
@@ -275,9 +281,8 @@ class DU_SEQ_Function : public DUINO_Function {
     // cache stage, step, and clock gate (so that each loop is "atomic")
     cached_stage = stage;
     cached_step = step;
-    cached_clock_gate = clock_gate;
-    cached_retrigger = retrigger;
-    retrigger = false;
+    cached_clock_gate = Clock.state();
+    cached_retrigger = Clock.retrigger();
 
     if(cached_retrigger)
     {
@@ -377,17 +382,30 @@ class DU_SEQ_Function : public DUINO_Function {
       Display.display(16 * last_stage_cached + 6, 16 * last_stage_cached + 9, 3, 3);
       Display.display(16 * stage + 6, 16 * stage + 9, 3, 3);
     }
+  }
 
-    // update clock from input
-    if(ext_clock_received)
+  void clock_clock_callback()
+  {
+    if(Clock.state())
     {
-      Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7,
-          widget_clock_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm,
-          widget_clock_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
-      widget_clock_->display();
-      ext_clock_received = false;
+      step++;
+      step %= seq_values.stage_steps[stage];
+      if(!step)
+      {
+        stage = seq_values.diradd_mode ? address_to_stage() : (reverse ?
+            (stage ? stage - 1 : seq_values.stage_count - 1) : stage + 1);
+        stage %= seq_values.stage_count;
+      }
     }
+  }
+
+  void clock_external_callback()
+  {
+    Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7,
+        widget_clock_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
+    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm,
+        widget_clock_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
+    widget_clock_->display();
   }
 
   void widget_save_click_callback()
@@ -467,7 +485,7 @@ class DU_SEQ_Function : public DUINO_Function {
     {
       params.vals.gate_time = 16;
     }
-    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(seq_values.clock_period / 8000);
+    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
     mark_save();
     Display.fill_rect(widget_gate_->x() + 2, widget_gate_->y() + 2, 16, 5, DUINO_SH1106::White);
     display_gate_time(widget_gate_->x() + 2, widget_gate_->y() + 2, params.vals.gate_time, DUINO_SH1106::Black);
@@ -481,16 +499,22 @@ class DU_SEQ_Function : public DUINO_Function {
     {
       params.vals.clock_bpm = 0;
     }
-    else if(params.vals.clock_bpm > 99)
+    else if(params.vals.clock_bpm > 300)
     {
-      params.vals.clock_bpm = 99;
+      params.vals.clock_bpm = 300;
     }
-    seq_values.clock_period = bpm_to_us(params.vals.clock_bpm);
-    seq_values.clock_ext = !(bool)params.vals.clock_bpm;
+    if(params.vals.clock_bpm)
+    {
+      Clock.set_bpm(params.vals.clock_bpm);
+    }
+    else
+    {
+      Clock.set_external();
+    }
+    seq_values.gate_ms = params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
     mark_save();
     Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
     display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm, DUINO_SH1106::Black);
-    update_clock();
     widget_clock_->display();
   }
 
@@ -601,14 +625,6 @@ class DU_SEQ_Function : public DUINO_Function {
     widgets_gate_->select(widgets_slew_->selected());
   }
 
-  void set_clock_ext()
-  {
-    params.vals.clock_bpm = 0;
-    seq_values.clock_ext = true;
-    ext_clock_received = true;
-    update_clock();
-  }
-
   uint8_t address_to_stage()
   {
     int8_t addr_stage = (int8_t)(cv_read(CI1) * 1.6);
@@ -626,7 +642,7 @@ class DU_SEQ_Function : public DUINO_Function {
  private:
   bool partial_gate()
   {
-    return (seq_values.clock_ext && cached_clock_gate)
+    return (Clock.get_external() && cached_clock_gate)
            || cached_retrigger
            || ((millis() - clock_time) < seq_values.gate_ms);
   }
@@ -634,11 +650,6 @@ class DU_SEQ_Function : public DUINO_Function {
   float note_to_cv(int8_t note)
   {
     return ((float)note - 36.0) / 12.0;
-  }
-
-  unsigned long bpm_to_us(uint8_t bpm)
-  {
-    return 3000000 / (unsigned long)bpm;
   }
 
   float slew_hz(uint8_t slew_rate)
@@ -671,7 +682,7 @@ class DU_SEQ_Function : public DUINO_Function {
     }
   }
 
-  void display_clock(int16_t x, int16_t y, uint8_t bpm, DUINO_SH1106::SH1106Color color)
+  void display_clock(int16_t x, int16_t y, uint16_t bpm, DUINO_SH1106::SH1106Color color)
   {
     if(bpm == 0)
     {
@@ -679,9 +690,9 @@ class DU_SEQ_Function : public DUINO_Function {
     }
     else
     {
-      Display.draw_char(x, y, '0' + bpm / 10, color);
-      Display.draw_char(x + 6, y, '0' + bpm % 10, color);
-      Display.draw_char(x + 12, y, '0', color);
+      Display.draw_char(x, y, '0' + bpm / 100, color);
+      Display.draw_char(x + 6, y, '0' + (bpm % 100) / 10, color);
+      Display.draw_char(x + 12, y, '0' + bpm % 10, color);
     }
   }
 
@@ -749,12 +760,12 @@ class DU_SEQ_Function : public DUINO_Function {
     uint8_t diradd_mode;
     int8_t slew_rate;
     int8_t gate_time;
-    int8_t clock_bpm;
+    int16_t clock_bpm;
   };
 
   union DU_SEQ_Parameters {
     DU_SEQ_Parameter_Values vals;
-    uint8_t bytes[30];
+    uint8_t bytes[31];
   };
 
   DU_SEQ_Parameters params;
@@ -780,54 +791,23 @@ class DU_SEQ_Function : public DUINO_Function {
   uint8_t last_stage;
   bool last_diradd_mode;
   bool last_reverse;
-
-  bool ext_clock_received;
 };
 
 DU_SEQ_Function * function;
 
 void clock_ext_isr()
 {
-  if(!seq_values.clock_ext)
-  {
-    function->set_clock_ext();
-  }
-
-  clock_isr();
-}
-
-void clock_isr()
-{
-  clock_gate = seq_values.clock_ext ? function->gt_read_debounce(DUINO_Function::GT3) : !clock_gate;
-
-  if(clock_gate)
-  {
-    step++;
-    step %= seq_values.stage_steps[stage];
-    if(!step)
-    {
-      stage = seq_values.diradd_mode ? function->address_to_stage() : (reverse ?
-          (stage ? stage - 1 : seq_values.stage_count - 1) : stage + 1);
-      stage %= seq_values.stage_count;
-    }
-    retrigger = true;
-  }
+  Clock.on_jack(function->gt_read_debounce(DUINO_Function::GT3));
 }
 
 void reset_isr()
 {
   stage = step = 0;
-  update_clock();
+  Clock.update();
 }
 
-void update_clock()
-{
-  Timer1.detachInterrupt();
-  if(!seq_values.clock_ext)
-  {
-    Timer1.attachInterrupt(clock_isr, seq_values.clock_period);
-  }
-}
+void clock_callback() { function->clock_clock_callback(); }
+void external_callback() { function->clock_external_callback(); }
 
 void save_click_callback() { function->widget_save_click_callback(); }
 void count_scroll_callback(int delta) { function->widget_count_scroll_callback(delta); }
@@ -847,9 +827,7 @@ void s_slew_click_callback() { function->widgets_slew_click_callback(); }
 void setup()
 {
   stage = step = 0;
-  gate = clock_gate = retrigger = false;
-
-  Timer1.initialize();
+  gate = reverse = false;
 
   slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
