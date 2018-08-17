@@ -64,7 +64,7 @@ void DUINO_Clock::set_external()
 
 void DUINO_Clock::on_jack(bool jack_state)
 {
-  if(!external_)
+  if (!external_)
   {
     set_external();
   }
@@ -76,12 +76,12 @@ void DUINO_Clock::on_clock(bool jack_state)
 {
   state_ = external_ ? jack_state : !state_;
 
-  if(clock_callback_)
+  if (clock_callback_)
   {
     clock_callback_();
   }
 
-  if(state_)
+  if (state_)
   {
     retrigger_flag_ = true;
   }
@@ -98,7 +98,7 @@ void DUINO_Clock::update()
 {
   Timer1.detachInterrupt();
   state_ = retrigger_flag_ = false;
-  if(!external_)
+  if (!external_)
   {
     Timer1.attachInterrupt(clock_isr, period_);
   }
