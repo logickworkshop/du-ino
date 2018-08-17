@@ -23,6 +23,7 @@
 #ifndef DUINO_FONT5X7_H_
 #define DUINO_FONT5X7_H_
 
+#include "Arduino.h"
 #include <avr/pgmspace.h>
 
 static const unsigned char font5x7[] PROGMEM = {
