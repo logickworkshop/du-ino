@@ -20,6 +20,10 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+#ifndef DUINO_WIDGETS_H_
+#define DUINO_WIDGETS_H_
+
+#include "Arduino.h"
 #include "du-ino_sh1106.h"
 
 class DUINO_Widget
@@ -380,3 +384,5 @@ protected:
 
   DUINO_Widget * children_[N];
 };
+
+#endif // DUINO_WIDGETS_H_
