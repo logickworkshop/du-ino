@@ -23,6 +23,7 @@
 #ifndef DUINO_SCALES_H_
 #define DUINO_SCALES_H_
 
+#include "Arduino.h"
 #include <avr/pgmspace.h>
 
 #define N_SCALES 31
