@@ -99,7 +99,7 @@ void DUINO_Widget::draw_invert(uint8_t x, uint8_t y, uint8_t width, uint8_t heig
       Display.draw_vline(x + width - 1, y, 2, DUINO_SH1106::Inverse);
       Display.draw_pixel(x + width - 2, y, DUINO_SH1106::Inverse);
       Display.draw_vline(x, y + height - 2, 2, DUINO_SH1106::Inverse);
-      Display.draw_pixel(x, y + height - 1, DUINO_SH1106::Inverse);
+      Display.draw_pixel(x + 1, y + height - 1, DUINO_SH1106::Inverse);
       Display.draw_vline(x + width - 1, y + height - 2, 2, DUINO_SH1106::Inverse);
       Display.draw_pixel(x + width - 2, y + height - 1, DUINO_SH1106::Inverse);
       break;
