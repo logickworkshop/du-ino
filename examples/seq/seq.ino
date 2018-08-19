@@ -664,12 +664,12 @@ class DU_SEQ_Function : public DUINO_Function {
     }
   }
 
-  void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SH1106::SH1106Color color)
+  void display_slew_rate(int16_t x, int16_t y, uint8_t rate, DUINO_SH1106::Color color)
   {
     Display.draw_vline(x + rate - 1, y, 5, color);
   }
 
-  void display_gate_time(int16_t x, int16_t y, uint8_t time, DUINO_SH1106::SH1106Color color)
+  void display_gate_time(int16_t x, int16_t y, uint8_t time, DUINO_SH1106::Color color)
   {
     if(time > 1)
     {
@@ -682,7 +682,7 @@ class DU_SEQ_Function : public DUINO_Function {
     }
   }
 
-  void display_clock(int16_t x, int16_t y, uint16_t bpm, DUINO_SH1106::SH1106Color color)
+  void display_clock(int16_t x, int16_t y, uint16_t bpm, DUINO_SH1106::Color color)
   {
     if(bpm == 0)
     {
@@ -696,7 +696,7 @@ class DU_SEQ_Function : public DUINO_Function {
     }
   }
 
-  void display_note(int16_t x, int16_t y, int8_t note, DUINO_SH1106::SH1106Color color)
+  void display_note(int16_t x, int16_t y, int8_t note, DUINO_SH1106::Color color)
   {
     // draw octave
     Display.draw_char(x + 9, y + 7, '0' + note / 12, color);
@@ -736,7 +736,7 @@ class DU_SEQ_Function : public DUINO_Function {
     }
   }
 
-  void display_gate(uint8_t stage, DUINO_SH1106::SH1106Color color)
+  void display_gate(uint8_t stage, DUINO_SH1106::Color color)
   {
     Display.fill_rect(16 * stage + 6, 26, 4, 4, color);
   }

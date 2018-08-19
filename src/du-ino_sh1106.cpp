@@ -125,7 +125,7 @@ void DUINO_SH1106::clear_display()
   memset(buffer, 0, SH1106_LCDHEIGHT * SH1106_LCDWIDTH / 8);
 }
 
-void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, SH1106Color color)
+void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, Color color)
 {
   // bound check
   if ((x < 0) || (x >= SH1106_LCDWIDTH) || (y < 0) || (y >= SH1106_LCDHEIGHT))
@@ -148,7 +148,7 @@ void DUINO_SH1106::draw_pixel(int16_t x, int16_t y, SH1106Color color)
   }
 }
 
-void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color)
+void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, Color color)
 {
   // bound check
   if ((y < 0) || (y >= SH1106_LCDHEIGHT))
@@ -203,7 +203,7 @@ void DUINO_SH1106::draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color
   }
 }
 
-void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color)
+void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, Color color)
 {
   // bound check
   if ((x < 0) || (x >= SH1106_LCDWIDTH))
@@ -323,7 +323,7 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color
   }
 }
 
-void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color color)
+void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, Color color)
 {
   register int8_t x = 0;
   register int8_t y = r;
@@ -348,7 +348,7 @@ void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color co
   }
 }
 
-void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color color)
+void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, Color color)
 {
   register int8_t x = 0;
   register int8_t y = r;
@@ -373,7 +373,7 @@ void DUINO_SH1106::fill_circle(int16_t xc, int16_t yc, int16_t r, SH1106Color co
   }
 }
 
-void DUINO_SH1106::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SH1106Color color)
+void DUINO_SH1106::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, Color color)
 {
   // draw filled rectangle as a series of vlines
   for (int16_t i = x; i < x + w; ++i)
@@ -382,13 +382,13 @@ void DUINO_SH1106::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SH1106C
   }
 }
 
-void DUINO_SH1106::fill_screen(SH1106Color color)
+void DUINO_SH1106::fill_screen(Color color)
 {
   // full-screen filled rectangle
   fill_rect(0, 0, SH1106_LCDWIDTH, SH1106_LCDHEIGHT, color);
 }
 
-void DUINO_SH1106::draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color color)
+void DUINO_SH1106::draw_char(int16_t x, int16_t y, unsigned char c, Color color)
 {
   // bound check
   if (((x + 5) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
@@ -410,7 +410,7 @@ void DUINO_SH1106::draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color 
   }
 }
 
-void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, SH1106Color color)
+void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, Color color)
 {
   // draw characters with 1-pixel spacing
   register int8_t i = 0;
@@ -420,7 +420,7 @@ void DUINO_SH1106::draw_text(int16_t x, int16_t y, const char * text, SH1106Colo
   }
 }
 
-void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
+void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, Color color)
 {
   // bound check
   if (((x + 7) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 7) < 0) || (y >= SH1106_LCDHEIGHT))
@@ -442,7 +442,7 @@ void DUINO_SH1106::draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map
   }
 }
 
-void DUINO_SH1106::draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color)
+void DUINO_SH1106::draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, Color color)
 {
   // bound check
   if (((x + 8) < 0) || (x >= SH1106_LCDWIDTH) || ((y + 8) < 0) || (y >= SH1106_LCDHEIGHT))
@@ -464,7 +464,7 @@ void DUINO_SH1106::draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map
   }
 }
 
-void DUINO_SH1106::draw_du_logo_lg(int16_t x, int16_t y, SH1106Color color)
+void DUINO_SH1106::draw_du_logo_lg(int16_t x, int16_t y, Color color)
 {
   fill_circle(x + 19, y + 19, 19, color);
   fill_circle(x + 59, y + 19, 19, color);
@@ -472,7 +472,7 @@ void DUINO_SH1106::draw_du_logo_lg(int16_t x, int16_t y, SH1106Color color)
   fill_rect(x + 39, y, 40, 21, color);
 }
 
-void DUINO_SH1106::draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color)
+void DUINO_SH1106::draw_du_logo_sm(int16_t x, int16_t y, Color color)
 {
   draw_vline(x, y, 5, color);
   draw_vline(x + 1, y, 6, color);
@@ -486,7 +486,7 @@ void DUINO_SH1106::draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color)
   draw_vline(x + 13, y, 5, color);
 }
 
-void DUINO_SH1106::draw_logick_logo(int16_t x, int16_t y, SH1106Color color)
+void DUINO_SH1106::draw_logick_logo(int16_t x, int16_t y, Color color)
 {
   fill_rect(x, y, 2, 10, color);
   fill_rect(x + 3, y + 4, 2, 6, color);
@@ -517,7 +517,7 @@ void DUINO_SH1106::draw_logick_logo(int16_t x, int16_t y, SH1106Color color)
   draw_vline(x + 37, y + 14, 2, color);
 }
 
-inline void DUINO_SH1106::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color)
+inline void DUINO_SH1106::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, Color color)
 {
   draw_pixel(xc + x, yc + y, color);
   draw_pixel(xc + x, yc - y, color);
@@ -529,7 +529,7 @@ inline void DUINO_SH1106::draw_quadrants(int16_t xc, int16_t yc, int16_t x, int1
   draw_pixel(xc - y, yc - x, color);
 }
 
-inline void DUINO_SH1106::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color)
+inline void DUINO_SH1106::fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, Color color)
 {
   draw_vline(xc + x, yc - y, y + y, color);
   draw_vline(xc + y, yc - x, x + x, color);

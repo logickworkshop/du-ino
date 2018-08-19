@@ -60,7 +60,7 @@
 class DUINO_SH1106 
 {
 public:
-  enum SH1106Color
+  enum Color
   {
     Black,
     White,
@@ -78,27 +78,27 @@ public:
 
   void clear_display();
 
-  void draw_pixel(int16_t x, int16_t y, SH1106Color color);
-  void draw_hline(int16_t x, int16_t y, int16_t w, SH1106Color color);
-  void draw_vline(int16_t x, int16_t y, int16_t h, SH1106Color color);
-  void draw_circle(int16_t x, int16_t y, int16_t r, SH1106Color color);
-  void fill_circle(int16_t x, int16_t y, int16_t r, SH1106Color color);
-  void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, SH1106Color color);
-  void fill_screen(SH1106Color color);
+  void draw_pixel(int16_t x, int16_t y, Color color);
+  void draw_hline(int16_t x, int16_t y, int16_t w, Color color);
+  void draw_vline(int16_t x, int16_t y, int16_t h, Color color);
+  void draw_circle(int16_t x, int16_t y, int16_t r, Color color);
+  void fill_circle(int16_t x, int16_t y, int16_t r, Color color);
+  void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, Color color);
+  void fill_screen(Color color);
 
-  void draw_char(int16_t x, int16_t y, unsigned char c, SH1106Color color);
-  void draw_text(int16_t x, int16_t y, const char * text, SH1106Color color);
+  void draw_char(int16_t x, int16_t y, unsigned char c, Color color);
+  void draw_text(int16_t x, int16_t y, const char * text, Color color);
 
-  void draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
-  void draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, SH1106Color color);
+  void draw_bitmap_7(int16_t x, int16_t y, const unsigned char * map, unsigned char c, Color color);
+  void draw_bitmap_8(int16_t x, int16_t y, const unsigned char * map, unsigned char c, Color color);
 
-  void draw_du_logo_lg(int16_t x, int16_t y, SH1106Color color);
-  void draw_du_logo_sm(int16_t x, int16_t y, SH1106Color color);
-  void draw_logick_logo(int16_t x, int16_t y, SH1106Color color);
+  void draw_du_logo_lg(int16_t x, int16_t y, Color color);
+  void draw_du_logo_sm(int16_t x, int16_t y, Color color);
+  void draw_logick_logo(int16_t x, int16_t y, Color color);
 
 private:
-  inline void draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color);
-  inline void fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, SH1106Color color);
+  inline void draw_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, Color color);
+  inline void fill_quadrants(int16_t xc, int16_t yc, int16_t x, int16_t y, Color color);
 
   const uint8_t pin_ss_;
   const uint8_t pin_dc_;
