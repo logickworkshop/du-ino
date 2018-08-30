@@ -147,7 +147,7 @@ class DU_SEQ_Function : public DUINO_Function {
     Clock.attach_external_callback(external_callback);
 
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
-    gt_attach_interrupt(GT4, reset_isr, FALLING);
+    gt_attach_interrupt(GT4, reset_isr, RISING);
 
     // draw top line
     Display.draw_du_logo_sm(0, 0, DUINO_SH1106::White);
@@ -803,7 +803,7 @@ void clock_ext_isr()
 void reset_isr()
 {
   stage = step = 0;
-  Clock.update();
+  Clock.reset();
 }
 
 void clock_callback() { function->clock_clock_callback(); }

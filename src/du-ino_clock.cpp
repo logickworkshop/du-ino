@@ -30,14 +30,19 @@ DUINO_Clock::DUINO_Clock()
   , external_callback_(NULL)
   , state_(false)
   , retrigger_flag_(false)
+  , swung_(false)
   , external_(false)
+  , count_(-1)
+  , swung_ms_(0)
   , period_(0)
+  , swing_(0)
 {
 }
 
 void DUINO_Clock::begin()
 {
   Timer1.initialize();
+  OCR0A = 0xAF;
 }
 
 void DUINO_Clock::set_period(unsigned long period)
@@ -55,6 +60,24 @@ void DUINO_Clock::set_bpm(uint16_t bpm)
   set_period(7500000 / (unsigned long)bpm);
 }
 
+void DUINO_Clock::set_swing(uint8_t swing)
+{
+  if (swing > 6)
+  {
+    swing = 6;
+  }
+  swing_ = swing;
+
+  if (swing_)
+  {
+    TIMSK0 |= _BV(OCIE0A);
+  }
+  else
+  {
+    TIMSK0 &= ~(_BV(OCIE0A));
+  }
+}
+
 void DUINO_Clock::set_external()
 {
   period_ = 0;
@@ -69,21 +92,23 @@ void DUINO_Clock::on_jack(bool jack_state)
     set_external();
   }
 
-  on_clock(jack_state);
+  if (state_ != jack_state)
+  {
+    on_clock();
+  }
 }
 
-void DUINO_Clock::on_clock(bool jack_state)
+void DUINO_Clock::on_clock()
 {
-  state_ = external_ ? jack_state : !state_;
-
-  if (clock_callback_)
+  if (!external_ && swing_ && !state_ && count_ % 2)
   {
-    clock_callback_();
+    // wait an extra (period_ / 1000) * (4 * swing_ / 25) milliseconds on 2 & 4
+    swung_ms_ = millis() + ((period_ * swing_) / 6250);
+    swung_ = true;
   }
-
-  if (state_)
+  else
   {
-    retrigger_flag_ = true;
+    toggle_state();
   }
 }
 
@@ -104,9 +129,48 @@ void DUINO_Clock::update()
   }
 }
 
+void DUINO_Clock::reset()
+{
+  swung_ = false;
+  count_ = -1;
+  update();
+  on_clock();
+}
+
+void DUINO_Clock::check_swing()
+{
+  if (swung_ && millis() > swung_ms_)
+  {
+    swung_ = false;
+    toggle_state();
+  }
+}
+
+void DUINO_Clock::toggle_state()
+{
+  state_ = !state_;
+
+  if (state_)
+  {
+    count_++;
+    count_ %= 64;
+    retrigger_flag_ = true;
+  }
+
+  if (clock_callback_)
+  {
+    clock_callback_();
+  }
+}
+
 DUINO_Clock Clock;
 
 void clock_isr()
 {
   Clock.on_clock();
+}
+
+ISR(TIMER0_COMPA_vect)
+{
+  Clock.check_swing();
 }

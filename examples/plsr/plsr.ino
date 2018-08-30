@@ -37,7 +37,7 @@ static const DUINO_Function::Jack in_jacks[4] =
 static const DUINO_Function::Jack out_jacks[4] =
   {DUINO_Function::CO1, DUINO_Function::CO2, DUINO_Function::CO3, DUINO_Function::CO4};
 
-volatile uint8_t current_step;
+volatile int8_t current_step;
 
 void clock_ext_isr();
 void reset_isr();
@@ -92,7 +92,7 @@ class DU_PLSR_Function : public DUINO_Function {
     Clock.attach_external_callback(external_callback);
 
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
-    gt_attach_interrupt(GT4, reset_isr, FALLING);
+    gt_attach_interrupt(GT4, reset_isr, RISING);
 
     randomSeed(cv_read(CI1));
 
@@ -121,15 +121,15 @@ class DU_PLSR_Function : public DUINO_Function {
     }
     Clock.set_bpm(params.vals.clock_bpm);
 
-    if (params.vals.swing < 50)
+    if (params.vals.swing < 0)
     {
-      params.vals.swing = 50;
+      params.vals.swing = 0;
     }
-    else if (params.vals.swing > 82)
+    else if (params.vals.swing > 6)
     {
-      params.vals.swing = 82;
+      params.vals.swing = 6;
     }
-    // TODO: set clock swing
+    Clock.set_swing(params.vals.swing);
 
     for (uint8_t p = 0; p < 64; ++p)
     {
@@ -171,27 +171,30 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void clock_clock_callback()
   {
-    // increment step
-    current_step++;
-    current_step %= params.vals.step_count;
-
-    // check each dot for trigger probability
-    uint8_t jacks = 0;
-    for (uint8_t bank = 0; bank < 4; ++bank)
+    if(Clock.state())
     {
-      if (stochastic_trigger(bank, current_step))
+      // increment step
+      current_step++;
+      current_step %= params.vals.step_count;
+
+      // check each dot for trigger probability
+      uint8_t jacks = 0;
+      for (uint8_t bank = 0; bank < 4; ++bank)
       {
-        jacks |= (1 << out_jacks[bank]);
+        if (stochastic_trigger(bank, current_step))
+        {
+          jacks |= (1 << out_jacks[bank]);
+        }
       }
+
+      // output triggers
+      gt_out_multi(jacks, true, true);
+
+      // display step
+      invert_step(displayed_step);
+      displayed_step = current_step;
+      invert_step(displayed_step);
     }
-
-    // output triggers
-    gt_out_multi(jacks, true, true);
-
-    // display step
-    invert_step(displayed_step);
-    displayed_step = current_step;
-    invert_step(displayed_step);
   }
 
   void clock_external_callback()
@@ -251,16 +254,16 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void widget_swing_scroll_callback(int delta)
   {
-    params.vals.swing += 4 * delta;
-    if (params.vals.swing < 50)
+    params.vals.swing += delta;
+    if (params.vals.swing < 0)
     {
-      params.vals.swing = 50;
+      params.vals.swing = 0;
     }
-    else if (params.vals.swing > 82)
+    else if (params.vals.swing > 6)
     {
-      params.vals.swing = 82;
+      params.vals.swing = 6;
     }
-    // TODO: swing clock
+    Clock.set_swing(params.vals.swing);
     mark_save();
     Display.fill_rect(widget_swing_->x() + 1, widget_swing_->y() + 1, 11, 7, DUINO_SH1106::White);
     display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, params.vals.swing, DUINO_SH1106::Black);
@@ -320,8 +323,9 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void display_swing(int16_t x, int16_t y, uint8_t swing, DUINO_SH1106::Color color)
   {
-    Display.draw_char(x, y, '0' + swing / 10, color);
-    Display.draw_char(x + 6, y, '0' + swing % 10, color);
+    const uint8_t swing_percent = 50 + 4 * swing;
+    Display.draw_char(x, y, '0' + swing_percent / 10, color);
+    Display.draw_char(x + 6, y, '0' + swing_percent % 10, color);
   }
 
   void display_pattern_dot(uint8_t bank, uint8_t step)
@@ -394,8 +398,8 @@ void clock_ext_isr()
 
 void reset_isr()
 {
-  current_step = 0;
-  Clock.update();
+  current_step = -1;
+  Clock.reset();
 }
 
 void clock_callback() { function->clock_clock_callback(); }
@@ -414,7 +418,7 @@ void setup()
 {
   function = new DU_PLSR_Function();
 
-  current_step = 0;
+  current_step = -1;
 
   function->begin();
 }
