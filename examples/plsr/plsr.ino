@@ -22,6 +22,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
+#include <du-ino_save.h>
 #include <du-ino_clock.h>
 
 static const unsigned char icons[] PROGMEM = {
@@ -45,7 +46,6 @@ void reset_isr();
 void clock_callback();
 void external_callback();
 
-void save_click_callback();
 void measures_scroll_callback(int delta);
 void clock_scroll_callback(int delta);
 void swing_scroll_callback(int delta);
@@ -62,8 +62,7 @@ class DU_PLSR_Function : public DUINO_Function {
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<6>(DUINO_Widget::DoubleClick, 2);
-    widget_save_ = new DUINO_DisplayWidget(121, 0, 7, 7, DUINO_Widget::Full);
-    widget_save_->attach_click_callback(save_click_callback);
+    widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
     container_outer_->attach_child(widget_save_, 0);
     container_top_ = new DUINO_WidgetContainer<3>(DUINO_Widget::Click);
     widget_measures_ = new DUINO_DisplayWidget(56, 0, 13, 9, DUINO_Widget::Full);
@@ -100,42 +99,42 @@ class DU_PLSR_Function : public DUINO_Function {
     displayed_step = -1;
 
     // load params
-    load_params(0, params.bytes, 68);
+    widget_save_->load_params();
 
-    if(params.vals.step_count < 1)
+    if(widget_save_->params.vals.step_count < 1)
     {
-      params.vals.step_count = 1;
+      widget_save_->params.vals.step_count = 1;
     }
-    else if(params.vals.step_count > 16)
+    else if(widget_save_->params.vals.step_count > 16)
     {
-      params.vals.step_count = 16;
+      widget_save_->params.vals.step_count = 16;
     }
 
-    if (params.vals.clock_bpm < 0)
+    if (widget_save_->params.vals.clock_bpm < 0)
     {
-      params.vals.clock_bpm = 0;
+      widget_save_->params.vals.clock_bpm = 0;
     }
-    else if (params.vals.clock_bpm > 300)
+    else if (widget_save_->params.vals.clock_bpm > 300)
     {
-      params.vals.clock_bpm = 300;
+      widget_save_->params.vals.clock_bpm = 300;
     }
-    Clock.set_bpm(params.vals.clock_bpm);
+    Clock.set_bpm(widget_save_->params.vals.clock_bpm);
 
-    if (params.vals.swing < 0)
+    if (widget_save_->params.vals.swing < 0)
     {
-      params.vals.swing = 0;
+      widget_save_->params.vals.swing = 0;
     }
-    else if (params.vals.swing > 6)
+    else if (widget_save_->params.vals.swing > 6)
     {
-      params.vals.swing = 6;
+      widget_save_->params.vals.swing = 6;
     }
-    Clock.set_swing(params.vals.swing);
+    Clock.set_swing(widget_save_->params.vals.swing);
 
     for (uint8_t p = 0; p < 64; ++p)
     {
-      if (params.vals.pattern[p] > 5)
+      if (widget_save_->params.vals.pattern[p] > 5)
       {
-        params.vals.pattern[p] = 0;
+        widget_save_->params.vals.pattern[p] = 0;
       }
       display_pattern_dot(p / 16, p % 16);
     }
@@ -154,10 +153,11 @@ class DU_PLSR_Function : public DUINO_Function {
     }
 
     // draw parameters
-    display_step_count(widget_measures_->x() + 1, widget_measures_->y() + 1, params.vals.step_count,
+    display_step_count(widget_measures_->x() + 1, widget_measures_->y() + 1, widget_save_->params.vals.step_count,
         DUINO_SH1106::White);
-    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm, DUINO_SH1106::White);
-    display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, params.vals.swing, DUINO_SH1106::White);
+    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
+        DUINO_SH1106::White);
+    display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::White);
     Display.draw_char(110, 1, '%', DUINO_SH1106::White);
 
     widget_setup(container_outer_);
@@ -175,7 +175,7 @@ class DU_PLSR_Function : public DUINO_Function {
     {
       // increment step
       current_step++;
-      current_step %= params.vals.step_count;
+      current_step %= widget_save_->params.vals.step_count;
 
       // check each dot for trigger probability
       uint8_t jacks = 0;
@@ -201,81 +201,76 @@ class DU_PLSR_Function : public DUINO_Function {
   {
     Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7,
         widget_clock_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
-    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm,
+    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
         widget_clock_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
     widget_clock_->display();
   }
 
-  void widget_save_click_callback()
-  {
-    if(!saved_)
-    {
-      save_params(0, params.bytes, 68);
-      Display.fill_rect(widget_save_->x() + 2, widget_save_->y() + 2, 3, 3, DUINO_SH1106::Black);
-      widget_save_->display();
-    }
-  }
-
   void widget_measures_scroll_callback(int delta)
   {
-    params.vals.step_count += delta;
-    if(params.vals.step_count < 1)
+    widget_save_->params.vals.step_count += delta;
+    if(widget_save_->params.vals.step_count < 1)
     {
-      params.vals.step_count = 1;
+      widget_save_->params.vals.step_count = 1;
     }
-    else if(params.vals.step_count > 16)
+    else if(widget_save_->params.vals.step_count > 16)
     {
-      params.vals.step_count = 16;
+      widget_save_->params.vals.step_count = 16;
     }
-    mark_save();
+    widget_save_->mark_changed();
+    widget_save_->display();
     Display.fill_rect(widget_measures_->x() + 1, widget_measures_->y() + 1, 11, 7, DUINO_SH1106::White);
-    display_step_count(widget_measures_->x() + 1, widget_measures_->y() + 1, params.vals.step_count,
+    display_step_count(widget_measures_->x() + 1, widget_measures_->y() + 1, widget_save_->params.vals.step_count,
         DUINO_SH1106::Black);
     widget_measures_->display();
   }
 
   void widget_clock_scroll_callback(int delta)
   {
-    params.vals.clock_bpm += delta;
-    if (params.vals.clock_bpm < 0)
+    widget_save_->params.vals.clock_bpm += delta;
+    if (widget_save_->params.vals.clock_bpm < 0)
     {
-      params.vals.clock_bpm = 0;
+      widget_save_->params.vals.clock_bpm = 0;
     }
-    else if (params.vals.clock_bpm > 300)
+    else if (widget_save_->params.vals.clock_bpm > 300)
     {
-      params.vals.clock_bpm = 300;
+      widget_save_->params.vals.clock_bpm = 300;
     }
-    Clock.set_bpm(params.vals.clock_bpm);
-    mark_save();
+    Clock.set_bpm(widget_save_->params.vals.clock_bpm);
+    widget_save_->mark_changed();
+    widget_save_->display();
     Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
-    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, params.vals.clock_bpm, DUINO_SH1106::Black);
+    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
+        DUINO_SH1106::Black);
     widget_clock_->display();
   }
 
   void widget_swing_scroll_callback(int delta)
   {
-    params.vals.swing += delta;
-    if (params.vals.swing < 0)
+    widget_save_->params.vals.swing += delta;
+    if (widget_save_->params.vals.swing < 0)
     {
-      params.vals.swing = 0;
+      widget_save_->params.vals.swing = 0;
     }
-    else if (params.vals.swing > 6)
+    else if (widget_save_->params.vals.swing > 6)
     {
-      params.vals.swing = 6;
+      widget_save_->params.vals.swing = 6;
     }
-    Clock.set_swing(params.vals.swing);
-    mark_save();
+    Clock.set_swing(widget_save_->params.vals.swing);
+    widget_save_->mark_changed();
+    widget_save_->display();
     Display.fill_rect(widget_swing_->x() + 1, widget_swing_->y() + 1, 11, 7, DUINO_SH1106::White);
-    display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, params.vals.swing, DUINO_SH1106::Black);
+    display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::Black);
     widget_swing_->display();
   }
 
   void widgets_patterns_click_callback(uint8_t bank, uint8_t step)
   {
     const uint8_t p = 16 * bank + step;
-    params.vals.pattern[p]++;
-    params.vals.pattern[p] %= 6;
-    mark_save();
+    widget_save_->params.vals.pattern[p]++;
+    widget_save_->params.vals.pattern[p] %= 6;
+    widget_save_->mark_changed();
+    widget_save_->display();
     display_pattern_dot(bank, step);
     widgets_patterns_[bank]->display();
   }
@@ -283,7 +278,7 @@ class DU_PLSR_Function : public DUINO_Function {
  private:
   bool stochastic_trigger(uint8_t bank, uint8_t step)
   {
-    const uint8_t dot = params.vals.pattern[16 * bank + step];
+    const uint8_t dot = widget_save_->params.vals.pattern[16 * bank + step];
     switch (dot)
     {
       case 0:
@@ -333,20 +328,10 @@ class DU_PLSR_Function : public DUINO_Function {
     const uint8_t p = 16 * bank + step;
     Display.fill_rect(widgets_patterns_[bank]->x(step) + 1, widgets_patterns_[bank]->y(step) + 1, 6, 7,
         DUINO_SH1106::Black);
-    if (params.vals.pattern[p])
+    if (widget_save_->params.vals.pattern[p])
     {
       Display.draw_bitmap_7(widgets_patterns_[bank]->x(step) + 1, widgets_patterns_[bank]->y(step) + 1, icons,
-          params.vals.pattern[p] - 1, DUINO_SH1106::White);
-    }
-  }
-
-  void mark_save()
-  {
-    if(saved_)
-    {
-      saved_ = false;
-      Display.fill_rect(widget_save_->x() + 2, widget_save_->y() + 2, 3, 3, DUINO_SH1106::Black);
-      widget_save_->display();
+          widget_save_->params.vals.pattern[p] - 1, DUINO_SH1106::White);
     }
   }
 
@@ -364,23 +349,16 @@ class DU_PLSR_Function : public DUINO_Function {
     Display.display(step * 8 + 3, step * 8 + 5, 1, 7);
   }
 
-  struct DU_PLSR_Parameter_Values {
+  struct ParameterValues {
     uint8_t pattern[64];
     int8_t step_count;
     int16_t clock_bpm;
     int8_t swing;
   };
 
-  union DU_PLSR_Parameters {
-    DU_PLSR_Parameter_Values vals;
-    uint8_t bytes[68];
-  };
-
-  DU_PLSR_Parameters params;
-
   DUINO_WidgetContainer<6> * container_outer_;
   DUINO_WidgetContainer<3> * container_top_;
-  DUINO_DisplayWidget * widget_save_;
+  DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widget_measures_;
   DUINO_DisplayWidget * widget_clock_;
   DUINO_DisplayWidget * widget_swing_;
@@ -405,7 +383,6 @@ void reset_isr()
 void clock_callback() { function->clock_clock_callback(); }
 void external_callback() { function->clock_external_callback(); }
 
-void save_click_callback() { function->widget_save_click_callback(); }
 void measures_scroll_callback(int delta) { function->widget_measures_scroll_callback(delta); }
 void clock_scroll_callback(int delta) { function->widget_clock_scroll_callback(delta); }
 void swing_scroll_callback(int delta) { function->widget_swing_scroll_callback(delta); }

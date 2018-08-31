@@ -20,7 +20,6 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
-#include <EEPROM.h>
 #include "du-ino_mcp4922.h"
 #include "du-ino_widgets.h"
 #include "du-ino_function.h"
@@ -268,31 +267,6 @@ void DUINO_Function::gt_detach_interrupt(DUINO_Function::Jack jack)
   {
     detachInterrupt(digitalPinToInterrupt(jack));
   }
-}
-
-void DUINO_Function::save_params(int address, uint8_t * start, int length)
-{
-  if (saved_)
-  {
-    return;
-  }
-
-  for (int i = 0; i < length; ++i)
-  {
-    EEPROM.write(address + i, *(start + i));
-  }
-
-  saved_ = true;
-}
-
-void DUINO_Function::load_params(int address, uint8_t * start, int length)
-{
-  for (int i = 0; i < length; ++i)
-  {
-    *(start + i) = EEPROM.read(address + i);
-  }
-
-  saved_ = true;
 }
 
 void DUINO_Function::set_switch_config(uint8_t sc)

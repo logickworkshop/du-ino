@@ -71,9 +71,6 @@ public:
   void gt_attach_interrupt(Jack jack, void (*isr)(void), int mode);
   void gt_detach_interrupt(Jack jack);
 
-  void save_params(int address, uint8_t * start, int length);
-  void load_params(int address, uint8_t * start, int length);
-
   void set_switch_config(uint8_t sc);
 
  protected:

@@ -22,6 +22,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
+#include <du-ino_save.h>
 #include <avr/pgmspace.h>
 
 #define ENV_PEAK              10.0 // V
@@ -54,7 +55,6 @@ static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 void gate_isr();
 void switch_isr();
 
-void save_click_callback();
 void adsr_scroll_callback(uint8_t selected, int delta);
 
 class DU_ADSR_Function : public DUINO_Function {
@@ -65,8 +65,7 @@ class DU_ADSR_Function : public DUINO_Function {
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<2>(DUINO_Widget::DoubleClick, 1);
-    widget_save_ = new DUINO_DisplayWidget(121, 0, 7, 7, DUINO_Widget::Full);
-    widget_save_->attach_click_callback(save_click_callback);
+    widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
     container_outer_->attach_child(widget_save_, 0);
     container_adsr_ = new DUINO_WidgetContainer<8>(DUINO_Widget::Click);
     for (uint8_t i = 0; i < 4; ++i)
@@ -89,25 +88,25 @@ class DU_ADSR_Function : public DUINO_Function {
     gt_attach_interrupt(GT4, switch_isr, FALLING);
 
     // load/initialize ADSR values
-    load_params(0, (uint8_t *)v, 8);
+    widget_save_->load_params();
     for(uint8_t i = 0; i < 8; ++i)
     {
-      if(v[i] < 0)
+      if(widget_save_->params.vals.v[i] < 0)
       {
-        v[i] = 0;
+        widget_save_->params.vals.v[i] = 0;
       }
-      else if(v[i] > V_MAX)
+      else if(widget_save_->params.vals.v[i] > V_MAX)
       {
-        v[i] = V_MAX;
+        widget_save_->params.vals.v[i] = V_MAX;
       }
-      v_last[i] = v[i];
+      v_last[i] = widget_save_->params.vals.v[i];
     }
     for(uint8_t e = 0; e < 2; ++e)
     {
-      adsr_values[e].A = uint16_t(v[2 * e]) * 24;
-      adsr_values[e].D = uint16_t(v[2 * e + 1]) * 24;
-      adsr_values[e].S = (float(v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
-      adsr_values[e].R = uint16_t(v[2 * e + 3]) * 24;
+      adsr_values[e].A = uint16_t(widget_save_->params.vals.v[2 * e]) * 24;
+      adsr_values[e].D = uint16_t(widget_save_->params.vals.v[2 * e + 1]) * 24;
+      adsr_values[e].S = (float(widget_save_->params.vals.v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
+      adsr_values[e].R = uint16_t(widget_save_->params.vals.v[2 * e + 3]) * 24;
     }
 
     // draw title
@@ -127,7 +126,7 @@ class DU_ADSR_Function : public DUINO_Function {
     // draw sliders & labels
     for(uint8_t i = 0; i < 8; ++i)
     {
-      Display.fill_rect(widgets_adsr_[i]->x() - 1, 51 - v[i], 9, 3, DUINO_SH1106::White);
+      Display.fill_rect(widgets_adsr_[i]->x() - 1, 51 - widget_save_->params.vals.v[i], 9, 3, DUINO_SH1106::White);
       Display.draw_char(widgets_adsr_[i]->x() + 1, widgets_adsr_[i]->y() + 1, label[i % 4], DUINO_SH1106::White);
     }
 
@@ -222,32 +221,23 @@ class DU_ADSR_Function : public DUINO_Function {
     }
   }
 
-  void widget_save_click_callback()
-  {
-    if(!saved_)
-    {
-      save_params(0, v, 8);
-      Display.fill_rect(widget_save_->x() + 2, widget_save_->y() + 2, 3, 3, DUINO_SH1106::Black);
-      widget_save_->display();
-    }
-  }
-
   void widget_adsr_scroll_callback(uint8_t selected, int delta)
   {
-    v[selected] += delta;
-    if(v[selected] < 0)
+    widget_save_->params.vals.v[selected] += delta;
+    if(widget_save_->params.vals.v[selected] < 0)
     {
-      v[selected] = 0;
+      widget_save_->params.vals.v[selected] = 0;
     }
-    if(v[selected] > V_MAX)
+    if(widget_save_->params.vals.v[selected] > V_MAX)
     {
-      v[selected] = V_MAX;
+      widget_save_->params.vals.v[selected] = V_MAX;
     }
-    if(v[selected] != v_last[selected])
+    if(widget_save_->params.vals.v[selected] != v_last[selected])
     {
       // update slider
       Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
-      Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - v[selected], 9, 3, DUINO_SH1106::White);
+      Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - widget_save_->params.vals.v[selected], 9, 3,
+          DUINO_SH1106::White);
       Display.display(widgets_adsr_[selected]->x() - 1, widgets_adsr_[selected]->x() + 7, 1, 6);
 
       // update ADSR value
@@ -255,48 +245,44 @@ class DU_ADSR_Function : public DUINO_Function {
       switch(selected % 4)
       {
         case 0:
-          adsr_values[e].A = uint16_t(v[selected]) * 24;
+          adsr_values[e].A = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
         case 1:
-          adsr_values[e].D = uint16_t(v[selected]) * 24;
+          adsr_values[e].D = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
         case 2:
-          adsr_values[e].S = (float(v[selected]) / float(V_MAX)) * ENV_PEAK;
+          adsr_values[e].S = (float(widget_save_->params.vals.v[selected]) / float(V_MAX)) * ENV_PEAK;
           break;
         case 3:
-          adsr_values[e].R = uint16_t(v[selected]) * 24;
+          adsr_values[e].R = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
       }
 
       // update last encoder value
-      v_last[selected] = v[selected];
+      v_last[selected] = widget_save_->params.vals.v[selected];
 
-      mark_save();
-    }
-  }
-
- private:
-  void mark_save()
-  {
-    if(saved_)
-    {
-      saved_ = false;
-      Display.fill_rect(widget_save_->x() + 2, widget_save_->y() + 2, 3, 3, DUINO_SH1106::Black);
+      widget_save_->mark_changed();
       widget_save_->display();
     }
   }
 
+ private:
   DU_ADSR_Values adsr_values[2];
   uint8_t env;
   unsigned long gate_time, release_time;
   float cv_current, cv_released;
-  int8_t v[8], v_last[8];
+  int8_t v_last[8];
   uint8_t last_selected_env;
   bool last_gate;
 
+  struct ParameterValues
+  {
+    int8_t v[8];
+  };
+
   DUINO_WidgetContainer<2> * container_outer_;
   DUINO_WidgetContainer<8> * container_adsr_;
-  DUINO_DisplayWidget * widget_save_;
+  DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widgets_adsr_[8];
 };
 
@@ -319,7 +305,6 @@ void switch_isr()
   }
 }
 
-void save_click_callback() { function->widget_save_click_callback(); }
 void adsr_scroll_callback(uint8_t selected, int delta) { function->widget_adsr_scroll_callback(selected, delta); }
 
 void setup()
