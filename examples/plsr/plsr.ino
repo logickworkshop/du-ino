@@ -25,6 +25,8 @@
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
 
+#define PLSR_MASTER
+
 static const unsigned char icons[] PROGMEM = {
   0x3e, 0x7f, 0x7f, 0x7f, 0x7f, 0x3e, 0x00,  // full
   0x3e, 0x7f, 0x7b, 0x41, 0x7f, 0x3e, 0x00,  // 1
@@ -40,6 +42,7 @@ static const DUINO_Function::Jack out_jacks[4] =
 
 volatile int8_t current_step;
 
+#ifdef PLSR_MASTER
 void clock_ext_isr();
 void reset_isr();
 
@@ -49,6 +52,8 @@ void external_callback();
 void measures_scroll_callback(int delta);
 void clock_scroll_callback(int delta);
 void swing_scroll_callback(int delta);
+#endif // PLSR_MASTER
+
 void patterns_click_callback_0(uint8_t step);
 void patterns_click_callback_1(uint8_t step);
 void patterns_click_callback_2(uint8_t step);
@@ -61,9 +66,8 @@ class DU_PLSR_Function : public DUINO_Function {
   virtual void setup()
   {
     // build widget hierarchy
+#ifdef PLSR_MASTER
     container_outer_ = new DUINO_WidgetContainer<6>(DUINO_Widget::DoubleClick, 2);
-    widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
-    container_outer_->attach_child(widget_save_, 0);
     container_top_ = new DUINO_WidgetContainer<3>(DUINO_Widget::Click);
     widget_measures_ = new DUINO_DisplayWidget(56, 0, 13, 9, DUINO_Widget::Full);
     widget_measures_->attach_scroll_callback(measures_scroll_callback);
@@ -75,6 +79,11 @@ class DU_PLSR_Function : public DUINO_Function {
     widget_swing_->attach_scroll_callback(swing_scroll_callback);
     container_top_->attach_child(widget_swing_, 2);
     container_outer_->attach_child(container_top_, 1);
+#else
+    container_outer_ = new DUINO_WidgetContainer<5>(DUINO_Widget::DoubleClick, 2);
+#endif // PLSR_MASTER
+    widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
+    container_outer_->attach_child(widget_save_, 0);
     for (uint8_t i = 0; i < 4; ++i)
     {
       widgets_patterns_[i] = new DUINO_MultiDisplayWidget<16>(0, 16 + 11 * i, 8, 9, 8, false, DUINO_Widget::Corners,
@@ -86,12 +95,14 @@ class DU_PLSR_Function : public DUINO_Function {
     widgets_patterns_[2]->attach_click_callback_array(patterns_click_callback_2);
     widgets_patterns_[3]->attach_click_callback_array(patterns_click_callback_3);
 
+#ifdef PLSR_MASTER
     Clock.begin();
     Clock.attach_clock_callback(clock_callback);
     Clock.attach_external_callback(external_callback);
 
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
+#endif // PLSR_MASTER
 
     randomSeed(cv_read(CI1));
 
@@ -101,6 +112,7 @@ class DU_PLSR_Function : public DUINO_Function {
     // load params
     widget_save_->load_params();
 
+#ifdef PLSR_MASTER
     if(widget_save_->params.vals.step_count < 1)
     {
       widget_save_->params.vals.step_count = 1;
@@ -129,6 +141,7 @@ class DU_PLSR_Function : public DUINO_Function {
       widget_save_->params.vals.swing = 6;
     }
     Clock.set_swing(widget_save_->params.vals.swing);
+#endif // PLSR_MASTER
 
     for (uint8_t p = 0; p < 64; ++p)
     {
@@ -153,12 +166,14 @@ class DU_PLSR_Function : public DUINO_Function {
     }
 
     // draw parameters
+#ifdef PLSR_MASTER
     display_step_count(widget_measures_->x() + 1, widget_measures_->y() + 1, widget_save_->params.vals.step_count,
         DUINO_SH1106::White);
     display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
         DUINO_SH1106::White);
     display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::White);
     Display.draw_char(110, 1, '%', DUINO_SH1106::White);
+#endif // PLSR_MASTER
 
     widget_setup(container_outer_);
     Display.display_all();
@@ -169,31 +184,36 @@ class DU_PLSR_Function : public DUINO_Function {
     widget_loop();
   }
 
+  void sync_callback(uint8_t step)
+  {
+    current_step = step;
+
+    // check each dot for trigger probability
+    uint8_t jacks = 0;
+    for (uint8_t bank = 0; bank < 4; ++bank)
+    {
+      if (stochastic_trigger(bank, current_step))
+      {
+        jacks |= (1 << out_jacks[bank]);
+      }
+    }
+
+    // output triggers
+    gt_out_multi(jacks, true, true);
+
+    // display step
+    invert_step(displayed_step);
+    displayed_step = current_step;
+    invert_step(displayed_step);
+  }
+
+#ifdef PLSR_MASTER
   void clock_clock_callback()
   {
     if(Clock.state())
     {
       // increment step
-      current_step++;
-      current_step %= widget_save_->params.vals.step_count;
-
-      // check each dot for trigger probability
-      uint8_t jacks = 0;
-      for (uint8_t bank = 0; bank < 4; ++bank)
-      {
-        if (stochastic_trigger(bank, current_step))
-        {
-          jacks |= (1 << out_jacks[bank]);
-        }
-      }
-
-      // output triggers
-      gt_out_multi(jacks, true, true);
-
-      // display step
-      invert_step(displayed_step);
-      displayed_step = current_step;
-      invert_step(displayed_step);
+      sync_callback((current_step + 1) % widget_save_->params.vals.step_count);
     }
   }
 
@@ -263,6 +283,7 @@ class DU_PLSR_Function : public DUINO_Function {
     display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::Black);
     widget_swing_->display();
   }
+#endif // PLSR_MASTER
 
   void widgets_patterns_click_callback(uint8_t bank, uint8_t step)
   {
@@ -293,6 +314,7 @@ class DU_PLSR_Function : public DUINO_Function {
     }
   }
 
+#ifdef PLSR_MASTER
   void display_step_count(int16_t x, int16_t y, uint16_t count, DUINO_SH1106::Color color)
   {
     if(count > 9)
@@ -322,6 +344,7 @@ class DU_PLSR_Function : public DUINO_Function {
     Display.draw_char(x, y, '0' + swing_percent / 10, color);
     Display.draw_char(x + 6, y, '0' + swing_percent % 10, color);
   }
+#endif // PLSR_MASTER
 
   void display_pattern_dot(uint8_t bank, uint8_t step)
   {
@@ -356,12 +379,16 @@ class DU_PLSR_Function : public DUINO_Function {
     int8_t swing;
   };
 
+#ifdef PLSR_MASTER
   DUINO_WidgetContainer<6> * container_outer_;
   DUINO_WidgetContainer<3> * container_top_;
-  DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widget_measures_;
   DUINO_DisplayWidget * widget_clock_;
   DUINO_DisplayWidget * widget_swing_;
+#else
+  DUINO_WidgetContainer<5> * container_outer_;
+#endif // PLSR_MASTER
+  DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_MultiDisplayWidget<16> * widgets_patterns_[4];
 
   int8_t displayed_step;
@@ -369,6 +396,7 @@ class DU_PLSR_Function : public DUINO_Function {
 
 DU_PLSR_Function * function;
 
+#ifdef PLSR_MASTER
 void clock_ext_isr()
 {
   Clock.on_jack(function->gt_read_debounce(DUINO_Function::GT3));
@@ -386,6 +414,8 @@ void external_callback() { function->clock_external_callback(); }
 void measures_scroll_callback(int delta) { function->widget_measures_scroll_callback(delta); }
 void clock_scroll_callback(int delta) { function->widget_clock_scroll_callback(delta); }
 void swing_scroll_callback(int delta) { function->widget_swing_scroll_callback(delta); }
+#endif // PLSR_MASTER
+
 void patterns_click_callback_0(uint8_t step) { function->widgets_patterns_click_callback(0, step); }
 void patterns_click_callback_1(uint8_t step) { function->widgets_patterns_click_callback(1, step); }
 void patterns_click_callback_2(uint8_t step) { function->widgets_patterns_click_callback(2, step); }
