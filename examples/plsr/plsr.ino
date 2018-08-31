@@ -20,12 +20,22 @@
  * Aaron Mavrinac <aaron@logick.ca>
  */
 
+// Configuration for Multiple PLSRs
+// Comment the following line if this is a slave:
+#define PLSR_MASTER
+#ifdef PLSR_MASTER
+// Add all slave addresses to the following list:
+static const uint8_t slaves[] = {};
+#else
+// Assign each slave a unique address (between 9 and 119):
+static const uint8_t slave_address = 9;
+#endif
+
+#include <Wire.h>
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
-
-#define PLSR_MASTER
 
 static const unsigned char icons[] PROGMEM = {
   0x3e, 0x7f, 0x7f, 0x7f, 0x7f, 0x3e, 0x00,  // full
@@ -52,6 +62,8 @@ void external_callback();
 void measures_scroll_callback(int delta);
 void clock_scroll_callback(int delta);
 void swing_scroll_callback(int delta);
+#else
+void i2c_callback(int bytes);
 #endif // PLSR_MASTER
 
 void patterns_click_callback_0(uint8_t step);
@@ -102,6 +114,11 @@ class DU_PLSR_Function : public DUINO_Function {
 
     gt_attach_interrupt(GT3, clock_ext_isr, CHANGE);
     gt_attach_interrupt(GT4, reset_isr, RISING);
+
+    Wire.begin();
+#else
+    Wire.begin(slave_address);
+    Wire.onReceive(i2c_callback);
 #endif // PLSR_MASTER
 
     randomSeed(cv_read(CI1));
@@ -213,7 +230,19 @@ class DU_PLSR_Function : public DUINO_Function {
     if(Clock.state())
     {
       // increment step
-      sync_callback((current_step + 1) % widget_save_->params.vals.step_count);
+      const uint8_t new_step = (current_step + 1) % widget_save_->params.vals.step_count;
+
+      // sync self
+      sync_callback(new_step);
+
+      // sync slaves
+      for (uint8_t i = 0; i < sizeof(slaves); ++i)
+      {
+        // FIXME: this is too slow for sync and endTransmission() hangs with the default Wire.h
+        Wire.beginTransmission(slaves[i]);
+        Wire.write(new_step);
+        Wire.endTransmission();
+      }
     }
   }
 
@@ -414,6 +443,8 @@ void external_callback() { function->clock_external_callback(); }
 void measures_scroll_callback(int delta) { function->widget_measures_scroll_callback(delta); }
 void clock_scroll_callback(int delta) { function->widget_clock_scroll_callback(delta); }
 void swing_scroll_callback(int delta) { function->widget_swing_scroll_callback(delta); }
+#else
+void i2c_callback(int bytes) { function->sync_callback(Wire.read()); }
 #endif // PLSR_MASTER
 
 void patterns_click_callback_0(uint8_t step) { function->widgets_patterns_click_callback(0, step); }
