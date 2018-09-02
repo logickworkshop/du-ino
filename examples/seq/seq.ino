@@ -51,8 +51,8 @@ static const unsigned char gate_mode_icons[] PROGMEM = {
   0x30, 0x40, 0x59, 0x55, 0x52, 0x40, 0x30   // ext 2
 };
 
-static const unsigned char semitone_lt[12] = {'C', 'C', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'A', 'B', 'B'};
-static const Intonation semitone_in[12] = {IN, IS, IN, IF, IN, IN, IS, IN, IS, IN, IF, IN};
+static const unsigned char semitone_lt[] PROGMEM = {'C', 'C', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'A', 'B', 'B'};
+static const Intonation semitone_in[] PROGMEM = {IN, IS, IN, IF, IN, IN, IS, IN, IS, IN, IF, IN};
 
 struct DU_SEQ_Values {
   float stage_cv[8];
@@ -708,10 +708,10 @@ class DU_SEQ_Function : public DUINO_Function {
     Display.draw_char(x + 9, y + 7, '0' + note / 12, color);
 
     // draw note
-    Display.draw_char(x + 2, y + 4, semitone_lt[note % 12], color);
+    Display.draw_char(x + 2, y + 4, pgm_read_byte(&semitone_lt[note % 12]), color);
     
     // draw intonation symbol
-    switch(semitone_in[note % 12])
+    switch(pgm_read_byte(&semitone_in[note % 12]))
     {
       case IF:
         Display.draw_vline(x + 9, y + 1, 5, color);
