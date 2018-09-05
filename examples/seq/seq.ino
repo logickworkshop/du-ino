@@ -257,8 +257,8 @@ class DU_SEQ_Function : public DUINO_Function {
   virtual void loop()
   {
     // cache stage, step, and clock gate (so that each loop is "atomic")
-    cached_stage = stage;
-    cached_step = step;
+    const uint8_t cached_stage = stage;
+    const uint8_t cached_step = step;
     cached_clock_gate = Clock.state();
     cached_retrigger = Clock.retrigger();
 
@@ -341,7 +341,7 @@ class DU_SEQ_Function : public DUINO_Function {
     // display gate
     if(gate != last_gate || stage != last_stage)
     {
-      uint8_t last_stage_cached = last_stage;
+      const uint8_t last_stage_cached = last_stage;
       last_gate = gate;
       last_stage = stage;
 
@@ -741,7 +741,6 @@ class DU_SEQ_Function : public DUINO_Function {
   DUINO_MultiDisplayWidget<8> * widgets_gate_;
   DUINO_MultiDisplayWidget<8> * widgets_slew_;
 
-  uint8_t cached_stage, cached_step;
   bool cached_clock_gate, cached_retrigger;
   unsigned long clock_time;
 
