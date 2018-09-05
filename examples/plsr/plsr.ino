@@ -171,6 +171,9 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void clock_clock_callback()
   {
+    // output clock
+    gt_out(GT2, Clock.state());
+
     if(Clock.state())
     {
       // increment step
