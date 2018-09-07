@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the official Arduino library for the DU MDLR DU-INO Eurorack module.
+This is the official Arduino library for the DU MDLR [DU-INO](http://logick.ca/du-mdlr/du-ino/) Eurorack module.
 
 ## Getting Started
 
