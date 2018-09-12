@@ -171,11 +171,11 @@ void DUINO_Function::gt_out(DUINO_Function::Jack jack, bool on, bool trig)
     case CO2:
     case CO3:
     case CO4:
-      dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0xBFF);
+      dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), on ? 0xBFF : 0x800);
       if (trig)
       {
         delay(TRIG_MS);
-        dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), 0x800);
+        dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), on ? 0x800 : 0xBFF);
       }
       break;
   }
