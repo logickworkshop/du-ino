@@ -77,7 +77,7 @@ class DU_Test_Function : public DUINO_Function {
       Display.draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
     }
 
-    Display.display_all();
+    Display.display();
   }
 
   virtual void loop()
@@ -176,7 +176,7 @@ class DU_Test_Function : public DUINO_Function {
     display_gtio();
 
     // update display
-    Display.display_all();
+    Display.display();
   }
 
  private:

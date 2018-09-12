@@ -74,7 +74,7 @@ public:
   void begin();
 
   void display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end);
-  void display_all();
+  void display();
 
   void clear_display();
 

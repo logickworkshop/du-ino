@@ -251,7 +251,7 @@ class DU_SEQ_Function : public DUINO_Function {
     }
 
     widget_setup(container_outer_);
-    Display.display_all();
+    Display.display();
   }
 
   virtual void loop()

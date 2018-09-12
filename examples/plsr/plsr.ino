@@ -161,7 +161,7 @@ class DU_PLSR_Function : public DUINO_Function {
     Display.draw_char(110, 1, '%', DUINO_SH1106::White);
 
     widget_setup(container_outer_);
-    Display.display_all();
+    Display.display();
   }
 
   virtual void loop()

@@ -114,7 +114,7 @@ void DUINO_SH1106::display(uint8_t col_start, uint8_t col_end, uint8_t page_star
   }
 }
 
-void DUINO_SH1106::display_all()
+void DUINO_SH1106::display()
 {
   display(0, 127, 0, 7);
 }

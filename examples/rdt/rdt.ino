@@ -216,7 +216,7 @@ public:
     }
 
     widget_setup(container_outer_);
-    Display.display_all();
+    Display.display();
   }
 
   virtual void loop()

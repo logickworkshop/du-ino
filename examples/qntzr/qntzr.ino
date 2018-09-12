@@ -108,7 +108,7 @@ class DU_Quantizer_Function : public DUINO_Function {
 
     invert_note(current_displayed_note);
     widget_setup(container_outer_);
-    Display.display_all();
+    Display.display();
 
     display_trigger_mode();
     display_key();
@@ -374,7 +374,7 @@ class DU_Quantizer_Function : public DUINO_Function {
           white ? DUINO_SH1106::White : DUINO_SH1106::Black);
     }
 
-    Display.display_all();
+    Display.display();
   }
 
   void invert_note(uint8_t note)

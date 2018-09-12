@@ -63,7 +63,7 @@ void DUINO_Function::begin()
     // initialize display
     Display.begin();
     Display.clear_display(); 
-    Display.display_all();
+    Display.display();
 
     // initialize encoder
     Encoder.begin();
