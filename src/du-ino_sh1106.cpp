@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <SPI.h>
 #include <avr/pgmspace.h>
+#include <util/atomic.h>
 #include "du-ino_font5x7.h"
 #include "du-ino_SH1106.h"
 
@@ -85,32 +86,32 @@ void DUINO_SH1106::begin()
 
 void DUINO_SH1106::display(uint8_t col_start, uint8_t col_end, uint8_t page_start, uint8_t page_end)
 {
-  uint8_t page, col, b;
-  
-  // TODO: use the column and page values, or rework with new (or no) parameters and update examples
-  for (page = page_start; page <= page_end; ++page)
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    // FIXME: command needs a #define
-    sh1106_command(SH1106_SETPAGEADDR | page);
-    sh1106_command(SH1106_SETLOWCOLUMN | (col_start + 2) & 0x0F);
-    sh1106_command(SH1106_SETHIGHCOLUMN | (col_start + 2) >> 4);
-    
-    digitalWrite(pin_ss_, HIGH);
-    digitalWrite(pin_dc_, HIGH);
-    digitalWrite(pin_ss_, LOW);
-
-    b = 1;
-    for (col = col_start; col <= col_end; ++col, ++b)
+    uint8_t page, col, b;
+    for (page = page_start; page <= page_end; ++page)
     {
-      (void)SPI.transfer(buffer[page * SH1106_LCDWIDTH + col]);
-      if (b % 16)
-      {
-        digitalWrite(pin_ss_, HIGH);
-        digitalWrite(pin_ss_, LOW);
-      }
-    }
+      sh1106_command(SH1106_SETPAGEADDR | page);
+      sh1106_command(SH1106_SETLOWCOLUMN | (col_start + 2) & 0x0F);
+      sh1106_command(SH1106_SETHIGHCOLUMN | (col_start + 2) >> 4);
+      
+      digitalWrite(pin_ss_, HIGH);
+      digitalWrite(pin_dc_, HIGH);
+      digitalWrite(pin_ss_, LOW);
 
-    digitalWrite(pin_ss_, HIGH);
+      b = 1;
+      for (col = col_start; col <= col_end; ++col, ++b)
+      {
+        (void)SPI.transfer(buffer[page * SH1106_LCDWIDTH + col]);
+        if (b % 16)
+        {
+          digitalWrite(pin_ss_, HIGH);
+          digitalWrite(pin_ss_, LOW);
+        }
+      }
+
+      digitalWrite(pin_ss_, HIGH);
+    }
   }
 }
 
