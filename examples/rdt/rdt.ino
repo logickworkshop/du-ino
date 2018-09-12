@@ -88,6 +88,7 @@ public:
     // initialize interface
     lfsr_loop_ = jack_1s_ = d_out_ = t_out_ = false;
     jack_d_ = jack_t_ = -1;
+    update_lfsr_jacks = update_pattern_dt_jacks = false;
 
     Clock.begin();
     Clock.attach_clock_callback(clock_callback);
@@ -276,6 +277,23 @@ public:
       Display.fill_rect(34, 50, 3, 3, jack_t_ > 0 ? DUINO_SH1106::White : DUINO_SH1106::Black);
       Display.display(34, 36, 6, 6);
     }
+
+    if (update_lfsr_jacks)
+    {
+      
+      Display.display(10, 12, 5, 5);
+      Display.display(115, 117, 5, 5);
+      
+      update_lfsr_jacks = false;
+    }
+
+    if (update_pattern_dt_jacks)
+    {
+      Display.display(25, 102, 3, 3);
+      Display.display(91, 93, 5, 7);
+
+      update_pattern_dt_jacks = false;
+    }
   }
 
   void clock_clock_callback()
@@ -338,17 +356,15 @@ public:
 
       // display pattern
       display_pattern(25, 24, widget_save_->params.vals.pattern, DUINO_SH1106::White);
-      Display.display(25, 102, 3, 3);
-
+      
       // display jacks
       Display.fill_rect(10, 41, 3, 3, jacks & (1 << GT1) ? DUINO_SH1106::White : DUINO_SH1106::Black);
       Display.fill_rect(115, 41, 3, 3, jacks & (1 << GT2) ? DUINO_SH1106::White : DUINO_SH1106::Black);
       Display.fill_rect(91, 41, 3, 3, d_out_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
       Display.fill_rect(91, 50, 3, 3, d_out_ ? DUINO_SH1106::Black : DUINO_SH1106::White);
-      Display.fill_rect(91, 59, 3, 3, t_out_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.display(10, 12, 5, 5);
-      Display.display(115, 117, 5, 5);
-      Display.display(91, 93, 5, 7);
+      Display.fill_rect(91, 59, 3, 3, t_out_ ? DUINO_SH1106::White : DUINO_SH1106::Black);  
+
+      update_pattern_dt_jacks = true;   
     }
     else
     {
@@ -356,9 +372,9 @@ public:
 
       Display.fill_rect(10, 41, 3, 3, DUINO_SH1106::Black);
       Display.fill_rect(115, 41, 3, 3, DUINO_SH1106::Black);
-      Display.display(10, 12, 5, 5);
-      Display.display(115, 117, 5, 5);
     }
+
+    update_lfsr_jacks = true;
   }
 
   void clock_external_callback()
@@ -500,6 +516,7 @@ private:
 
   bool lfsr_loop_, jack_1s_, d_out_, t_out_;
   int8_t jack_d_, jack_t_;
+  volatile bool update_lfsr_jacks, update_pattern_dt_jacks;
 };
 
 DU_RDT_Function * function;
