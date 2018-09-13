@@ -34,6 +34,7 @@ class DUINO_Clock {
   void set_period(unsigned long period);
   void set_bpm(uint16_t bpm);
   void set_swing(uint8_t swing);
+  void set_divider(uint8_t divider);
   void set_external();
 
   void on_jack(bool jack_state);
@@ -52,6 +53,7 @@ class DUINO_Clock {
   bool get_external() const { return external_; }
   unsigned long get_period() const { return period_; }
   uint8_t get_swing() const { return swing_; }
+  uint8_t get_divider() const { return divider_; }
 
   void check_swing();
 
@@ -66,7 +68,7 @@ class DUINO_Clock {
   volatile unsigned long swung_ms_;
 
   unsigned long period_;
-  uint8_t swing_;
+  uint8_t swing_, divider_, div_count_;
 };
 
 extern DUINO_Clock Clock;

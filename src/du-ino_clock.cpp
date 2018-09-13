@@ -36,6 +36,8 @@ DUINO_Clock::DUINO_Clock()
   , swung_ms_(0)
   , period_(0)
   , swing_(0)
+  , divider_(1)
+  , div_count_(0)
 {
 }
 
@@ -75,6 +77,14 @@ void DUINO_Clock::set_swing(uint8_t swing)
   else
   {
     TIMSK0 &= ~(_BV(OCIE0A));
+  }
+}
+
+void DUINO_Clock::set_divider(uint8_t divider)
+{
+  if(divider > 0 && divider < 65)
+  {
+    divider_ = divider;
   }
 }
 
@@ -133,6 +143,7 @@ void DUINO_Clock::reset()
 {
   swung_ = false;
   count_ = -1;
+  div_count_ = 0;
   update();
   on_clock();
 }
@@ -148,6 +159,15 @@ void DUINO_Clock::check_swing()
 
 void DUINO_Clock::toggle_state()
 {
+  // divide clock
+  div_count_++;
+  div_count_ %= 64;
+  if (div_count_ < divider_)
+  {
+    return;
+  }
+  div_count_ = 0;
+
   state_ = !state_;
 
   if (state_)

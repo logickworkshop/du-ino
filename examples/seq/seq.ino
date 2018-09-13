@@ -41,7 +41,7 @@
  * SG2    [_][_]    SG1
  * SG4    [^][^]    SG3
  * SC2    [^][^]    SC1
- * SC4    [_][^]    SC3
+ * SC4    [^][^]    SC3
  */
 
 #include <du-ino_function.h>
@@ -82,7 +82,7 @@ static const unsigned char semitone_lt[] PROGMEM = {'C', 'C', 'D', 'E', 'E', 'F'
 static const Intonation semitone_in[] PROGMEM = {IN, IS, IN, IF, IN, IN, IS, IN, IS, IN, IF, IN};
 
 volatile uint8_t stage, step;
-volatile bool gate, reverse;
+volatile bool gate;
 
 DUINO_Filter * slew_filter;
 
@@ -109,7 +109,7 @@ void s_slew_click_callback();
 class DU_SEQ_Function : public DUINO_Function
 {
 public:
-  DU_SEQ_Function() : DUINO_Function(0b01111100) { }
+  DU_SEQ_Function() : DUINO_Function(0b11111100) { }
   
   virtual void setup()
   {
@@ -155,6 +155,9 @@ public:
     last_stage = 0;
     last_diradd_mode = false;
     last_reverse = false;
+    last_half_clock = false;
+
+    reverse = false;
 
     Clock.begin();
     Clock.attach_clock_callback(clock_callback);
@@ -353,6 +356,9 @@ public:
       reverse = gt_read(CI1);
     }
 
+    // update half clock setting
+    Clock.set_divider(gt_read(CI2) ? 2 : 1);
+
     widget_loop();
 
     // display reverse/address
@@ -364,6 +370,15 @@ public:
       last_diradd_mode = widget_save_->params.vals.diradd_mode;
       last_reverse = reverse;
       Display.display(30, 34, 1, 2);
+    }
+
+    // display half clock
+    const bool half_clock = Clock.get_divider() == 2;
+    if (half_clock != last_half_clock)
+    {
+      display_half_clock(41, 12, half_clock);
+      last_half_clock = half_clock;
+      Display.display(41, 51, 1, 2);
     }
 
     // display gate
@@ -395,7 +410,6 @@ public:
   {
     if (Clock.state())
     {
-      // TODO: implement half clocking
       step++;
       step %= widget_save_->params.vals.stage_steps[stage];
       if (!step)
@@ -740,6 +754,17 @@ private:
     }
   }
 
+  void display_half_clock(int16_t x, int16_t y, bool on)
+  {
+    Display.fill_rect(x, y, 11, 7, DUINO_SH1106::Black);
+
+    if (on)
+    {
+      Display.draw_char(x, y, 0xF6, DUINO_SH1106::White);
+      Display.draw_char(x + 6, y, '2', DUINO_SH1106::White);
+    }
+  }
+
   void display_gate(uint8_t stage, DUINO_SH1106::Color color)
   {
     Display.fill_rect(16 * stage + 6, 26, 4, 4, color);
@@ -778,6 +803,10 @@ private:
   uint8_t last_stage;
   bool last_diradd_mode;
   bool last_reverse;
+  bool last_half_clock;
+
+  bool reverse;
+
   uint16_t gate_ms;
 };
 
@@ -814,7 +843,7 @@ void s_slew_click_callback() { function->widgets_slew_click_callback(); }
 void setup()
 {
   stage = step = 0;
-  gate = reverse = false;
+  gate = false;
 
   slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
