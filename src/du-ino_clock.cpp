@@ -100,6 +100,11 @@ void DUINO_Clock::on_jack(bool jack_state)
   if (!external_)
   {
     set_external();
+    
+    if (external_callback_)
+    {
+      external_callback_();
+    }
   }
 
   if (state_ != jack_state)

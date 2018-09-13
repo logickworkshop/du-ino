@@ -388,6 +388,8 @@ public:
 
   void clock_external_callback()
   {
+    widget_save_->params.vals.clock_bpm = 0;
+    
     Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7,
         widget_clock_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
     display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
