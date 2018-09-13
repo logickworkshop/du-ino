@@ -35,11 +35,13 @@
 
 #define DEBOUNCE_MS           100 // ms
 
-static const unsigned char icons[] PROGMEM = {
+static const unsigned char icons[] PROGMEM =
+{
   0x38, 0x78, 0x7f, 0x7f, 0x7f, 0x78, 0x38  // gate
 };
 
-struct DU_ADSR_Values {
+struct DU_ADSR_Values
+{
   uint16_t A;  // ms
   uint16_t D;  // ms
   float S;     // V
@@ -57,8 +59,9 @@ void switch_isr();
 
 void adsr_scroll_callback(uint8_t selected, int delta);
 
-class DU_ADSR_Function : public DUINO_Function {
- public:
+class DU_ADSR_Function : public DUINO_Function
+{
+public:
   DU_ADSR_Function() : DUINO_Function(0b10111100) { }
   
   virtual void setup()
@@ -89,19 +92,19 @@ class DU_ADSR_Function : public DUINO_Function {
 
     // load/initialize ADSR values
     widget_save_->load_params();
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
-      if(widget_save_->params.vals.v[i] < 0)
+      if (widget_save_->params.vals.v[i] < 0)
       {
         widget_save_->params.vals.v[i] = 0;
       }
-      else if(widget_save_->params.vals.v[i] > V_MAX)
+      else if (widget_save_->params.vals.v[i] > V_MAX)
       {
         widget_save_->params.vals.v[i] = V_MAX;
       }
       v_last[i] = widget_save_->params.vals.v[i];
     }
-    for(uint8_t e = 0; e < 2; ++e)
+    for (uint8_t e = 0; e < 2; ++e)
     {
       adsr_values[e].A = uint16_t(widget_save_->params.vals.v[2 * e]) * 24;
       adsr_values[e].D = uint16_t(widget_save_->params.vals.v[2 * e + 1]) * 24;
@@ -124,7 +127,7 @@ class DU_ADSR_Function : public DUINO_Function {
     Display.fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
 
     // draw sliders & labels
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
       Display.fill_rect(widgets_adsr_[i]->x() - 1, 51 - widget_save_->params.vals.v[i], 9, 3, DUINO_SH1106::White);
       Display.draw_char(widgets_adsr_[i]->x() + 1, widgets_adsr_[i]->y() + 1, label[i % 4], DUINO_SH1106::White);
@@ -136,7 +139,7 @@ class DU_ADSR_Function : public DUINO_Function {
 
   virtual void loop()
   {
-    if(retrigger)
+    if (retrigger)
     {
       env = selected_env;
       gate_time = 0;
@@ -144,12 +147,12 @@ class DU_ADSR_Function : public DUINO_Function {
       retrigger = false;
     }
 
-    if(gate_time)
+    if (gate_time)
     {
-      if(gate)
+      if (gate)
       {
         uint16_t elapsed = millis() - gate_time;
-        if(elapsed < adsr_values[env].A)
+        if (elapsed < adsr_values[env].A)
         {
           // attack
           cv_current = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values[env].A))));
@@ -163,7 +166,7 @@ class DU_ADSR_Function : public DUINO_Function {
       }
       else
       {
-        if(release_time)
+        if (release_time)
         {
           uint16_t elapsed = millis() - release_time;
           if(elapsed < adsr_values[env].R * ENV_RELEASE_HOLD)
@@ -188,7 +191,7 @@ class DU_ADSR_Function : public DUINO_Function {
       cv_out(CO1, cv_current);
       cv_out(CO3, cv_current / 2.0);
     }
-    else if(gate)
+    else if (gate)
     {
       gate_time = millis()
           - (unsigned long)(-float(adsr_values[env].A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
@@ -197,7 +200,7 @@ class DU_ADSR_Function : public DUINO_Function {
     widget_loop();
 
     // display selected envelope
-    if(selected_env != last_selected_env)
+    if (selected_env != last_selected_env)
     {
       last_selected_env = selected_env;
       Display.fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
@@ -206,10 +209,10 @@ class DU_ADSR_Function : public DUINO_Function {
     }
 
     // display gate
-    if(gate != last_gate)
+    if (gate != last_gate)
     {
       last_gate = gate;
-      if(gate)
+      if (gate)
       {
         Display.draw_bitmap_7(60, 25, icons, 0, DUINO_SH1106::White);
       }
@@ -224,15 +227,15 @@ class DU_ADSR_Function : public DUINO_Function {
   void widget_adsr_scroll_callback(uint8_t selected, int delta)
   {
     widget_save_->params.vals.v[selected] += delta;
-    if(widget_save_->params.vals.v[selected] < 0)
+    if (widget_save_->params.vals.v[selected] < 0)
     {
       widget_save_->params.vals.v[selected] = 0;
     }
-    if(widget_save_->params.vals.v[selected] > V_MAX)
+    if (widget_save_->params.vals.v[selected] > V_MAX)
     {
       widget_save_->params.vals.v[selected] = V_MAX;
     }
-    if(widget_save_->params.vals.v[selected] != v_last[selected])
+    if (widget_save_->params.vals.v[selected] != v_last[selected])
     {
       // update slider
       Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
@@ -242,7 +245,7 @@ class DU_ADSR_Function : public DUINO_Function {
 
       // update ADSR value
       uint8_t e = selected > 3 ? 1 : 0;
-      switch(selected % 4)
+      switch (selected % 4)
       {
         case 0:
           adsr_values[e].A = uint16_t(widget_save_->params.vals.v[selected]) * 24;
@@ -266,7 +269,7 @@ class DU_ADSR_Function : public DUINO_Function {
     }
   }
 
- private:
+private:
   DU_ADSR_Values adsr_values[2];
   uint8_t env;
   unsigned long gate_time, release_time;
@@ -291,13 +294,15 @@ DU_ADSR_Function * function;
 void gate_isr()
 {
   gate = function->gt_read_debounce(DUINO_Function::GT3);
-  if(gate)
+  if (gate)
+  {
     retrigger = true;
+  }
 }
 
 void switch_isr()
 {
-  if(millis() - debounce > DEBOUNCE_MS)
+  if (millis() - debounce > DEBOUNCE_MS)
   {
     selected_env++;
     selected_env %= 2;

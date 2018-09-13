@@ -43,12 +43,14 @@
 #include <du-ino_clock.h>
 #include <avr/pgmspace.h>
 
-static const unsigned char loop_icons[] PROGMEM = {
+static const unsigned char loop_icons[] PROGMEM =
+{
   0x30, 0x48, 0x84, 0x84, 0x80, 0x84, 0x8e, 0x9f,  // left part
   0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x48, 0x30   // right part
 };
 
-static const unsigned char jack_icon[] PROGMEM = {
+static const unsigned char jack_icon[] PROGMEM =
+{
   0x1c, 0x22, 0x41, 0x41, 0x41, 0x22, 0x1c
 };
 
@@ -478,9 +480,9 @@ private:
 
   void display_lfsr_loop(int16_t x, int16_t y, bool lfsr_loop, DUINO_SH1106::Color color)
   {
-    if(lfsr_loop)
+    if (lfsr_loop)
     {
-      for(uint8_t i = 0; i < 2; ++i)
+      for (uint8_t i = 0; i < 2; ++i)
       {
         Display.draw_bitmap_8(56 + i * 8, 13, loop_icons, i, DUINO_SH1106::White);
       }

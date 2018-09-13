@@ -25,7 +25,8 @@
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
 
-static const unsigned char icons[] PROGMEM = {
+static const unsigned char icons[] PROGMEM =
+{
   0x3e, 0x7f, 0x7f, 0x7f, 0x7f, 0x3e, 0x00,  // full
   0x3e, 0x7f, 0x7b, 0x41, 0x7f, 0x3e, 0x00,  // 1
   0x3e, 0x5b, 0x4d, 0x55, 0x5b, 0x3e, 0x00,  // 2
@@ -54,8 +55,9 @@ void patterns_click_callback_1(uint8_t step);
 void patterns_click_callback_2(uint8_t step);
 void patterns_click_callback_3(uint8_t step);
 
-class DU_PLSR_Function : public DUINO_Function {
- public:
+class DU_PLSR_Function : public DUINO_Function
+{
+public:
   DU_PLSR_Function() : DUINO_Function(0b00001100) { }
 
   virtual void setup()
@@ -101,11 +103,11 @@ class DU_PLSR_Function : public DUINO_Function {
     // load params
     widget_save_->load_params();
 
-    if(widget_save_->params.vals.step_count < 1)
+    if (widget_save_->params.vals.step_count < 1)
     {
       widget_save_->params.vals.step_count = 1;
     }
-    else if(widget_save_->params.vals.step_count > 16)
+    else if (widget_save_->params.vals.step_count > 16)
     {
       widget_save_->params.vals.step_count = 16;
     }
@@ -147,7 +149,7 @@ class DU_PLSR_Function : public DUINO_Function {
     Display.fill_rect(widget_save_->x() + 1, widget_save_->y() + 1, 5, 5, DUINO_SH1106::White);
 
     // draw quarter measure markers
-    for(uint8_t i = 0; i < 3; ++i)
+    for (uint8_t i = 0; i < 3; ++i)
     {
       Display.fill_rect(32 * i + 31, 62, 2, 2, DUINO_SH1106::White);
     }
@@ -174,7 +176,7 @@ class DU_PLSR_Function : public DUINO_Function {
     // output clock
     gt_out(GT2, Clock.state());
 
-    if(Clock.state())
+    if (Clock.state())
     {
       // increment step
       current_step++;
@@ -212,11 +214,11 @@ class DU_PLSR_Function : public DUINO_Function {
   void widget_measures_scroll_callback(int delta)
   {
     widget_save_->params.vals.step_count += delta;
-    if(widget_save_->params.vals.step_count < 1)
+    if (widget_save_->params.vals.step_count < 1)
     {
       widget_save_->params.vals.step_count = 1;
     }
-    else if(widget_save_->params.vals.step_count > 16)
+    else if (widget_save_->params.vals.step_count > 16)
     {
       widget_save_->params.vals.step_count = 16;
     }
@@ -278,7 +280,7 @@ class DU_PLSR_Function : public DUINO_Function {
     widgets_patterns_[bank]->display();
   }
 
- private:
+private:
   bool stochastic_trigger(uint8_t bank, uint8_t step)
   {
     const uint8_t dot = widget_save_->params.vals.pattern[16 * bank + step];
@@ -298,7 +300,7 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void display_step_count(int16_t x, int16_t y, uint16_t count, DUINO_SH1106::Color color)
   {
-    if(count > 9)
+    if (count > 9)
     {
       Display.draw_char(x, y, '0' + count / 10, color);
     }
@@ -307,7 +309,7 @@ class DU_PLSR_Function : public DUINO_Function {
 
   void display_clock(int16_t x, int16_t y, uint16_t bpm, DUINO_SH1106::Color color)
   {
-    if(bpm == 0)
+    if (bpm == 0)
     {
       Display.draw_text(x, y, "EXT", color);
     }

@@ -27,7 +27,8 @@
 #include <du-ino_dsp.h>
 #include <avr/pgmspace.h>
 
-enum GateMode {
+enum GateMode
+{
   GATE_NONE = 0,
   GATE_1SHT = 1,
   GATE_REPT = 2,
@@ -36,13 +37,15 @@ enum GateMode {
   GATE_EXT2 = 5
 };
 
-enum Intonation {
+enum Intonation
+{
   IN,
   IF,
   IS
 };
 
-static const unsigned char gate_mode_icons[] PROGMEM = {
+static const unsigned char gate_mode_icons[] PROGMEM =
+{
   0x00, 0x22, 0x14, 0x08, 0x14, 0x22, 0x00,  // off
   0x1C, 0x22, 0x5D, 0x5D, 0x5D, 0x22, 0x1C,  // single
   0x7C, 0x00, 0x7F, 0x00, 0x7F, 0x00, 0x7C,  // multi
@@ -79,8 +82,9 @@ void s_steps_click_callback();
 void s_gate_click_callback();
 void s_slew_click_callback();
 
-class DU_SEQ_Function : public DUINO_Function {
- public:
+class DU_SEQ_Function : public DUINO_Function
+{
+public:
   DU_SEQ_Function() : DUINO_Function(0b01111100) { }
   
   virtual void setup()
@@ -146,27 +150,27 @@ class DU_SEQ_Function : public DUINO_Function {
     widget_save_->load_params();
 
     // verify settings and export to function parameters
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
-      if(widget_save_->params.vals.stage_pitch[i] < 0)
+      if (widget_save_->params.vals.stage_pitch[i] < 0)
       {
         widget_save_->params.vals.stage_pitch[i] = 0;
       }
-      if(widget_save_->params.vals.stage_pitch[i] > 119)
+      if (widget_save_->params.vals.stage_pitch[i] > 119)
       {
         widget_save_->params.vals.stage_pitch[i] = 119;
       }
     }
 
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
-      if(widget_save_->params.vals.stage_steps[i] < 1 || widget_save_->params.vals.stage_steps[i] > 8)
+      if (widget_save_->params.vals.stage_steps[i] < 1 || widget_save_->params.vals.stage_steps[i] > 8)
       {
         widget_save_->params.vals.stage_steps[i] = 8;
       }
     }
     
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
       if(widget_save_->params.vals.stage_gate[i] < 0 || widget_save_->params.vals.stage_gate[i] > 5)
       {
@@ -174,22 +178,22 @@ class DU_SEQ_Function : public DUINO_Function {
       }
     }
 
-    if(widget_save_->params.vals.stage_count < 1 || widget_save_->params.vals.stage_count > 8)
+    if (widget_save_->params.vals.stage_count < 1 || widget_save_->params.vals.stage_count > 8)
     {
       widget_save_->params.vals.stage_count = 8;
     }
     
-    if(widget_save_->params.vals.slew_rate < 0 || widget_save_->params.vals.slew_rate > 16)
+    if (widget_save_->params.vals.slew_rate < 0 || widget_save_->params.vals.slew_rate > 16)
     {
       widget_save_->params.vals.slew_rate = 8;
     }
     slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
 
-    if(widget_save_->params.vals.clock_bpm < 0 || widget_save_->params.vals.clock_bpm > 300)
+    if (widget_save_->params.vals.clock_bpm < 0 || widget_save_->params.vals.clock_bpm > 300)
     {
       widget_save_->params.vals.clock_bpm = 0;
     }
-    if(widget_save_->params.vals.clock_bpm)
+    if (widget_save_->params.vals.clock_bpm)
     {
       Clock.set_bpm(widget_save_->params.vals.clock_bpm);
     }
@@ -198,14 +202,14 @@ class DU_SEQ_Function : public DUINO_Function {
       Clock.set_external();
     }
 
-    if(widget_save_->params.vals.gate_time < 0 || widget_save_->params.vals.gate_time > 16)
+    if (widget_save_->params.vals.gate_time < 0 || widget_save_->params.vals.gate_time > 16)
     {
       widget_save_->params.vals.gate_time = 8;
     }
     gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
 
     // draw global elements
-    for(uint8_t i = 0; i < 6; ++i)
+    for (uint8_t i = 0; i < 6; ++i)
     {
       Display.draw_vline(2 + i, 18 - i, i + 1, DUINO_SH1106::White);
     }
@@ -233,7 +237,7 @@ class DU_SEQ_Function : public DUINO_Function {
         DUINO_SH1106::White);
 
     // draw step elements
-    for(uint8_t i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
       // pitch
       display_note(widgets_pitch_->x(i), widgets_pitch_->y(i), widget_save_->params.vals.stage_pitch[i],
@@ -262,10 +266,10 @@ class DU_SEQ_Function : public DUINO_Function {
     cached_clock_gate = Clock.state();
     cached_retrigger = Clock.retrigger();
 
-    if(cached_retrigger)
+    if (cached_retrigger)
     {
       // drop gate at start of stage
-      if(!cached_step)
+      if (!cached_step)
       {
         gt_out(GT1, false);
       }
@@ -278,13 +282,13 @@ class DU_SEQ_Function : public DUINO_Function {
     }
 
     // set gate state
-    switch((GateMode)(widget_save_->params.vals.stage_gate[cached_stage]))
+    switch ((GateMode)(widget_save_->params.vals.stage_gate[cached_stage]))
     {
       case GATE_NONE:
         gate = false;
         break;
       case GATE_1SHT:
-        if(!cached_step)
+        if (!cached_step)
         {
           gate = partial_gate();
         }
@@ -293,7 +297,7 @@ class DU_SEQ_Function : public DUINO_Function {
         gate = partial_gate();
         break;
       case GATE_LONG:
-        if(cached_step == widget_save_->params.vals.stage_steps[cached_stage] - 1)
+        if (cached_step == widget_save_->params.vals.stage_steps[cached_stage] - 1)
         {
           gate = partial_gate();
         }
@@ -320,7 +324,7 @@ class DU_SEQ_Function : public DUINO_Function {
     gt_out(GT2, cached_clock_gate);
 
     // update reverse setting
-    if(!widget_save_->params.vals.diradd_mode)
+    if (!widget_save_->params.vals.diradd_mode)
     {
       reverse = gt_read(CI1);
     }
@@ -328,7 +332,7 @@ class DU_SEQ_Function : public DUINO_Function {
     widget_loop();
 
     // display reverse/address
-    if(widget_save_->params.vals.diradd_mode != last_diradd_mode
+    if (widget_save_->params.vals.diradd_mode != last_diradd_mode
         || (!widget_save_->params.vals.diradd_mode && reverse != last_reverse)
         || (widget_save_->params.vals.diradd_mode && stage != last_stage))
     {
@@ -339,15 +343,15 @@ class DU_SEQ_Function : public DUINO_Function {
     }
 
     // display gate
-    if(gate != last_gate || stage != last_stage)
+    if (gate != last_gate || stage != last_stage)
     {
       const uint8_t last_stage_cached = last_stage;
       last_gate = gate;
       last_stage = stage;
 
-      if(gate)
+      if (gate)
       {
-        if(stage != last_stage_cached)
+        if (stage != last_stage_cached)
         {
           display_gate(last_stage_cached, DUINO_SH1106::Black);
         }
@@ -365,11 +369,11 @@ class DU_SEQ_Function : public DUINO_Function {
 
   void clock_clock_callback()
   {
-    if(Clock.state())
+    if (Clock.state())
     {
       step++;
       step %= widget_save_->params.vals.stage_steps[stage];
-      if(!step)
+      if (!step)
       {
         stage = widget_save_->params.vals.diradd_mode ? address_to_stage() : (reverse ?
             (stage ? stage - 1 : widget_save_->params.vals.stage_count - 1) : stage + 1);
@@ -390,11 +394,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widget_count_scroll_callback(int delta)
   {
     widget_save_->params.vals.stage_count += delta;
-    if(widget_save_->params.vals.stage_count < 1)
+    if (widget_save_->params.vals.stage_count < 1)
     {
       widget_save_->params.vals.stage_count = 1;
     }
-    else if(widget_save_->params.vals.stage_count > 8)
+    else if (widget_save_->params.vals.stage_count > 8)
     {
       widget_save_->params.vals.stage_count = 8;
     }
@@ -408,11 +412,11 @@ class DU_SEQ_Function : public DUINO_Function {
 
   void widget_diradd_scroll_callback(int delta)
   {
-    if(delta < 0)
+    if (delta < 0)
     {
       widget_save_->params.vals.diradd_mode = 0;
     }
-    else if(delta > 0)
+    else if (delta > 0)
     {
       widget_save_->params.vals.diradd_mode = 1;
     }
@@ -427,11 +431,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widget_slew_scroll_callback(int delta)
   {
     widget_save_->params.vals.slew_rate += delta;
-    if(widget_save_->params.vals.slew_rate < 0)
+    if (widget_save_->params.vals.slew_rate < 0)
     {
       widget_save_->params.vals.slew_rate = 0;
     }
-    else if(widget_save_->params.vals.slew_rate > 16)
+    else if (widget_save_->params.vals.slew_rate > 16)
     {
       widget_save_->params.vals.slew_rate = 16;
     }
@@ -447,11 +451,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widget_gate_scroll_callback(int delta)
   {
     widget_save_->params.vals.gate_time += delta;
-    if(widget_save_->params.vals.gate_time < 0)
+    if (widget_save_->params.vals.gate_time < 0)
     {
       widget_save_->params.vals.gate_time = 0;
     }
-    else if(widget_save_->params.vals.gate_time > 16)
+    else if (widget_save_->params.vals.gate_time > 16)
     {
       widget_save_->params.vals.gate_time = 16;
     }
@@ -467,15 +471,15 @@ class DU_SEQ_Function : public DUINO_Function {
   void widget_clock_scroll_callback(int delta)
   {
     widget_save_->params.vals.clock_bpm += delta;
-    if(widget_save_->params.vals.clock_bpm < 0)
+    if (widget_save_->params.vals.clock_bpm < 0)
     {
       widget_save_->params.vals.clock_bpm = 0;
     }
-    else if(widget_save_->params.vals.clock_bpm > 300)
+    else if (widget_save_->params.vals.clock_bpm > 300)
     {
       widget_save_->params.vals.clock_bpm = 300;
     }
-    if(widget_save_->params.vals.clock_bpm)
+    if (widget_save_->params.vals.clock_bpm)
     {
       Clock.set_bpm(widget_save_->params.vals.clock_bpm);
     }
@@ -495,11 +499,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widgets_pitch_scroll_callback(uint8_t stage_selected, int delta)
   {
     widget_save_->params.vals.stage_pitch[stage_selected] += delta;
-    if(widget_save_->params.vals.stage_pitch[stage_selected] < 0)
+    if (widget_save_->params.vals.stage_pitch[stage_selected] < 0)
     {
       widget_save_->params.vals.stage_pitch[stage_selected] = 0;
     }
-    else if(widget_save_->params.vals.stage_pitch[stage_selected] > 119)
+    else if (widget_save_->params.vals.stage_pitch[stage_selected] > 119)
     {
       widget_save_->params.vals.stage_pitch[stage_selected] = 119;
     }
@@ -515,11 +519,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widgets_steps_scroll_callback(uint8_t stage_selected, int delta)
   {
     widget_save_->params.vals.stage_steps[stage_selected] += delta;
-    if(widget_save_->params.vals.stage_steps[stage_selected] < 1)
+    if (widget_save_->params.vals.stage_steps[stage_selected] < 1)
     {
       widget_save_->params.vals.stage_steps[stage_selected] = 1;
     }
-    else if(widget_save_->params.vals.stage_steps[stage_selected] > 8)
+    else if (widget_save_->params.vals.stage_steps[stage_selected] > 8)
     {
       widget_save_->params.vals.stage_steps[stage_selected] = 8;
     }
@@ -535,11 +539,11 @@ class DU_SEQ_Function : public DUINO_Function {
   void widgets_gate_scroll_callback(uint8_t stage_selected, int delta)
   {
     widget_save_->params.vals.stage_gate[stage_selected] += delta;
-    if(widget_save_->params.vals.stage_gate[stage_selected] < 0)
+    if (widget_save_->params.vals.stage_gate[stage_selected] < 0)
     {
       widget_save_->params.vals.stage_gate[stage_selected] = 0;
     }
-    else if(widget_save_->params.vals.stage_gate[stage_selected] > 5)
+    else if (widget_save_->params.vals.stage_gate[stage_selected] > 5)
     {
       widget_save_->params.vals.stage_gate[stage_selected] = 5;
     }
@@ -554,11 +558,11 @@ class DU_SEQ_Function : public DUINO_Function {
 
   void widgets_slew_scroll_callback(uint8_t stage_selected, int delta)
   {
-    if(delta < 0)
+    if (delta < 0)
     {
       widget_save_->params.vals.stage_slew &= ~(1 << stage_selected);
     }
-    else if(delta > 0)
+    else if (delta > 0)
     {
       widget_save_->params.vals.stage_slew |= (1 << stage_selected);
     }
@@ -603,18 +607,18 @@ class DU_SEQ_Function : public DUINO_Function {
   uint8_t address_to_stage()
   {
     int8_t addr_stage = (int8_t)(cv_read(CI1) * 1.6);
-    if(addr_stage < 0)
+    if (addr_stage < 0)
     {
       addr_stage = 0;
     }
-    else if(stage > widget_save_->params.vals.stage_count - 1)
+    else if (stage > widget_save_->params.vals.stage_count - 1)
     {
       addr_stage = widget_save_->params.vals.stage_count - 1;
     }
     return (uint8_t)addr_stage;
   }
 
- private:
+private:
   bool partial_gate()
   {
     return (Clock.get_external() && cached_clock_gate)
@@ -629,7 +633,7 @@ class DU_SEQ_Function : public DUINO_Function {
 
   float slew_hz(uint8_t slew_rate)
   {
-    if(slew_rate)
+    if (slew_rate)
     {
       return (float)(17 - slew_rate) / 4.0;
     }
@@ -646,12 +650,12 @@ class DU_SEQ_Function : public DUINO_Function {
 
   void display_gate_time(int16_t x, int16_t y, uint8_t time, DUINO_SH1106::Color color)
   {
-    if(time > 1)
+    if (time > 1)
     {
       Display.draw_hline(x, y + 1, time - 1, color);
     }
     Display.draw_vline(x + time - 1, y + 1, 3, color);
-    if(time < 16)
+    if (time < 16)
     {
       Display.draw_hline(x + time, y + 3, 16 - time, color);
     }
@@ -659,7 +663,7 @@ class DU_SEQ_Function : public DUINO_Function {
 
   void display_clock(int16_t x, int16_t y, uint16_t bpm, DUINO_SH1106::Color color)
   {
-    if(bpm == 0)
+    if (bpm == 0)
     {
       Display.draw_text(x, y, "EXT", color);
     }
@@ -680,7 +684,7 @@ class DU_SEQ_Function : public DUINO_Function {
     Display.draw_char(x + 2, y + 4, pgm_read_byte(&semitone_lt[note % 12]), color);
     
     // draw intonation symbol
-    switch(pgm_read_byte(&semitone_in[note % 12]))
+    switch (pgm_read_byte(&semitone_in[note % 12]))
     {
       case IF:
         Display.draw_vline(x + 9, y + 1, 5, color);
@@ -701,7 +705,7 @@ class DU_SEQ_Function : public DUINO_Function {
   {
     Display.fill_rect(x, y, 5, 7, DUINO_SH1106::Black);
 
-    if(widget_save_->params.vals.diradd_mode)
+    if (widget_save_->params.vals.diradd_mode)
     {
       Display.draw_char(30, 12, '1' + stage, DUINO_SH1106::White);
     }
@@ -716,7 +720,8 @@ class DU_SEQ_Function : public DUINO_Function {
     Display.fill_rect(16 * stage + 6, 26, 4, 4, color);
   }
 
-  struct ParameterValues {
+  struct ParameterValues
+  {
     int8_t stage_pitch[8];
     int8_t stage_steps[8];
     int8_t stage_gate[8];

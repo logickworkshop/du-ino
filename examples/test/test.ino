@@ -31,8 +31,9 @@ volatile unsigned long gt3_retrigger_time, gt4_retrigger_time;
 void gt3_isr();
 void gt4_isr();
 
-class DU_Test_Function : public DUINO_Function {
- public:
+class DU_Test_Function : public DUINO_Function
+{
+public:
   DU_Test_Function() : DUINO_Function(0b00001111) { }
   
   virtual void setup()
@@ -55,7 +56,7 @@ class DU_Test_Function : public DUINO_Function {
     Display.draw_hline(26, 20, 10, DUINO_SH1106::White);
     Display.draw_hline(26, 40, 10, DUINO_SH1106::White);
     Display.draw_hline(26, 60, 10, DUINO_SH1106::White);
-    for(uint8_t i = 0; i < 9; ++i)
+    for (uint8_t i = 0; i < 9; ++i)
     {
       Display.draw_hline(30, 22 + 2 * i, 6, DUINO_SH1106::White);
       Display.draw_hline(30, 42 + 2 * i, 6, DUINO_SH1106::White);
@@ -72,7 +73,7 @@ class DU_Test_Function : public DUINO_Function {
     Display.draw_text(96, 17, "GT", DUINO_SH1106::White);
     display_gtio_arrow();
     Display.draw_hline(96, 25, 24, DUINO_SH1106::White);
-    for(uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < 4; ++i)
     {
       Display.draw_char(96, 27 + 10 * i, 0x31 + i, DUINO_SH1106::White);
     }
@@ -82,14 +83,14 @@ class DU_Test_Function : public DUINO_Function {
 
   virtual void loop()
   {
-    if(gt3_retrigger)
+    if (gt3_retrigger)
     {
       if(millis() - gt3_retrigger_time > GT_INT_DISPLAY_TIME)
       {
         gt3_retrigger = false;
       }
     }
-    if(gt4_retrigger)
+    if (gt4_retrigger)
     {
       if(millis() - gt4_retrigger_time > GT_INT_DISPLAY_TIME)
       {
@@ -107,19 +108,19 @@ class DU_Test_Function : public DUINO_Function {
     cv_out(CO3, (float)calibration_value);
     cv_out(CO4, (float)calibration_value);
 
-    if(gt_io != gt_io_last)
+    if (gt_io != gt_io_last)
     {
       gt_io_last = gt_io;
       set_switch_config(gt_io ? 0b00000000 : 0b00001111);
     }
 
-    if(gt_io)
+    if (gt_io)
     {
       gt_out_multi(0x0F, gt);
     }
     else
     {
-      if(gt_read(GT1))
+      if (gt_read(GT1))
       {
         gt_state |= 1U;
       }
@@ -127,7 +128,7 @@ class DU_Test_Function : public DUINO_Function {
       {
         gt_state &= ~1U;
       }
-      if(gt_read(GT2))
+      if (gt_read(GT2))
       {
         gt_state |= 2U;
       }
@@ -139,31 +140,31 @@ class DU_Test_Function : public DUINO_Function {
 
     // handle encoder button press
     DUINO_Encoder::Button b = Encoder.get_button();
-    if(b == DUINO_Encoder::DoubleClicked)
+    if (b == DUINO_Encoder::DoubleClicked)
     {
       gt_io = !gt_io;
       display_gtio_arrow();
     }
-    else if(b == DUINO_Encoder::Held)
+    else if (b == DUINO_Encoder::Held)
     {
       gt = true;
     }
-    else if(b == DUINO_Encoder::Released)
+    else if (b == DUINO_Encoder::Released)
     {
       gt = false;
     }
 
     // handle encoder spin
     calibration_value += Encoder.get_value();
-    if(calibration_value > 10)
+    if (calibration_value > 10)
     {
       calibration_value = 10;
     }
-    if(calibration_value < -10)
+    if (calibration_value < -10)
     {
       calibration_value = -10;
     }
-    if(calibration_value != calibration_value_last)
+    if (calibration_value != calibration_value_last)
     {
       calibration_value_last = calibration_value;
       display_calibration_arrow();
@@ -179,7 +180,7 @@ class DU_Test_Function : public DUINO_Function {
     Display.display();
   }
 
- private:
+private:
   void display_calibration_arrow()
   {
     Display.fill_rect(37, 17, 5, 47, DUINO_SH1106::Black);
@@ -195,7 +196,7 @@ class DU_Test_Function : public DUINO_Function {
   void display_cv_in()
   {
     Display.fill_rect(48, 27, 35, 37, DUINO_SH1106::Black);
-    for(uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < 4; ++i)
     {
       char value[7];
       dtostrf(cv[i], 6, 2, value);
@@ -209,13 +210,13 @@ class DU_Test_Function : public DUINO_Function {
     Display.fill_rect(120, 47, 5, 17, DUINO_SH1106::Black);
 
     // input & output for GT1 - GT4
-    for(uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < 4; ++i)
     {
-      if((i == 2 && gt3_retrigger) || (i == 3) && gt4_retrigger)
+      if ((i == 2 && gt3_retrigger) || (i == 3) && gt4_retrigger)
       {
         Display.draw_char(104, 27 + 10 * i, 0x0F, DUINO_SH1106::White);
       }
-      else if((gt_io && gt) || (!gt_io && (gt_state & (1U << i))))
+      else if ((gt_io && gt) || (!gt_io && (gt_state & (1U << i))))
       {
         Display.draw_char(104, 27 + 10 * i, 0x04, DUINO_SH1106::White);
       }
@@ -231,7 +232,7 @@ DU_Test_Function * function;
 
 void gt3_isr()
 {
-  if(function->gt_read_debounce(DUINO_Function::GT3))
+  if (function->gt_read_debounce(DUINO_Function::GT3))
   {
     gt_state |= 4U;
     gt3_retrigger = true;
@@ -245,7 +246,7 @@ void gt3_isr()
 
 void gt4_isr()
 {
-  if(function->gt_read_debounce(DUINO_Function::GT4))
+  if (function->gt_read_debounce(DUINO_Function::GT4))
   {
     gt_state |= 8U;
     gt4_retrigger = true;

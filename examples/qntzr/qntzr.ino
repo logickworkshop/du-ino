@@ -25,7 +25,8 @@
 #include <du-ino_scales.h>
 #include <avr/pgmspace.h>
 
-static const unsigned char icons[] PROGMEM = {
+static const unsigned char icons[] PROGMEM =
+{
   0x60, 0x78, 0x78, 0x78, 0x78, 0x78, 0x60, // trigger mode off
   0x60, 0x63, 0x0f, 0x0f, 0x0f, 0x63, 0x60  // trigger mode on
 };
@@ -39,8 +40,9 @@ void key_scroll_callback(int delta);
 void scale_scroll_callback(int delta);
 void notes_click_callback(uint8_t selected);
 
-class DU_Quantizer_Function : public DUINO_Function {
- public:
+class DU_Quantizer_Function : public DUINO_Function
+{
+public:
   DU_Quantizer_Function() : DUINO_Function(0b00001100) { }
 
   virtual void setup()
@@ -72,7 +74,7 @@ class DU_Quantizer_Function : public DUINO_Function {
     widgets_notes_[9] = new DUINO_DisplayWidget(96, 54, 7, 7, DUINO_Widget::DottedBox);
     widgets_notes_[10] = new DUINO_DisplayWidget(105, 29, 7, 7, DUINO_Widget::DottedBox);
     widgets_notes_[11] = new DUINO_DisplayWidget(114, 54, 7, 7, DUINO_Widget::DottedBox);
-    for(uint8_t i = 0; i < 12; ++i)
+    for (uint8_t i = 0; i < 12; ++i)
     {
       container_notes_->attach_child(widgets_notes_[i], i);
     }
@@ -117,9 +119,9 @@ class DU_Quantizer_Function : public DUINO_Function {
 
   virtual void loop()
   {
-    if(!trigger_mode || triggered)
+    if (!trigger_mode || triggered)
     {
-      if(scale == 0)
+      if (scale == 0)
       {
         cv_out(CO1, 0.0);
         output_octave = 0;
@@ -133,7 +135,7 @@ class DU_Quantizer_Function : public DUINO_Function {
         // find a lower bound
         int below_octave = (int)input - 1;
         uint8_t below_note = 0;
-        while(!(scale & (1 << below_note)))
+        while (!(scale & (1 << below_note)))
         {
           below_note++;
         }
@@ -141,16 +143,16 @@ class DU_Quantizer_Function : public DUINO_Function {
         // find closest lower and upper values
         int above_octave = below_octave, octave = below_octave;
         uint8_t above_note = below_note, note = below_note;
-        while(note_cv(above_octave, key, above_note) < input)
+        while (note_cv(above_octave, key, above_note) < input)
         {
           note++;
-          if(note > 11)
+          if (note > 11)
           {
             note = 0;
             octave++;
           }
 
-          if(scale & (1 << note))
+          if (scale & (1 << note))
           {
             below_octave = above_octave;
             below_note = above_note;
@@ -162,7 +164,7 @@ class DU_Quantizer_Function : public DUINO_Function {
         // output the nearer of the two values
         float below = note_cv(below_octave, key, below_note);
         float above = note_cv(above_octave, key, above_note);
-        if(input - below < above - input)
+        if (input - below < above - input)
         {
           cv_out(CO1, below);
           octave = below_octave;
@@ -176,7 +178,7 @@ class DU_Quantizer_Function : public DUINO_Function {
         }
 
         // send trigger and update display note if note has changed
-        if(octave != output_octave || note != output_note)
+        if (octave != output_octave || note != output_note)
         {
           gt_out(GT1, true, true);
           output_octave = octave;
@@ -191,7 +193,7 @@ class DU_Quantizer_Function : public DUINO_Function {
     widget_loop();
 
     // display current note
-    if(output_note != current_displayed_note)
+    if (output_note != current_displayed_note)
     {
       invert_note(current_displayed_note);
       invert_note(output_note);
@@ -220,11 +222,11 @@ class DU_Quantizer_Function : public DUINO_Function {
   void widget_scale_scroll_callback(int delta)
   {
     scale_id += delta;
-    if(scale_id < -1)
+    if (scale_id < -1)
     {
       scale_id = -1;
     }
-    else if(scale_id >= N_SCALES)
+    else if (scale_id >= N_SCALES)
     {
       scale_id = N_SCALES - 1;
     }
@@ -241,7 +243,7 @@ class DU_Quantizer_Function : public DUINO_Function {
     triggered = true;
   }
 
- private:
+private:
   float note_cv(int octave, uint8_t key, uint8_t note)
   {
     return (float)octave + (float)key / 12.0 + (float)note / 12.0;
@@ -303,7 +305,7 @@ class DU_Quantizer_Function : public DUINO_Function {
 
     bool sharp = false;
     unsigned char letter;
-    switch(key)
+    switch (key)
     {
       case 1: // C#
         sharp = true;
@@ -340,7 +342,7 @@ class DU_Quantizer_Function : public DUINO_Function {
 
     Display.draw_char(widget_key_->x() + 1, widget_key_->y() + 1, letter,
         widget_key_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
-    if(sharp)
+    if (sharp)
     {
       Display.draw_char(widget_key_->x() + 7, widget_key_->y() + 1, '#',
           widget_key_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
@@ -353,9 +355,9 @@ class DU_Quantizer_Function : public DUINO_Function {
   {
     Display.fill_rect(widget_scale_->x() + 1, widget_scale_->y() + 1, 17, 7,
         widget_scale_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
-    if(scale_id > -1)
+    if (scale_id > -1)
     {
-      for(uint8_t i = 0; i < 3; ++i)
+      for (uint8_t i = 0; i < 3; ++i)
       {
         Display.draw_char(widget_scale_->x() + 1 + i * 6, widget_scale_->y() + 1,
             pgm_read_byte(&scales[scale_id * 5 + 2 + i]),
@@ -363,10 +365,10 @@ class DU_Quantizer_Function : public DUINO_Function {
       }
     }
 
-    for(uint8_t note = 0; note < 12; ++note)
+    for (uint8_t note = 0; note < 12; ++note)
     {  
       bool white = scale & (1 << note);
-      if(note == current_displayed_note)
+      if (note == current_displayed_note)
       {
         white = !white;
       }
@@ -380,7 +382,7 @@ class DU_Quantizer_Function : public DUINO_Function {
   void invert_note(uint8_t note)
   {
     bool refresh_lower = false;
-    switch(note)
+    switch (note)
     {
       case 0:
         Display.fill_rect(2, 12, 9, 50, DUINO_SH1106::Inverse);
