@@ -18,6 +18,30 @@
  *
  * DU-INO DU-SEQ Emulator
  * Aaron Mavrinac <aaron@logick.ca>
+ *
+ * JACK    FUNCTION
+ * ----    --------
+ * GT1 O - gate out
+ * GT2 O - clock out
+ * GT3 I - clock in
+ * GT4 I - reset in
+ * CI1   - reverse/address in
+ * CI2   - half clock in
+ * CI3   - external gate 1 in
+ * CI4   - external gate 2 in
+ * OFFST -
+ * CO1   - pitch CV out
+ * CO2   -
+ * CO3   -
+ * CO4   -
+ * FNCTN -
+ *
+ * SWITCH CONFIGURATION
+ * --------------------
+ * SG2    [_][_]    SG1
+ * SG4    [^][^]    SG3
+ * SC2    [^][^]    SC1
+ * SC4    [_][^]    SC3
  */
 
 #include <du-ino_function.h>
@@ -307,10 +331,10 @@ public:
         }
         break;
       case GATE_EXT1:
-        gate = gt_read(CI2);
+        gate = gt_read(CI3);
         break;
       case GATE_EXT2:
-        gate = gt_read(CI3);
+        gate = gt_read(CI4);
         break;
     }
 
@@ -371,6 +395,7 @@ public:
   {
     if (Clock.state())
     {
+      // TODO: implement half clocking
       step++;
       step %= widget_save_->params.vals.stage_steps[stage];
       if (!step)

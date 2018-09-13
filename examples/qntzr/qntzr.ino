@@ -18,6 +18,30 @@
  *
  * DU-INO Quantizer Function
  * Aaron Mavrinac <aaron@logick.ca>
+ *
+ * JACK    FUNCTION
+ * ----    --------
+ * GT1 O - note change trigger out
+ * GT2 O -
+ * GT3 I - note change trigger in
+ * GT4 I -
+ * CI1   - CV in
+ * CI2   -
+ * CI3   -
+ * CI4   -
+ * OFFST -
+ * CO1   - quantized CV out
+ * CO2   -
+ * CO3   -
+ * CO4   -
+ * FNCTN -
+ *
+ * SWITCH CONFIGURATION
+ * --------------------
+ * SG2    [_][_]    SG1
+ * SG4    [^][^]    SG3
+ * SC2    [_][_]    SC1
+ * SC4    [_][_]    SC3
  */
 
 #include <du-ino_function.h>

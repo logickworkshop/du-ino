@@ -18,6 +18,30 @@
  *
  * DU-INO PLSR Stochastic Drum Sequencer Function
  * Aaron Mavrinac <aaron@logick.ca>
+ *
+ * JACK    FUNCTION
+ * ----    --------
+ * GT1 O -
+ * GT2 O - clock out
+ * GT3 I - clock in
+ * GT4 I - reset in
+ * CI1   - hit probability 1 (0V - 5V)
+ * CI2   - hit probability 2 (0V - 5V)
+ * CI3   - hit probability 3 (0V - 5V)
+ * CI4   - hit probability 4 (0V - 5V)
+ * OFFST -
+ * CO1   - pattern 1 trigger out
+ * CO2   - pattern 2 trigger out
+ * CO3   - pattern 3 trigger out
+ * CO4   - pattern 4 trigger out
+ * FNCTN -
+ *
+ * SWITCH CONFIGURATION
+ * --------------------
+ * SG2    [_][_]    SG1
+ * SG4    [^][^]    SG3
+ * SC2    [_][_]    SC1
+ * SC4    [_][_]    SC3
  */
 
 #include <du-ino_function.h>

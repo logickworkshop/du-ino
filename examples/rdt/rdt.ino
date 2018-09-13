@@ -25,9 +25,9 @@
  * GT2 O - lower LFSR out
  * GT3 I - clock in
  * GT4 I - 1s in
- * CI1   - pattern loop
- * CI2   - D in
- * CI3   - T in
+ * CI1   - pattern loop (use knob to toggle)
+ * CI2   - D in (set knob to -10V)
+ * CI3   - T in (set knob to -10V)
  * CI4   - 
  * OFFST -
  * CO1   - clock out
@@ -35,6 +35,13 @@
  * CO3   - D inverted out
  * CO4   - T out
  * FNCTN -
+ *
+ * SWITCH CONFIGURATION
+ * --------------------
+ * SG2    [_][_]    SG1
+ * SG4    [^][^]    SG3
+ * SC2    [_][_]    SC1
+ * SC4    [_][_]    SC3
  */
 
 #include <du-ino_function.h>

@@ -18,6 +18,30 @@
  *
  * DU-INO ADSR Envelope & VCA Function
  * Aaron Mavrinac <aaron@logick.ca>
+ *
+ * JACK    FUNCTION
+ * ----    --------
+ * GT1 O - 
+ * GT2 O - 
+ * GT3 I - gate in
+ * GT4 I - toggle envelope trigger in
+ * CI1   -
+ * CI2   -
+ * CI3   - VCA audio in
+ * CI4   -
+ * OFFST -
+ * CO1   - 10V envelope out
+ * CO2   -
+ * CO3   - 5V envelope out
+ * CO4   -
+ * FNCTN - VCA audio out
+ *
+ * SWITCH CONFIGURATION
+ * --------------------
+ * SG2    [_][_]    SG1
+ * SG4    [^][^]    SG3
+ * SC2    [^][^]    SC1
+ * SC4    [^][_]    SC3
  */
 
 #include <du-ino_function.h>
