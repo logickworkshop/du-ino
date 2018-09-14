@@ -450,6 +450,7 @@ public:
     {
       widget_save_->params.vals.lfsr[half] = 8;
     }
+    widget_save_->mark_changed();
     Display.draw_char(widgets_lfsr_->x(half) + 4, widgets_lfsr_->y(half) + 3,
         '0' + widget_save_->params.vals.lfsr[half], DUINO_SH1106::White);
     draw_lfsr_arrow(24 + (half * 40) + ((widget_save_->params.vals.lfsr[half] - 1) * 5), 29, DUINO_SH1106::White);
