@@ -119,7 +119,7 @@ DUINO_DisplayWidget::DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, ui
 
 void DUINO_DisplayWidget::display()
 {
-  Display.display(x_, x_ + width_, y_ / 8, (y_ + width_) / 8);
+  Display.display(x_, x_ + width_, y_ / 8, (y_ + height_) / 8);
 }
 
 void DUINO_DisplayWidget::invert(bool update_display)
