@@ -324,6 +324,11 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, Color color)
   }
 }
 
+void DUINO_SH1106::draw_line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color)
+{
+  // TODO: draw Bresenham line
+}
+
 void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, Color color)
 {
   register int8_t x = 0;

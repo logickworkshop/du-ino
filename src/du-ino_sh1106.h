@@ -81,6 +81,7 @@ public:
   void draw_pixel(int16_t x, int16_t y, Color color);
   void draw_hline(int16_t x, int16_t y, int16_t w, Color color);
   void draw_vline(int16_t x, int16_t y, int16_t h, Color color);
+  void draw_line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color);
   void draw_circle(int16_t x, int16_t y, int16_t r, Color color);
   void fill_circle(int16_t x, int16_t y, int16_t r, Color color);
   void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, Color color);
