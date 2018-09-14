@@ -393,6 +393,7 @@ public:
         widget_save_->mark_changed();
         widget_save_->display();
         display_plr(p);
+        display_loop();
         display_envelope();
       }
     }
