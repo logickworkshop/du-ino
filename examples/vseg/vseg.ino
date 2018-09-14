@@ -170,6 +170,7 @@ public:
     sanitize_rate();
     sanitize_loop();
     sanitize_repeat();
+    cached_params_ = widget_save_->params.vals;
 
     // draw title
     Display.draw_du_logo_sm(0, 0, DUINO_SH1106::White);
@@ -207,6 +208,7 @@ public:
       gate_time_ = 0;
       release_time_ = 0;
       retrigger_ = false;
+      cached_params_ = widget_save_->params.vals;
     }
 
     if (gate_time_)
@@ -215,10 +217,10 @@ public:
       {
         const unsigned long elapsed = millis() - gate_time_;
 
-        bool loop = widget_save_->params.vals.loop > -1;
-        const int8_t loop_start = widget_save_->params.vals.loop % 3;
-        bool loop_reverse = widget_save_->params.vals.loop > 2;
-        unsigned long pointer = rate_to_ms(1);
+        bool loop = cached_params_.loop > -1;
+        const int8_t loop_start = cached_params_.loop % 3;
+        bool loop_reverse = cached_params_.loop > 2;
+        unsigned long pointer = rate_to_ms(1, true);
         uint8_t p = 0;
         bool reverse = false;
         int8_t repeat_count = 0;
@@ -238,7 +240,7 @@ public:
           if (p == 3)
           {
             // if we've hit point 3 the repeat count times...
-            if (widget_save_->params.vals.repeat && ++repeat_count == widget_save_->params.vals.repeat)
+            if (cached_params_.repeat && ++repeat_count == cached_params_.repeat)
             {
               // stop looping
               loop_reverse = loop = false;
@@ -271,26 +273,26 @@ public:
           if (reverse)
           {
             // if we're pointed backward, add the current point's rate
-            pointer += rate_to_ms(p);
+            pointer += rate_to_ms(p, true);
           }
           else
           {
             // if we're pointed forward, add the next point's rate
-            pointer += rate_to_ms(p + 1);
+            pointer += rate_to_ms(p + 1, true);
           }
         }
 
         if (pointer < elapsed)
         {
           // done looping, sustain at point 3
-          cv_current_ = level_to_cv(3);
+          cv_current_ = level_to_cv(3, true);
         }
         else
         {
           // linearly interpolate between current and next point
-          const float cv_start = level_to_cv(p);
-          const float cv_end = level_to_cv(reverse ? p - 1 : p + 1);
-          const float remaining = (float)(pointer - elapsed) / (float)rate_to_ms(reverse ? p : p + 1);
+          const float cv_start = level_to_cv(p, true);
+          const float cv_end = level_to_cv(reverse ? p - 1 : p + 1, true);
+          const float remaining = (float)(pointer - elapsed) / (float)rate_to_ms(reverse ? p : p + 1, true);
           cv_current_ = cv_end + (cv_start - cv_end) * remaining;
         }
       }
@@ -299,10 +301,10 @@ public:
         if (release_time_)
         {
           const uint16_t elapsed = millis() - release_time_;
-          if(elapsed < rate_to_ms(4) * ENV_RELEASE_HOLD)
+          if(elapsed < rate_to_ms(4, true) * ENV_RELEASE_HOLD)
           {
             // release
-            cv_current_ = exp(ENV_RELEASE_COEFF * ((float)elapsed / (float)rate_to_ms(4))) * cv_released_;
+            cv_current_ = exp(ENV_RELEASE_COEFF * ((float)elapsed / (float)rate_to_ms(4, true))) * cv_released_;
           }
           else
           {
@@ -473,24 +475,26 @@ private:
     }
   }
 
-  float level_to_cv(uint8_t p)
+  float level_to_cv(uint8_t p, bool use_cached = false)
   {
     if (p == 4)
     {
       return 0.0;
     }
 
-    return (float)widget_save_->params.vals.level[p] / 9.9;
+    const int8_t level = (use_cached ? cached_params_ : widget_save_->params.vals).level[p];
+    return (float)level / 9.9;
   }
 
-  uint16_t rate_to_ms(uint8_t p)
+  uint16_t rate_to_ms(uint8_t p, bool use_cached = false)
   {
     if (p == 0)
     {
       return 0;
     }
 
-    return (uint16_t)pgm_read_word(&rate_lut[widget_save_->params.vals.rate[p - 1]]);
+    const int8_t rate = (use_cached ? cached_params_ : widget_save_->params.vals).rate[p - 1];
+    return (uint16_t)pgm_read_word(&rate_lut[rate]);
   }
 
   uint8_t level_to_y(uint8_t p)
@@ -671,6 +675,8 @@ private:
     int8_t loop;      // -1 = off, loop % 3 = loop start, loop > 2 = loop back and forth
     int8_t repeat;    // 0 = continuous, 1 - 7 = finite repeats
   };
+
+  ParameterValues cached_params_;
 
   DUINO_WidgetContainer<3> * container_outer_;
   DUINO_WidgetContainer<2> * container_loop_repeat_;
