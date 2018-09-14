@@ -49,6 +49,9 @@
 #include <du-ino_save.h>
 #include <avr/pgmspace.h>
 
+#define ENV_RELEASE_COEFF     -2.0
+#define ENV_RELEASE_HOLD      3
+
 static const unsigned char icons[] PROGMEM =
 {
   0x3e, 0x63, 0x5d, 0x5d, 0x63, 0x3e, 0x00,  // 0
@@ -134,6 +137,8 @@ public:
   {
     // initialize values
     gate_ = retrigger_ = false;
+    gate_time_ = release_time_ = 0;
+    cv_current_ = cv_released_ = 0.0;
     last_gate_ = false;
 
     // build widget hierarchy
@@ -193,7 +198,129 @@ public:
 
   virtual void loop()
   {
-    // TODO: envelope function
+    if (retrigger_)
+    {
+      gate_time_ = 0;
+      release_time_ = 0;
+      retrigger_ = false;
+    }
+
+    if (gate_time_)
+    {
+      if (gate_)
+      {
+        const unsigned long elapsed = millis() - gate_time_;
+
+        bool loop = widget_save_->params.vals.loop > -1;
+        const int8_t loop_start = widget_save_->params.vals.loop % 3;
+        bool loop_reverse = widget_save_->params.vals.loop > 2;
+        unsigned long pointer = rate_to_ms(1);
+        uint8_t p = 0;
+        bool reverse = false;
+        int8_t repeat_count = 0;
+
+        while (pointer < elapsed)
+        {
+          if (reverse)
+          {
+            p--;
+          }
+          else
+          {
+            p++;
+          }
+
+          // handle point 3
+          if (p == 3)
+          {
+            // if we've hit point 3 the repeat count times...
+            if (widget_save_->params.vals.repeat && ++repeat_count == widget_save_->params.vals.repeat)
+            {
+              // stop looping
+              loop_reverse = loop = false;
+            }
+
+            if (loop_reverse)
+            {
+              reverse = true;
+            }
+            else
+            {
+              if (loop)
+              {
+                p = loop_start;
+              }
+              else
+              {
+                break;
+              }
+            }
+          }
+
+          // clear reverse flag at start point
+          if (p == loop_start && reverse)
+          {
+            reverse = false;
+          }
+
+          // move the pointer
+          if (reverse)
+          {
+            // if we're pointed backward, add the current point's rate
+            pointer += rate_to_ms(p);
+          }
+          else
+          {
+            // if we're pointed forward, add the next point's rate
+            pointer += rate_to_ms(p + 1);
+          }
+        }
+
+        if (pointer < elapsed)
+        {
+          // done looping, sustain at point 3
+          cv_current_ = level_to_cv(3);
+        }
+        else
+        {
+          // linearly interpolate between current and next point
+          const float cv_start = level_to_cv(p);
+          const float cv_end = level_to_cv(reverse ? p - 1 : p + 1);
+          const float remaining = (float)(pointer - elapsed) / (float)rate_to_ms(reverse ? p : p + 1);
+          cv_current_ = cv_end + (cv_start - cv_end) * remaining;
+        }
+      }
+      else
+      {
+        if (release_time_)
+        {
+          const uint16_t elapsed = millis() - release_time_;
+          if(elapsed < rate_to_ms(4) * ENV_RELEASE_HOLD)
+          {
+            // release
+            cv_current_ = exp(ENV_RELEASE_COEFF * ((float)elapsed / (float)rate_to_ms(4))) * cv_released_;
+          }
+          else
+          {
+            cv_current_ = 0.0;
+            release_time_ = 0;
+            gate_time_ = 0;
+          }
+        }
+        else
+        {
+          release_time_ = millis();
+          cv_released_ = cv_current_;
+        }
+      }
+
+      cv_out(CO1, cv_current_);
+      cv_out(CO3, cv_current_ / 2.0);
+    }
+    else if (gate_)
+    {
+      gate_time_ = millis();
+    }
 
     widget_loop();
 
@@ -245,6 +372,8 @@ public:
 
   void widgets_points_scroll_callback(uint8_t selected, int delta)
   {
+    // FIXME: don't edit the save params directly - swap them in between gates
+
     const uint8_t p = (selected + 1) / 2;
     const uint8_t parameter = selected & 1;
 
@@ -546,6 +675,8 @@ private:
   DU_VSEG_PointWidget * widgets_points_[8];
 
   volatile bool gate_, retrigger_;
+  unsigned long gate_time_, release_time_;
+  float cv_current_, cv_released_;
   bool last_gate_;
 };
 
