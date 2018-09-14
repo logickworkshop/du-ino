@@ -326,7 +326,83 @@ void DUINO_SH1106::draw_vline(int16_t x, int16_t y, int16_t h, Color color)
 
 void DUINO_SH1106::draw_line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color)
 {
-  // TODO: draw Bresenham line
+  if(x1 == x2)
+  {
+    if(y1 > y2)
+    {
+      const int16_t t = y2;
+      y2 = y1;
+      y1 = t;
+    }
+    draw_vline(x1, y1, y2 - y1 + 1, color);
+  }
+  else if(y1 == y2)
+  {
+    if(x1 > x2)
+    {
+      const int16_t t = x2;
+      x2 = x1;
+      x1 = t;
+    }
+    draw_hline(x1, y1, x2 - x1 + 1, color);
+  }
+  else
+  {
+    int16_t steep = abs(y2 - y1) > abs(x2 - x1);
+
+    if (steep)
+    {
+      const int16_t t1 = y1;
+      const int16_t t2 = y2;
+      y1 = x1;
+      y2 = x2;
+      x1 = t1;
+      x2 = t2;
+    }
+
+    if (x1 > x2)
+    {
+      const int16_t tx = x2;
+      const int16_t ty = y2;
+      x2 = x1;
+      y2 = y1;
+      x1 = tx;
+      y1 = ty;
+    }
+
+    const int16_t dx = x2 - x1;
+    const int16_t dy = abs(y2 - y1);
+
+    int16_t err = dx / 2;
+    int16_t ystep;
+
+    if (y1 < y2)
+    {
+      ystep = 1;
+    }
+    else
+    {
+      ystep = -1;
+    }
+
+    for (; x1 <= x2; x1++)
+    {
+      if (steep)
+      {
+        draw_pixel(y1, x1, color);
+      }
+      else
+      {
+        draw_pixel(x1, y1, color);
+      }
+      err -= dy;
+      if (err < 0)
+      {
+        y1 += ystep;
+        err += dx;
+      }
+    }
+  }
 }
 
 void DUINO_SH1106::draw_circle(int16_t xc, int16_t yc, int16_t r, Color color)
