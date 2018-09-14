@@ -55,7 +55,8 @@ static const unsigned char icons[] PROGMEM =
   0x3e, 0x7f, 0x7b, 0x41, 0x7f, 0x3e, 0x00,  // 1
   0x3e, 0x5b, 0x4d, 0x55, 0x5b, 0x3e, 0x00,  // 2
   0x3e, 0x6b, 0x5d, 0x55, 0x6b, 0x3e, 0x00,  // 3
-  0x3e, 0x73, 0x75, 0x77, 0x41, 0x3e, 0x00   // 4
+  0x3e, 0x73, 0x75, 0x77, 0x41, 0x3e, 0x00,  // 4
+  0x1c, 0x22, 0x41, 0x41, 0x41, 0x22, 0x1c   // jack 
 };
 
 static const uint16_t rate_lut[] PROGMEM =
@@ -133,12 +134,13 @@ public:
   {
     // initialize values
     gate_ = retrigger_ = false;
+    last_gate_ = false;
 
     // build widget hierarchy
     widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
     widget_loop_ = new DUINO_DisplayWidget(0, 12, 96, 7, DUINO_Widget::Corners);
     widget_loop_->attach_scroll_callback(loop_scroll_callback);
-    widget_repeat_ = new DUINO_DisplayWidget(115, 11, 13, 9, DUINO_Widget::Full);
+    widget_repeat_ = new DUINO_DisplayWidget(102, 11, 13, 9, DUINO_Widget::Full);
     widget_repeat_->attach_scroll_callback(repeat_scroll_callback);
     container_loop_repeat_ = new DUINO_WidgetContainer<2>(DUINO_Widget::Click);
     container_loop_repeat_->attach_child(widget_loop_, 0);
@@ -172,6 +174,7 @@ public:
 
     // draw fixed elements
     Display.draw_char(widget_repeat_->x() + 1, widget_repeat_->y() + 1, 'x', DUINO_SH1106::White);
+    Display.draw_bitmap_7(121, 12, icons, 5, DUINO_SH1106::White);
 
     // draw parameters
     display_loop(false);
@@ -193,6 +196,14 @@ public:
     // TODO: envelope function
 
     widget_loop();
+
+    // display gate
+    if (gate_ != last_gate_)
+    {
+      last_gate_ = gate_;
+      Display.fill_rect(123, 14, 3, 3, gate_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
+      Display.display(123, 125, 1, 2);
+    }
   }
 
   void gate_callback()
@@ -535,6 +546,7 @@ private:
   DU_VSEG_PointWidget * widgets_points_[8];
 
   volatile bool gate_, retrigger_;
+  bool last_gate_;
 };
 
 DU_VSEG_Function * function;
