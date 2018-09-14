@@ -101,7 +101,7 @@ public:
         invert_callback_(p_);
       }
     }
-    
+
     inverted_ = !inverted_;
 
     if (update_display)
@@ -488,7 +488,27 @@ private:
       else if (p == 3)
       {
         Display.draw_hline(x + 6, y + 3, 2, DUINO_SH1106::White);
-        // TODO: draw exponential decay to 4
+
+        // draw exponential decay
+        uint8_t xs = x + 8;
+        uint8_t ys = y + 3;
+        const uint8_t x4 = rate_to_x(4);
+        const uint8_t yh = 57 - y;
+        const uint8_t xw = x4 - xs;
+        if (xs == x4)
+        {
+          Display.draw_vline(xs, ys, yh + 1, DUINO_SH1106::White);
+        }
+        else
+        {
+          while (xs < x4)
+          {
+            uint8_t ye = 60 - (uint8_t)((float)yh * exp(-(float)((10 + (128 / xw)) * (xs - x - 7)) / (float)(x4)));
+            Display.draw_line(xs, ys, xs + 1, ye, DUINO_SH1106::White);
+            xs++;
+            ys = ye;
+          }
+        }
       }
     }
 
