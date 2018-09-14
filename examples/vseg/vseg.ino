@@ -71,7 +71,58 @@ void gate_isr();
 
 void loop_scroll_callback(int delta);
 void repeat_scroll_callback(int delta);
-// TODO: declare points callbacks
+void points_scroll_callback(uint8_t selected, int delta);
+void points_invert_callback(uint8_t p);
+
+class DU_VSEG_PointWidget : public DUINO_Widget
+{
+public:
+  DU_VSEG_PointWidget(uint8_t p, uint8_t parameter)
+    : p_(p)
+    , x_(parameter ? 89 : 64)
+    , w_(parameter ? 29 : 11)
+    , inverted_(false) { }
+
+  virtual void invert(bool update_display = true)
+  {
+    // invert underline
+    Display.draw_hline(x_, 8, w_, DUINO_SH1106::Inverse);
+
+    // blank area
+    Display.fill_rect(45, 0, 73, 7, DUINO_SH1106::Black);
+
+    if (!inverted_)
+    {
+      // display point number
+      Display.draw_char(45, 0, '0' + p_, DUINO_SH1106::White);
+
+      if(invert_callback_)
+      {
+        invert_callback_(p_);
+      }
+    }
+    
+    inverted_ = !inverted_;
+
+    if (update_display)
+    {
+      Display.display(45, 117, 0, 1);
+    }
+  }
+
+  virtual bool inverted() const { return inverted_; }
+
+  void attach_invert_callback(void (*callback)())
+  {
+    invert_callback_ = callback;
+  }
+
+protected:
+  void (*invert_callback_)(uint8_t);
+
+  const uint8_t p_, x_, w_;
+  bool inverted_;
+};
 
 class DU_VSEG_Function : public DUINO_Function
 {
@@ -89,13 +140,17 @@ public:
     widget_loop_->attach_scroll_callback(loop_scroll_callback);
     widget_repeat_ = new DUINO_DisplayWidget(115, 11, 13, 9, DUINO_Widget::Full);
     widget_repeat_->attach_scroll_callback(repeat_scroll_callback);
-    // TODO: widgets points
-    // TODO: attach points callbacks
     container_loop_repeat_ = new DUINO_WidgetContainer<2>(DUINO_Widget::Click);
     container_loop_repeat_->attach_child(widget_loop_, 0);
     container_loop_repeat_->attach_child(widget_repeat_, 1);
     container_points_ = new DUINO_WidgetContainer<8>(DUINO_Widget::Click);
-    // TODO: attach widgets points
+    for(uint8_t i  = 0; i < 8; ++i)
+    {
+      widgets_points_[i] = new DU_VSEG_PointWidget((i + 1) / 2, i & 1);
+      widgets_points_[i]->attach_invert_callback(points_invert_callback);
+      container_points_->attach_child(widgets_points_[i], i);
+      container_points_->attach_scroll_callback_array(points_scroll_callback);
+    }
     container_outer_ = new DUINO_WidgetContainer<3>(DUINO_Widget::DoubleClick, 1);
     container_outer_->attach_child(widget_save_, 0);
     container_outer_->attach_child(container_loop_repeat_, 1);
@@ -116,12 +171,6 @@ public:
     Display.fill_rect(widget_save_->x() + 1, widget_save_->y() + 1, 5, 5, DUINO_SH1106::White);
 
     // draw fixed elements
-    Display.draw_char(54, 0, 'L', DUINO_SH1106::White);
-    Display.draw_pixel(61, 1, DUINO_SH1106::White);
-    Display.draw_pixel(61, 5, DUINO_SH1106::White);
-    Display.draw_char(79, 0, 'R', DUINO_SH1106::White);
-    Display.draw_pixel(86, 1, DUINO_SH1106::White);
-    Display.draw_pixel(86, 5, DUINO_SH1106::White);
     Display.draw_char(widget_repeat_->x() + 1, widget_repeat_->y() + 1, 'x', DUINO_SH1106::White);
 
     // draw parameters
@@ -165,9 +214,8 @@ public:
     {
       widget_save_->mark_changed();
       widget_save_->display();
+      display_loop();
     }
-
-    display_loop();
   }
 
   void widget_repeat_scroll_callback(int delta)
@@ -180,12 +228,49 @@ public:
     {
       widget_save_->mark_changed();
       widget_save_->display();
+      display_repeat();
     }
-
-    display_repeat();
   }
 
-  // TODO: points callbacks
+  void widgets_points_scroll_callback(uint8_t selected, int delta)
+  {
+    const uint8_t p = (selected + 1) / 2;
+    const uint8_t parameter = selected & 1;
+
+    if (parameter)
+    {
+      // adjust rate
+      const int8_t rate_last = widget_save_->params.vals.rate[p];
+      widget_save_->params.vals.rate[p - 1] += delta;
+      sanitize_rate();
+      if(widget_save_->params.vals.rate[p - 1] != rate_last)
+      {
+        widget_save_->mark_changed();
+        widget_save_->display();
+        display_plr(p);
+        display_envelope();
+      }
+    }
+    else
+    {
+      // adjust level
+      const int8_t level_last = widget_save_->params.vals.level[p];
+      widget_save_->params.vals.level[p] += delta;
+      sanitize_level();
+      if(widget_save_->params.vals.level[p] != level_last)
+      {
+        widget_save_->mark_changed();
+        widget_save_->display();
+        display_plr(p);
+        display_envelope();
+      } 
+    }
+  }
+
+  void widgets_points_invert_callback(uint8_t p)
+  {
+    display_plr(p);
+  }
 
 private:
   void sanitize_level()
@@ -284,34 +369,51 @@ private:
 
   void display_plr(uint8_t p, bool update = true)
   {
-    // blank areas
-    Display.fill_rect(45, 0, 5, 7, DUINO_SH1106::Black);
-    Display.fill_rect(64, 0, 11, 7, DUINO_SH1106::Black);
-    Display.fill_rect(89, 0, 29, 7, DUINO_SH1106::Black);
+    // blank area
+    Display.fill_rect(64, 0, 54, 7, DUINO_SH1106::Black);
 
-    // display point number
-    Display.draw_char(45, 0, '0' + p, DUINO_SH1106::White);
+    // draw fixed elements
+    Display.draw_char(54, 0, 'L', DUINO_SH1106::White);
+    Display.draw_pixel(61, 1, DUINO_SH1106::White);
+    Display.draw_pixel(61, 5, DUINO_SH1106::White);
+    Display.draw_char(79, 0, 'R', DUINO_SH1106::White);
+    Display.draw_pixel(86, 1, DUINO_SH1106::White);
+    Display.draw_pixel(86, 5, DUINO_SH1106::White);
 
     uint8_t i;
     
     // display level
     int8_t level = widget_save_->params.vals.level[p];
-    i = 0;
-    while (level)
+    if (level)
     {
-      Display.draw_char(70 - 6 * i, 0, '0' + level % 10, DUINO_SH1106::White);
-      level /= 10;
-      i++;
+      i = 0;
+      while (level)
+      {
+        Display.draw_char(70 - 6 * i, 0, '0' + level % 10, DUINO_SH1106::White);
+        level /= 10;
+        i++;
+      }
+    }
+    else
+    {
+      Display.draw_char(70, 0, '0', DUINO_SH1106::White);
     }
 
     // display rate
     uint16_t rate = rate_to_ms(p);
-    i = 0;
-    while (rate)
+    if (rate)
     {
-      Display.draw_char(113 - 6 * i, 0, '0' + rate % 10, DUINO_SH1106::White);
-      rate /= 10;
-      i++;
+      i = 0;
+      while (rate)
+      {
+        Display.draw_char(113 - 6 * i, 0, '0' + rate % 10, DUINO_SH1106::White);
+        rate /= 10;
+        i++;
+      }
+    }
+    else
+    {
+      Display.draw_char(113, 0, '0', DUINO_SH1106::White);
     }
 
     if (update)
@@ -410,7 +512,7 @@ private:
   DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widget_loop_;
   DUINO_DisplayWidget * widget_repeat_;
-  DUINO_Widget * widgets_points_[8];
+  DU_VSEG_PointWidget * widgets_points_[8];
 
   volatile bool gate_, retrigger_;
 };
@@ -421,7 +523,8 @@ void gate_isr() { function->gate_callback(); }
 
 void loop_scroll_callback(int delta) { function->widget_loop_scroll_callback(delta); }
 void repeat_scroll_callback(int delta) { function->widget_repeat_scroll_callback(delta); }
-// TODO: define points callbacks
+void points_scroll_callback(uint8_t selected, int delta) { function->widgets_points_scroll_callback(selected, delta); }
+void points_invert_callback(uint8_t p) { function->widgets_points_invert_callback(p); }
 
 void setup()
 {
