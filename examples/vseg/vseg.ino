@@ -45,6 +45,7 @@
  */
 
 #include <du-ino_function.h>
+#include <du-ino_dsp.h>
 #include <du-ino_widgets.h>
 #include <du-ino_save.h>
 #include <avr/pgmspace.h>
@@ -192,6 +193,9 @@ public:
     // output full display
     Display.display();
 
+    // initialize filter
+    env_lpf_ = new DUINO_Filter(DUINO_Filter::LowPass, 100.0, 0.0);
+
     // attach gate interrupt
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
   }
@@ -314,8 +318,9 @@ public:
         }
       }
 
-      cv_out(CO1, cv_current_);
-      cv_out(CO3, cv_current_ / 2.0);
+      const float filtered_cv = env_lpf_->filter(cv_current_);
+      cv_out(CO1, filtered_cv);
+      cv_out(CO3, filtered_cv / 2.0);
     }
     else if (gate_)
     {
@@ -673,6 +678,8 @@ private:
   DUINO_DisplayWidget * widget_loop_;
   DUINO_DisplayWidget * widget_repeat_;
   DU_VSEG_PointWidget * widgets_points_[8];
+
+  DUINO_Filter * env_lpf_;
 
   volatile bool gate_, retrigger_;
   unsigned long gate_time_, release_time_;
