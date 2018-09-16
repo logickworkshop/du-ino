@@ -140,7 +140,7 @@ public:
     gate_ = retrigger_ = false;
     gate_time_ = release_time_ = 0;
     cv_current_ = cv_released_ = 0.0;
-    last_gate_ = false;
+    last_gate_ = update_cached_ = false;
 
     // build widget hierarchy
     widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
@@ -208,7 +208,12 @@ public:
       gate_time_ = 0;
       release_time_ = 0;
       retrigger_ = false;
-      cached_params_ = widget_save_->params.vals;
+
+      if (update_cached_)
+      {
+        cached_params_ = widget_save_->params.vals;
+        update_cached_ = false;
+      }
     }
 
     if (gate_time_)
@@ -358,6 +363,7 @@ public:
     if (widget_save_->params.vals.loop != loop_last)
     {
       widget_save_->mark_changed();
+      update_cached_ = true;
       widget_save_->display();
       display_loop();
     }
@@ -372,6 +378,7 @@ public:
     if (widget_save_->params.vals.repeat != repeat_last)
     {
       widget_save_->mark_changed();
+      update_cached_ = true;
       widget_save_->display();
       display_repeat();
     }
@@ -393,6 +400,7 @@ public:
       if(widget_save_->params.vals.rate[p - 1] != rate_last)
       {
         widget_save_->mark_changed();
+        update_cached_ = true;
         widget_save_->display();
         display_plr(p);
         display_loop();
@@ -408,6 +416,7 @@ public:
       if(widget_save_->params.vals.level[p] != level_last)
       {
         widget_save_->mark_changed();
+        update_cached_ = true;
         widget_save_->display();
         display_plr(p);
         display_envelope();
@@ -691,7 +700,7 @@ private:
   volatile bool gate_, retrigger_;
   unsigned long gate_time_, release_time_;
   float cv_current_, cv_released_;
-  bool last_gate_;
+  bool last_gate_, update_cached_;
 };
 
 DU_VSEG_Function * function;
