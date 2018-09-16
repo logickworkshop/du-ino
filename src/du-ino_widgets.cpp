@@ -22,6 +22,17 @@
 
 #include "du-ino_widgets.h"
 
+DUINO_DisplayObject::DUINO_DisplayObject(uint8_t x, uint8_t y)
+  : x_(x)
+  , y_(y)
+{
+}
+
+void DUINO_DisplayObject::display()
+{
+  Display.display(x(), x() + width() - 1, y() / 8, (y() + height() - 1) / 8);
+}
+
 DUINO_Widget::DUINO_Widget()
   : click_callback_(NULL)
   , double_click_callback_(NULL)
@@ -108,23 +119,17 @@ void DUINO_Widget::draw_invert(uint8_t x, uint8_t y, uint8_t width, uint8_t heig
 
 DUINO_DisplayWidget::DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height,
     DUINO_Widget::InvertStyle style)
-  : x_(x)
-  , y_(y)
-  , width_(width)
+  : width_(width)
   , height_(height)
   , style_(style)
   , inverted_(false)
+  , DUINO_DisplayObject(x, y)
 {
-}
-
-void DUINO_DisplayWidget::display()
-{
-  Display.display(x_, x_ + width_, y_ / 8, (y_ + height_) / 8);
 }
 
 void DUINO_DisplayWidget::invert(bool update_display)
 {
-  draw_invert(x_, y_, width_, height_, style_);
+  draw_invert(x(), y(), width(), height(), style_);
 
   if (update_display)
   {

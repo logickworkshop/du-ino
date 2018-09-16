@@ -26,6 +26,22 @@
 #include "Arduino.h"
 #include "du-ino_sh1106.h"
 
+class DUINO_DisplayObject
+{
+public:
+  DUINO_DisplayObject(uint8_t x, uint8_t y);
+
+  virtual void display();
+
+  virtual uint8_t x() const { return x_; }
+  virtual uint8_t y() const { return y_; }
+  virtual uint8_t width() const = 0;
+  virtual uint8_t height() const = 0;
+
+protected:
+  const uint8_t x_, y_;
+};
+
 class DUINO_Widget
 {
 public:
@@ -65,23 +81,19 @@ protected:
   void (*scroll_callback_)(int);
 };
 
-class DUINO_DisplayWidget : public DUINO_Widget
+class DUINO_DisplayWidget : public DUINO_Widget, public DUINO_DisplayObject
 {
 public:
   DUINO_DisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height, InvertStyle style);
 
-  void display();
-
   virtual void invert(bool update_display = true);
   virtual bool inverted() const { return inverted_; }
 
-  uint8_t x() const { return x_; }
-  uint8_t y() const { return y_; }
-  uint8_t width() const { return width_; }
-  uint8_t height() const { return height_; }
+  virtual uint8_t width() const { return width_; }
+  virtual uint8_t height() const { return height_; }
 
 protected:
-  const uint8_t x_, y_, width_, height_;
+  const uint8_t width_, height_;
   const InvertStyle style_;
   bool inverted_;
 };
@@ -260,35 +272,34 @@ protected:
 };
 
 template <uint8_t N>
-class DUINO_MultiDisplayWidget : public DUINO_WidgetArray<N>
+class DUINO_MultiDisplayWidget : public DUINO_WidgetArray<N>, public DUINO_DisplayObject
 {
 public:
   DUINO_MultiDisplayWidget(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t step, bool vertical,
     DUINO_Widget::InvertStyle style, DUINO_Widget::Action t, uint8_t initial_selection = 0)
-    : x_(x)
-    , y_(y)
-    , width_(width)
+    : width_(width)
     , height_(height)
     , step_(step)
     , vertical_(vertical)
     , style_(style)
     , inverted_(false)
     , DUINO_WidgetArray<N>(t, initial_selection)
+    , DUINO_DisplayObject(x, y)
   { }
 
-  void display()
+  virtual void display()
   {
-    Display.display(x(this->selected_), x(this->selected_) + width_ - 1, y(this->selected_) >> 3,
-        (y(this->selected_) + height_ - 1) >> 3);
+    Display.display(x(this->selected_), x(this->selected_) + width() - 1, y(this->selected_) >> 3,
+        (y(this->selected_) + height() - 1) >> 3);
   }
 
   virtual void invert(bool update_display = true)
   {
-    this->draw_invert(x(this->selected_), y(this->selected_), width_, height_, style_);
+    this->draw_invert(x(this->selected_), y(this->selected_), width(), height(), style_);
 
     if (update_display)
     {
-      display();
+      this->display();
     }
 
     inverted_ = !inverted_;
@@ -296,10 +307,12 @@ public:
 
   virtual bool inverted() const { return inverted_; }
 
-  uint8_t x(uint8_t i) const { return x_ + (vertical_ ? 0 : i * step_); }
-  uint8_t y(uint8_t i) const { return y_ + (vertical_ ? i * step_ : 0); }
-  uint8_t width() const { return width_; }
-  uint8_t height() const { return height_; }
+  using DUINO_DisplayObject::x;
+  using DUINO_DisplayObject::y;
+  uint8_t x(uint8_t i) const { return this->x() + (vertical_ ? 0 : i * step_); }
+  uint8_t y(uint8_t i) const { return this->y() + (vertical_ ? i * step_ : 0); }
+  virtual uint8_t width() const { return width_; }
+  virtual uint8_t height() const { return height_; }
 
 protected:
   virtual void invert_selected()
@@ -307,7 +320,7 @@ protected:
     invert();
   }
 
-  const uint8_t x_, y_, width_, height_, step_;
+  const uint8_t width_, height_, step_;
   const bool vertical_;
   const DUINO_Widget::InvertStyle style_;
   bool inverted_;

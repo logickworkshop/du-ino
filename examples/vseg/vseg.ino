@@ -47,6 +47,7 @@
 #include <du-ino_function.h>
 #include <du-ino_dsp.h>
 #include <du-ino_widgets.h>
+#include <du-ino_indicators.h>
 #include <du-ino_save.h>
 #include <avr/pgmspace.h>
 
@@ -59,8 +60,7 @@ static const unsigned char icons[] PROGMEM =
   0x3e, 0x7f, 0x7b, 0x41, 0x7f, 0x3e, 0x00,  // 1
   0x3e, 0x5b, 0x4d, 0x55, 0x5b, 0x3e, 0x00,  // 2
   0x3e, 0x6b, 0x5d, 0x55, 0x6b, 0x3e, 0x00,  // 3
-  0x3e, 0x73, 0x75, 0x77, 0x41, 0x3e, 0x00,  // 4
-  0x1c, 0x22, 0x41, 0x41, 0x41, 0x22, 0x1c   // jack 
+  0x3e, 0x73, 0x75, 0x77, 0x41, 0x3e, 0x00   // 4
 };
 
 static const uint16_t rate_lut[] PROGMEM =
@@ -140,7 +140,7 @@ public:
     gate_ = retrigger_ = false;
     gate_time_ = release_time_ = 0;
     cv_current_ = cv_released_ = 0.0;
-    last_gate_ = update_cached_ = false;
+    update_cached_ = false;
 
     // build widget hierarchy
     widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
@@ -164,6 +164,9 @@ public:
     container_outer_->attach_child(container_loop_repeat_, 1);
     container_outer_->attach_child(container_points_, 2);
 
+    // indicators
+    indicator_gate_ = new DUINO_JackIndicator(121, 12);
+
     // load parameters
     widget_save_->load_params();
     sanitize_level();
@@ -181,7 +184,6 @@ public:
 
     // draw fixed elements
     Display.draw_char(widget_repeat_->x() + 1, widget_repeat_->y() + 1, 'x', DUINO_SH1106::White);
-    Display.draw_bitmap_7(121, 12, icons, 5, DUINO_SH1106::White);
 
     // draw parameters
     display_loop(false);
@@ -337,11 +339,10 @@ public:
     widget_loop();
 
     // display gate
-    if (gate_ != last_gate_)
+    if (gate_ != indicator_gate_->state())
     {
-      last_gate_ = gate_;
-      Display.fill_rect(123, 14, 3, 3, gate_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.display(123, 125, 1, 2);
+      indicator_gate_->set(gate_);
+      indicator_gate_->display();
     }
   }
 
@@ -693,12 +694,14 @@ private:
   DUINO_DisplayWidget * widget_repeat_;
   DU_VSEG_PointWidget * widgets_points_[8];
 
+  DUINO_JackIndicator * indicator_gate_;
+
   DUINO_Filter * env_lpf_;
 
   volatile bool gate_, retrigger_;
   unsigned long gate_time_, release_time_;
   float cv_current_, cv_released_;
-  bool last_gate_, update_cached_;
+  bool update_cached_;
 };
 
 DU_VSEG_Function * function;

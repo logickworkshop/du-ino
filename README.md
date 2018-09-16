@@ -21,6 +21,7 @@ The following modules are currently available in this library:
 - Click encoder driver (used by core function module).
 - SH1106 OLED display driver, with graphics functions and font library.
 - GUI widget module, with display and interaction primitives.
+- Indicator module, with graphical display primitives.
 - EEPROM parameter saving and loading widget module.
 - Clock module, for functions requiring clock sync.
 - DSP module, for filters and other signal processing.

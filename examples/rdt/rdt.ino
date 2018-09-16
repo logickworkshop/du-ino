@@ -46,6 +46,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
+#include <du-ino_indicators.h>
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
 #include <avr/pgmspace.h>
@@ -54,11 +55,6 @@ static const unsigned char loop_icons[] PROGMEM =
 {
   0x30, 0x48, 0x84, 0x84, 0x80, 0x84, 0x8e, 0x9f,  // left part
   0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x48, 0x30   // right part
-};
-
-static const unsigned char jack_icon[] PROGMEM =
-{
-  0x1c, 0x22, 0x41, 0x41, 0x41, 0x22, 0x1c
 };
 
 void clock_ext_isr();
@@ -94,6 +90,18 @@ public:
     widgets_lfsr_->attach_scroll_callback_array(lfsr_scroll_callback);
     container_outer_->attach_child(widgets_lfsr_, 2);
 
+    // indicators
+    for(uint8_t i = 0; i < 2; ++i)
+    {
+      indicator_lfsr_[i] = new DUINO_JackIndicator(widgets_lfsr_->x(i) + 3, widgets_lfsr_->y(i) + 20);
+    }
+    indicator_1s_in_ = new DUINO_JackIndicator(23, 10);
+    indicator_d_in_ = new DUINO_JackIndicator(32, 39);
+    indicator_t_in_ = new DUINO_JackIndicator(32, 48);
+    indicator_d_out_ = new DUINO_JackIndicator(89, 39);
+    indicator_dinv_out_ = new DUINO_JackIndicator(89, 48);
+    indicator_t_out_ = new DUINO_JackIndicator(89, 57);
+
     // initialize interface
     lfsr_loop_ = jack_1s_ = d_out_ = t_out_ = false;
     jack_d_ = jack_t_ = -1;
@@ -111,16 +119,6 @@ public:
 
     // draw save box
     Display.fill_rect(widget_save_->x() + 1, widget_save_->y() + 1, 5, 5, DUINO_SH1106::White);
-
-    // draw jacks
-    Display.draw_bitmap_7(23, 10, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(8, 39, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(113, 39, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(32, 39, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(32, 48, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(89, 39, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(89, 48, jack_icon, 0, DUINO_SH1106::White);
-    Display.draw_bitmap_7(89, 57, jack_icon, 0, DUINO_SH1106::White);
 
     // draw big circles
     // FIXME: have to do this manually because draw_circle doesn't quite get it right
@@ -233,11 +231,8 @@ public:
   {
     widget_loop();
 
-    // store current jack states
+    // store current loop state
     const bool lfsr_loop_last = lfsr_loop_;
-    const bool jack_1s_last = jack_1s_;
-    const int8_t jack_d_last = jack_d_;
-    const int8_t jack_t_last = jack_t_;
 
     // update jack states
     lfsr_loop_ = gt_read(CI1);
@@ -269,38 +264,37 @@ public:
       Display.display(56, 71, 1, 2);
     }
 
-    if (jack_1s_ != jack_1s_last)
+    if (jack_1s_ != indicator_1s_in_->state())
     {
-      Display.fill_rect(25, 12, 3, 3, jack_1s_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.display(25, 27, 1, 1);
+      indicator_1s_in_->set(jack_1s_);
+      indicator_1s_in_->display();
     }
 
-    if (jack_d_ != jack_d_last)
+    if (jack_d_ != indicator_d_in_->state())
     {
-      Display.fill_rect(34, 41, 3, 3, jack_d_ > 0 ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.display(34, 36, 5, 5);
+      indicator_d_in_->set(jack_d_);
+      indicator_d_in_->display();
     }
 
-    if (jack_t_ != jack_t_last)
+    if (jack_t_ != indicator_t_in_->state())
     {
-      Display.fill_rect(34, 50, 3, 3, jack_t_ > 0 ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.display(34, 36, 6, 6);
+      indicator_t_in_->set(jack_t_);
+      indicator_t_in_->display();
     }
 
     if (update_lfsr_jacks)
     {
-      
-      Display.display(10, 12, 5, 5);
-      Display.display(115, 117, 5, 5);
-      
+      indicator_lfsr_[0]->display();
+      indicator_lfsr_[1]->display();
       update_lfsr_jacks = false;
     }
 
     if (update_pattern_dt_jacks)
     {
       Display.display(25, 102, 3, 3);
-      Display.display(91, 93, 5, 7);
-
+      indicator_d_out_->display();
+      indicator_dinv_out_->display();
+      indicator_t_out_->display();
       update_pattern_dt_jacks = false;
     }
   }
@@ -367,11 +361,11 @@ public:
       display_pattern(25, 24, widget_save_->params.vals.pattern, DUINO_SH1106::White);
       
       // display jacks
-      Display.fill_rect(10, 41, 3, 3, jacks & (1 << GT1) ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.fill_rect(115, 41, 3, 3, jacks & (1 << GT2) ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.fill_rect(91, 41, 3, 3, d_out_ ? DUINO_SH1106::White : DUINO_SH1106::Black);
-      Display.fill_rect(91, 50, 3, 3, d_out_ ? DUINO_SH1106::Black : DUINO_SH1106::White);
-      Display.fill_rect(91, 59, 3, 3, t_out_ ? DUINO_SH1106::White : DUINO_SH1106::Black);  
+      indicator_lfsr_[0]->set(jacks & (1 << GT1));
+      indicator_lfsr_[1]->set(jacks & (1 << GT2));
+      indicator_d_out_->set(d_out_);
+      indicator_dinv_out_->set(!d_out_);
+      indicator_t_out_->set(t_out_);
 
       update_pattern_dt_jacks = true;   
     }
@@ -379,8 +373,8 @@ public:
     {
       gt_out_multi((1 << GT1) | (1 << GT2), false);
 
-      Display.fill_rect(10, 41, 3, 3, DUINO_SH1106::Black);
-      Display.fill_rect(115, 41, 3, 3, DUINO_SH1106::Black);
+      indicator_lfsr_[0]->set(false);
+      indicator_lfsr_[1]->set(false);
     }
 
     update_lfsr_jacks = true;
@@ -525,6 +519,10 @@ private:
   DUINO_DisplayWidget * widget_clock_;
   DUINO_DisplayWidget * widget_swing_;
   DUINO_MultiDisplayWidget<2> * widgets_lfsr_;
+
+  DUINO_JackIndicator * indicator_lfsr_[2];
+  DUINO_JackIndicator * indicator_1s_in_, * indicator_d_in_, * indicator_t_in_, * indicator_d_out_,
+                      * indicator_dinv_out_, * indicator_t_out_;
 
   bool lfsr_loop_, jack_1s_, d_out_, t_out_;
   int8_t jack_d_, jack_t_;
