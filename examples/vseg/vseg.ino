@@ -386,8 +386,6 @@ public:
 
   void widgets_points_scroll_callback(uint8_t selected, int delta)
   {
-    // FIXME: don't edit the save params directly - swap them in between gates
-
     const uint8_t p = (selected + 1) / 2;
     const uint8_t parameter = selected & 1;
 
