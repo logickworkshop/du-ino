@@ -25,6 +25,7 @@
 
 #include "Arduino.h"
 
+/** MCP4922 DAC driver class. */
 class DUINO_MCP4922 {
 public:
   enum Channel
@@ -33,11 +34,32 @@ public:
     B = 1
   };
 
+  /**
+   * Constructor.
+   *
+   * \param ss Address of the chip select pin for this device.
+   * \param ldac Address of the LDAC (hold) pin for this device.
+   */
   DUINO_MCP4922(uint8_t ss, uint8_t ldac);
 
+  /**
+   * Initialize the MCP4922 DAC device.
+   */
   void begin();
 
+  /**
+   * Output the specified digital value to the specified channel.
+   *
+   * \param channel The output channel (A or B).
+   * \param data The raw digital data value.
+   */
   void output(Channel channel, uint16_t data);
+
+  /**
+   * Hold or release the current output value of both channels.
+   *
+   * \param state If true, hold the current value on both channels until called with false.
+   */
   void hold(bool state);
 
 private:
