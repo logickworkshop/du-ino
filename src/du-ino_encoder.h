@@ -32,6 +32,7 @@
 
 #include "Arduino.h"
 
+/** Pushbutton encoder controller class. */
 class DUINO_Encoder
 {
 public:
@@ -45,12 +46,37 @@ public:
     DoubleClicked
   };
 
+  /**
+   * Constructor.
+   *
+   * \param a Address of pin A.
+   * \param b Address of pin B.
+   * \param btn Address of pushbutton pin.
+   */
   DUINO_Encoder(uint8_t a, uint8_t b, uint8_t btn);
 
+  /**
+   * Initialize the pushbutton encoder controller.
+   */
   void begin();
 
-  void service(void);  
+  /**
+   * Service outstanding events (called by the tick timer ISR).
+   */
+  void service(void);
+
+  /**
+   * Get the current delta value (with acceleration) of the encoder.
+   *
+   * \return The directional delta value of the encoder since last read.
+   */
   int16_t get_value(void);
+
+  /**
+   * Get the current state of the pushbutton (see Button enum for states).
+   *
+   * \return The current state of the pushbutton, with respect to last read.
+   */
   Button get_button(void);
 
 private:
