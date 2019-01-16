@@ -26,6 +26,7 @@
 #include "Arduino.h"
 #include "du-ino_sh1106.h"
 
+/** Display object (UI element) abstract base class. */
 class DUINO_DisplayObject
 {
 public:
@@ -42,6 +43,7 @@ protected:
   const uint8_t x_, y_;
 };
 
+/** Widget class. */
 class DUINO_Widget
 {
 public:
@@ -81,6 +83,7 @@ protected:
   void (*scroll_callback_)(int);
 };
 
+/** Display widget (widget with visual UI element) class. */
 class DUINO_DisplayWidget : public DUINO_Widget, public DUINO_DisplayObject
 {
 public:
@@ -98,6 +101,7 @@ protected:
   bool inverted_;
 };
 
+/** N-element widget array abstract base class template. */
 template <uint8_t N>
 class DUINO_WidgetArray : public DUINO_Widget
 {
@@ -271,6 +275,7 @@ protected:
   void (*scroll_callback_array_)(uint8_t, int);
 };
 
+/** Multi-display-widget (a horizontal or vertical array of similar widgets) class template. */
 template <uint8_t N>
 class DUINO_MultiDisplayWidget : public DUINO_WidgetArray<N>, public DUINO_DisplayObject
 {
@@ -326,6 +331,7 @@ protected:
   bool inverted_;
 };
 
+/** Widget container (organizer of functional widget hierarchy) class template. */
 template <uint8_t N>
 class DUINO_WidgetContainer : public DUINO_WidgetArray<N>
 {
