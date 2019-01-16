@@ -95,6 +95,22 @@ void DUINO_Clock::set_external()
   update();
 }
 
+bool DUINO_Clock::retrigger()
+{
+  bool flag = retrigger_flag_;
+  retrigger_flag_ = false;
+  return flag;
+}
+
+void DUINO_Clock::reset()
+{
+  swung_ = false;
+  count_ = -1;
+  div_count_ = 0;
+  update();
+  on_clock();
+}
+
 void DUINO_Clock::on_jack(bool jack_state)
 {
   if (!external_)
@@ -127,11 +143,13 @@ void DUINO_Clock::on_clock()
   }
 }
 
-bool DUINO_Clock::retrigger()
+void DUINO_Clock::check_swing()
 {
-  bool flag = retrigger_flag_;
-  retrigger_flag_ = false;
-  return flag;
+  if (swung_ && millis() > swung_ms_)
+  {
+    swung_ = false;
+    toggle_state();
+  }
 }
 
 void DUINO_Clock::update()
@@ -141,24 +159,6 @@ void DUINO_Clock::update()
   if (!external_)
   {
     Timer1.attachInterrupt(clock_isr, period_);
-  }
-}
-
-void DUINO_Clock::reset()
-{
-  swung_ = false;
-  count_ = -1;
-  div_count_ = 0;
-  update();
-  on_clock();
-}
-
-void DUINO_Clock::check_swing()
-{
-  if (swung_ && millis() > swung_ms_)
-  {
-    swung_ = false;
-    toggle_state();
   }
 }
 
