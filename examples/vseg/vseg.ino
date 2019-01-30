@@ -134,7 +134,7 @@ class DU_VSEG_Function : public DUINO_Function
 public:
   DU_VSEG_Function() : DUINO_Function(0b10111100) { }
 
-  virtual void setup()
+  virtual void function_setup()
   {
     // initialize values
     gate_ = retrigger_ = false;
@@ -203,7 +203,7 @@ public:
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     if (retrigger_)
     {
@@ -722,5 +722,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }

@@ -68,7 +68,7 @@ void DUINO_Function::begin()
     // initialize encoder
     Encoder.begin();
 
-    setup();
+    function_setup();
     initialized = true;
   }
 }

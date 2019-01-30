@@ -65,12 +65,12 @@ public:
   /**
    * Setup hook; should be overridden by subclasses and called in the main Arduino setup().
    */
-  virtual void setup() {}
+  virtual void function_setup() {}
 
   /**
    * Loop hook; should be overriden by subclasses and called in the main Arduino loop().
    */
-  virtual void loop() {}
+  virtual void function_loop() {}
 
   /**
    * UI widget setup; normally called in setup() override after widgets are initialized.

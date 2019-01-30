@@ -88,7 +88,7 @@ class DU_ADSR_Function : public DUINO_Function
 public:
   DU_ADSR_Function() : DUINO_Function(0b10111100) { }
   
-  virtual void setup()
+  virtual void function_setup()
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<2>(DUINO_Widget::DoubleClick, 1);
@@ -161,7 +161,7 @@ public:
     Display.display();
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     if (retrigger)
     {
@@ -349,5 +349,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }

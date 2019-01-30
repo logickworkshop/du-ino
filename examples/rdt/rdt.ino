@@ -71,7 +71,7 @@ class DU_RDT_Function : public DUINO_Function
 public:
   DU_RDT_Function() : DUINO_Function(0b00001100) { }
 
-  virtual void setup()
+  virtual void function_setup()
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<3>(DUINO_Widget::DoubleClick, 2);
@@ -227,7 +227,7 @@ public:
     Display.display();
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     widget_loop();
 
@@ -552,5 +552,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }

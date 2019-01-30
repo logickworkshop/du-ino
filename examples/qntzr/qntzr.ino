@@ -69,7 +69,7 @@ class DU_Quantizer_Function : public DUINO_Function
 public:
   DU_Quantizer_Function() : DUINO_Function(0b00001100) { }
 
-  virtual void setup()
+  virtual void function_setup()
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<2>(DUINO_Widget::DoubleClick);
@@ -141,7 +141,7 @@ public:
     display_scale();
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     if (!trigger_mode || triggered)
     {
@@ -503,5 +503,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }

@@ -111,7 +111,7 @@ class DU_SEQ_Function : public DUINO_Function
 public:
   DU_SEQ_Function() : DUINO_Function(0b11111100) { }
   
-  virtual void setup()
+  virtual void function_setup()
   {
     // build widget hierarchy
     container_outer_ = new DUINO_WidgetContainer<6>(DUINO_Widget::DoubleClick, 2);
@@ -285,7 +285,7 @@ public:
     Display.display();
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     // cache stage, step, and clock gate (so that each loop is "atomic")
     const uint8_t cached_stage = stage;
@@ -856,5 +856,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }

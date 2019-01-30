@@ -36,7 +36,7 @@ class DU_Test_Function : public DUINO_Function
 public:
   DU_Test_Function() : DUINO_Function(0b00001111) { }
   
-  virtual void setup()
+  virtual void function_setup()
   {
     gt_attach_interrupt(GT3, gt3_isr, CHANGE);
     gt_attach_interrupt(GT4, gt4_isr, CHANGE);
@@ -81,7 +81,7 @@ public:
     Display.display();
   }
 
-  virtual void loop()
+  virtual void function_loop()
   {
     if (gt3_retrigger)
     {
@@ -271,5 +271,5 @@ void setup()
 
 void loop()
 {
-  function->loop();
+  function->function_loop();
 }
