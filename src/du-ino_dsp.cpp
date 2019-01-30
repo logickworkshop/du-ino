@@ -22,7 +22,6 @@
 
 #include "du-ino_dsp.h"
 
-#define TWO_PI 6.28318530717958647693
 #define UL_MAX 4294967295
 
 DUINO_Filter::DUINO_Filter(DUINO_Filter::FilterType type, float frequency, float value)
