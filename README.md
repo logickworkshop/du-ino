@@ -24,13 +24,13 @@ Program the DU-INO by connecting a USB cable to the Arduino Uno while it is seat
 The core function module provides a base for any kind of function. The idea is to subclass `DUINO_Function`, and (usually) do the following things:
 
 * Call the `DUINO_Function` base constructor passing an explicit switch configuration parameter (in binary `0b` notation).
-* Override the `setup()` and `loop()` methods.
-* Create a global pointer to an instance of your subclass, and instantiate it with `new` in the global `setup()`.
-* Call the `setup()` and `loop()` methods of the global instance in the global `setup()` and `loop()`, respectively.
+* Override the `function_setup()` and `function_loop()` methods.
+* Create a global pointer to an instance of your subclass, and instantiate it with `new` in `setup()`.
+* Call the `begin()` and `function_loop()` methods of the global instance in `setup()` and `loop()`, respectively.
 
-A function subclass generally contains data members relating to the parameters and state of the function itself, and the function initialization and run logic in the `setup()` and `loop()` methods, respectively. This logic can use methods from the base class to read CV and gate voltages from input jacks, write CV and gate/trigger voltages to output jacks, and attach interrupts to GT3 and GT4.
+A function subclass generally contains data members relating to the parameters and state of the function itself, and the function initialization and run logic in the `function_setup()` and `function_loop()` methods, respectively. This logic can use methods from the base class to read CV and gate voltages from input jacks, write CV and gate/trigger voltages to output jacks, and attach interrupts to GT3 and GT4.
 
-The function subclass is also responsible for creating and driving the UI. When widgets are used (see **Widget Module** below for details), the widget hierarchy is constructed followed by a call to `widget_setup()` in the `setup()` method, and `widget_loop()` is called somewhere in the `loop()` method to process the encoder interactions.
+The function subclass is also responsible for creating and driving the UI. When widgets are used (see **Widget Module** below for details), the widget hierarchy is constructed followed by a call to `widget_setup()` in the `function_setup()` method, and `widget_loop()` is called somewhere in the `function_loop()` method to process the encoder interactions.
 
 ### Display Driver Module
 
