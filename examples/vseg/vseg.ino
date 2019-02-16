@@ -117,7 +117,7 @@ public:
 
   virtual bool inverted() const { return inverted_; }
 
-  void attach_invert_callback(void (*callback)())
+  void attach_invert_callback(void (*callback)(uint8_t))
   {
     invert_callback_ = callback;
   }
