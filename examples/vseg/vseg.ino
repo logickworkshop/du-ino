@@ -24,7 +24,7 @@
  * GT1 O -
  * GT2 O -
  * GT3 I - gate in
- * GT4 I -
+ * GT4 I - retrigger in
  * CI1   -
  * CI2   -
  * CI3   - VCA audio in
@@ -73,6 +73,7 @@ static const uint16_t rate_lut[] PROGMEM =
 };
 
 void gate_isr();
+void retrigger_isr();
 
 void loop_scroll_callback(int delta);
 void repeat_scroll_callback(int delta);
@@ -201,6 +202,7 @@ public:
 
     // attach gate interrupt
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
+    gt_attach_interrupt(GT4, retrigger_isr, FALLING);
   }
 
   virtual void function_loop()
@@ -353,6 +355,11 @@ public:
     {
       retrigger_ = true;
     }
+  }
+
+  void retrigger_callback()
+  {
+    retrigger_ = true;
   }
 
   void widget_loop_scroll_callback(int delta)
@@ -707,6 +714,7 @@ private:
 DU_VSEG_Function * function;
 
 void gate_isr() { function->gate_callback(); }
+void retrigger_isr() { function->retrigger_callback(); }
 
 void loop_scroll_callback(int delta) { function->widget_loop_scroll_callback(delta); }
 void repeat_scroll_callback(int delta) { function->widget_repeat_scroll_callback(delta); }

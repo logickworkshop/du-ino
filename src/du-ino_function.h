@@ -144,6 +144,8 @@ public:
   /**
    * Attach an interrupt callback to a jack with hardware interrupt capability.
    *
+   * Note that RISING and FALLING are inverted, as all gate/trigger inputs are active low.
+   *
    * \param jack The interrupt jack (GT3 or GT4).
    * \param isr The interrupt service routine function pointer.
    * \param mode When the interrupt should be triggered (LOW, CHANGE, RISING, FALLING).
