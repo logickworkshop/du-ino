@@ -106,7 +106,7 @@ template <uint8_t N>
 class DUINO_WidgetArray : public DUINO_Widget
 {
 public:
-  DUINO_WidgetArray(int t, uint8_t initial_selection = 0)
+  DUINO_WidgetArray(DUINO_Widget::Action t, uint8_t initial_selection = 0)
     : type_(t)
     , selected_(initial_selection)
     , click_callback_array_(NULL)
