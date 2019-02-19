@@ -22,7 +22,8 @@
 
 #include <du-ino_function.h>
 
-#define GT_INT_DISPLAY_TIME   1000
+#define GT_INT_DISPLAY_TIME   200
+#define CV_IN_UPDATE_FREQ     100
 
 volatile uint8_t gt_state;
 volatile bool gt3_retrigger, gt4_retrigger;
@@ -42,7 +43,8 @@ public:
     gt_attach_interrupt(GT4, gt4_isr, CHANGE);
 
     calibration_value = calibration_value_last = 0;
-    gt = gt_io = gt_io_last = false;
+    gt = gt_last = gt_io = gt_io_last = false;
+    gt_state_last = loop_count = 0;
 
     Display.draw_logick_logo(0, 0, DUINO_SH1106::White);
     Display.draw_text(42, 3, "DU-INO TESTER", DUINO_SH1106::White);
@@ -83,11 +85,18 @@ public:
 
   virtual void function_loop()
   {
+    bool update_calibration_arrow = false;
+    bool update_gtio_arrow = false;
+    bool update_gtio_states = false;
+    loop_count++;
+    loop_count %= CV_IN_UPDATE_FREQ;
+
     if (gt3_retrigger)
     {
       if(millis() - gt3_retrigger_time > GT_INT_DISPLAY_TIME)
       {
         gt3_retrigger = false;
+        update_gtio_states = true;
       }
     }
     if (gt4_retrigger)
@@ -95,13 +104,18 @@ public:
       if(millis() - gt4_retrigger_time > GT_INT_DISPLAY_TIME)
       {
         gt4_retrigger = false;
+        update_gtio_states = true;
       }
     }
 
-    cv[0] = cv_read(CI1);
-    cv[1] = cv_read(CI2);
-    cv[2] = cv_read(CI3);
-    cv[3] = cv_read(CI4);
+    if (!loop_count)
+    {
+      cv[0] = cv_read(CI1);
+      cv[1] = cv_read(CI2);
+      cv[2] = cv_read(CI3);
+      cv[3] = cv_read(CI4);
+      display_cv_in();
+    }
 
     cv_out(CO1, (float)calibration_value);
     cv_out(CO2, (float)calibration_value);
@@ -116,7 +130,12 @@ public:
 
     if (gt_io)
     {
-      gt_out_multi(0x0F, gt);
+      if (gt != gt_last)
+      {
+        gt_out_multi(0x0F, gt);
+        update_gtio_states = true;
+        gt_last = gt;
+      }
     }
     else
     {
@@ -136,6 +155,12 @@ public:
       {
         gt_state &= ~2U;
       }
+
+      if (gt_state != gt_state_last)
+      {
+        update_gtio_states = true;
+        gt_state_last = gt_state;
+      }
     }
 
     // handle encoder button press
@@ -144,6 +169,7 @@ public:
     {
       gt_io = !gt_io;
       display_gtio_arrow();
+      update_gtio_arrow = true;
     }
     else if (b == DUINO_Encoder::Held)
     {
@@ -168,16 +194,29 @@ public:
     {
       calibration_value_last = calibration_value;
       display_calibration_arrow();
+      update_calibration_arrow = true;
     }
-
-    // display CV input values
-    display_cv_in();
 
     // display GT input/output states
     display_gtio();
 
     // update display
-    Display.display();
+    if (update_calibration_arrow)
+    {
+      Display.display(37, 41, 2, 7);
+    }
+    if (!loop_count)
+    {
+      Display.display(48, 82, 3, 7);
+    }
+    if (update_gtio_arrow)
+    {
+      Display.display(114, 118, 2, 2);
+    }
+    if (update_gtio_states)
+    {
+      Display.display(104, 108, 3, 7);
+    }
   }
 
 private:
@@ -207,7 +246,6 @@ private:
   void display_gtio()
   {
     Display.fill_rect(104, 27, 5, 37, DUINO_SH1106::Black);
-    Display.fill_rect(120, 47, 5, 17, DUINO_SH1106::Black);
 
     // input & output for GT1 - GT4
     for (uint8_t i = 0; i < 4; ++i)
@@ -224,8 +262,9 @@ private:
   }
 
   int8_t calibration_value, calibration_value_last;
-  bool gt, gt_io, gt_io_last;
+  bool gt, gt_last, gt_io, gt_io_last;
   float cv[4];
+  uint8_t gt_state_last, loop_count;
 };
 
 DU_Test_Function * function;
