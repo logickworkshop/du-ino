@@ -24,8 +24,14 @@
 #include "du-ino_widgets.h"
 #include "du-ino_function.h"
 
+#if __has_include("du-ino_calibration.h")
+#include "du-ino_calibration.h"
+#define USE_CALIBRATION
+#endif
+
 #define TRIG_MS           5   // ms
 #define DIGITAL_THRESH    3.0 // V
+#define CV_IN_OFFSET      0.1 // V
 
 DUINO_Function::DUINO_Function(uint8_t sc)
   : top_level_widget_(NULL)
@@ -222,6 +228,16 @@ float DUINO_Function::cv_read(DUINO_Function::Jack jack)
 {
   switch (jack)
   {
+#ifdef USE_CALIBRATION
+    case CI1:
+      return cv_analog_read(A0) * CI1_PRESCALE + CI1_OFFSET;
+    case CI2:
+      return cv_analog_read(A1) * CI2_PRESCALE + CI2_OFFSET;
+    case CI3:
+      return cv_analog_read(A2) * CI3_PRESCALE + CI3_OFFSET;
+    case CI4:
+      return cv_analog_read(A3) * CI4_PRESCALE + CI4_OFFSET;
+#else
     case CI1:
       return cv_analog_read(A0);
     case CI2:
@@ -230,6 +246,7 @@ float DUINO_Function::cv_read(DUINO_Function::Jack jack)
       return cv_analog_read(A2);
     case CI4:
       return cv_analog_read(A3);
+#endif
     default:
       return 0.0;
   }
@@ -240,7 +257,23 @@ void DUINO_Function::cv_out(DUINO_Function::Jack jack, float value)
   if (jack == CO1 || jack == CO2 || jack == CO3 || jack == CO4)
   {
     // (value + 10) * ((2^12 - 1) / 20)
-    uint16_t data = uint16_t((value + 10.0) * 204.75);
+#ifdef USE_CALIBRATION
+    float calibrated_value;
+    switch (jack)
+    {
+      case CO1:
+        calibrated_value = value * CO1_PRESCALE + CO1_OFFSET;
+      case CO2:
+        calibrated_value = value * CO2_PRESCALE + CO2_OFFSET;
+      case CO3:
+        calibrated_value = value * CO3_PRESCALE + CO3_OFFSET;
+      case CO4:
+        calibrated_value = value * CO4_PRESCALE + CO4_OFFSET;
+    }
+#else
+    const float calibrated_value = value;
+#endif
+    uint16_t data = uint16_t((calibrated_value + 10.0) * 204.75);
 
     // DAC output
     dac_[(jack - 4) >> 1]->output((DUINO_MCP4922::Channel)((jack - 4) & 1), data);
@@ -283,5 +316,5 @@ void DUINO_Function::set_switch_config(uint8_t sc)
 float DUINO_Function::cv_analog_read(uint8_t pin)
 {
   // value * (20 / (2^10 - 1)) - 10
-  return float(analogRead(pin)) * 0.019550342130987292 - 10.0;
+  return float(analogRead(pin)) * 0.019550342130987292 - 10.0 + CV_IN_OFFSET;
 }

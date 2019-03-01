@@ -92,6 +92,12 @@ The DSP module provides digital signal processing functionality. Currently, this
 
 The musical scale module defines a set of common musical scales by semitone, and provides some convenience functions for using them. The scales and their three-letter identifiers are based on those in the [Korg Kaossilator](https://en.wikipedia.org/wiki/Korg_Kaossilator).
 
+## Software CV Calibration
+
+In case the hardware calibration of the CV inputs and/or outputs is insufficient for your needs, it is possible to fine-tune it for each jack in software with scale and offset parameters. Simply copy `du-ino_calibration.h.sample` within the `src` subdirectory where you installed the DU-INO library (normally, under the `libraries` directory of your Arduino IDE) to `du-ino_calibration.h`, and adjust the parameters in the latter file. You can determine the appropriate values by loading the `test` example program, and then sending precise voltage signals to each input and/or precisely measuring the voltages from each output.
+
+Note that the precise values of the CV input parameters will depend on both the individual DU-INO and the individual Arduino, and the precise values of the CV output parameters will depend on the individual DU-INO.
+
 ## Supported Arduino Boards
 
 The following boards are currently supported:

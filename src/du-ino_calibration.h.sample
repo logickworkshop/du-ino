@@ -1,0 +1,44 @@
+/*
+ * ####                                                ####
+ * ####                                                ####
+ * ####                                                ####      ##
+ * ####                                                ####    ####
+ * ####  ############  ############  ####  ##########  ####  ####
+ * ####  ####    ####  ####    ####  ####  ####        ########
+ * ####  ####    ####  ####    ####  ####  ####        ########
+ * ####  ####    ####  ####    ####  ####  ####        ####  ####
+ * ####  ####    ####  ####    ####  ####  ####        ####    ####
+ * ####  ############  ############  ####  ##########  ####      ####
+ *                             ####                                ####
+ * ################################                                  ####
+ *            __      __              __              __      __       ####
+ *   |  |    |  |    [__)    |_/     (__     |__|    |  |    [__)        ####
+ *   |/\|    |__|    |  \    |  \    .__)    |  |    |__|    |             ##
+ *
+ *
+ * DU-INO Arduino Library - Device-Specific Calibration Constants
+ * Aaron Mavrinac <aaron@logick.ca>
+ */
+
+#ifndef DUINO_CALIBRATION_H_
+#define DUINO_CALIBRATION_H_
+
+#define CI1_PRESCALE	1.000
+#define CI1_OFFSET		0.000
+#define CI2_PRESCALE	1.000
+#define CI2_OFFSET		0.000
+#define CI3_PRESCALE	1.000
+#define CI3_OFFSET		0.000
+#define CI4_PRESCALE	1.000
+#define CI4_OFFSET		0.000
+
+#define CO1_PRESCALE	1.000
+#define CO1_OFFSET		0.000
+#define CO2_PRESCALE	1.000
+#define CO2_OFFSET		0.000
+#define CO3_PRESCALE	1.000
+#define CO3_OFFSET		0.000
+#define CO4_PRESCALE	1.000
+#define CO4_OFFSET		0.000
+
+#endif // DUINO_CALIBRATION_H_
