@@ -70,13 +70,13 @@ The indicator module provides a set of standard graphical indicators for use in 
 
 ### Save Widget (EEPROM) Module
 
-`include <du-ino_save.h>`
+`#include <du-ino_save.h>`
 
 The `DUINO_SaveWidget` is a special widget that can save parameter values to the Arduino's internal EEPROM memory and load them back again, so that a function can come back to life as it was configured when the module is powered off and back on. The class is templated on a fixed-size `struct` of parameters that you define, and internally handles the byte serialization and EEPROM access.
 
 ### Clock Module
 
-`include <du-ino_clock.h>`
+`#include <du-ino_clock.h>`
 
 The clock module provides a non-blocking timer loop whose behaviour can be configured in musical ways, including swing and clock divisions.
 
