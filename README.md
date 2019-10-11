@@ -13,7 +13,7 @@ This is the official Arduino library for the DU MDLR [DU-INO](http://logick.ca/d
 
 A growing collection of Detroit Underground functions are being added as examples, which can be accessed from **File** - **Examples** - **DU-INO** in the IDE once the library is installed.
 
-Program the DU-INO by connecting a USB cable to the Arduino Uno while it is seated in the module. Note that the module has a small switch on the lower left (from the front) of the PCB that must be switched to the *up* position for programming and the *down* position to run. Also be sure to set the 8 switches on the rear of the module to the positions specified by the switch configuration in the function.
+Program the DU-INO by connecting a USB cable to the Arduino Uno while it is seated in the module. Note that the module has a small switch on the lower left (from the front) of the PCB that must be switched to the *up* position for programming and the *down* position to run. Also be sure to set the 8 switches on the rear of the module to the positions specified by the switch configuration in the function. See our [YouTube video](https://www.youtube.com/watch?v=DT4nvzAziTM) demonstrating this process.
 
 ## Modules
 
