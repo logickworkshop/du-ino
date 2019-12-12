@@ -25,7 +25,7 @@
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include "du-ino_font5x7.h"
-#include "du-ino_SH1106.h"
+#include "du-ino_sh1106.h"
 
 static uint8_t buffer[SH1106_LCDHEIGHT * SH1106_LCDWIDTH / 8];
 
