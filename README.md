@@ -7,9 +7,10 @@ This is the official Arduino library for the DU MDLR [DU-INO](http://logick.ca/d
 ## Getting Started
 
 1. Download the [Arduino IDE](https://www.arduino.cc/en/Main/Software) for your system.
-2. From the Arduino IDE Library Manager (**Tools** - **Manage Libraries**), install the [TimerOne](https://www.arduinolibraries.info/libraries/timer-one) library.
-3. Download the [latest release](https://github.com/logickworkshop/du-ino/releases) of the DU-INO library, and install it via **Sketch** - **Include Library** - **Add .ZIP Library**.
-4. Start hacking!
+2. From the Arduino IDE Library Manager (**Tools** - **Manage Libraries**), install the DU-INO and [TimerOne](https://www.arduinolibraries.info/libraries/timer-one) libraries.
+3. Start hacking!
+
+If the [latest release](https://github.com/logickworkshop/du-ino/releases) of the DU-INO library is not available through your Arduino IDE, you can download and manually install it via **Sketch** - **Include Library** - **Add .ZIP Library**.
 
 A growing collection of Detroit Underground functions are being added as examples, which can be accessed from **File** - **Examples** - **DU-INO** in the IDE once the library is installed.
 
