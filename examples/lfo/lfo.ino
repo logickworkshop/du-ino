@@ -103,11 +103,11 @@ public:
     widgets_source_->attach_scroll_callback_array(s_source_scroll_callback);
     widgets_source_->attach_click_callback(s_source_click_callback);
     container_outer_->attach_child(widgets_source_, 3);
-    widgets_polarity_ = new DUINO_MultiDisplayWidget<4>(79, 13, 19, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
+    widgets_polarity_ = new DUINO_MultiDisplayWidget<4>(79, 13, 7, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
     widgets_polarity_->attach_scroll_callback_array(s_polarity_scroll_callback);
     widgets_polarity_->attach_click_callback(s_polarity_click_callback);
     container_outer_->attach_child(widgets_polarity_, 4);
-    widgets_amplitude_ = new DUINO_MultiDisplayWidget<4>(86, 13, 19, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
+    widgets_amplitude_ = new DUINO_MultiDisplayWidget<4>(86, 13, 12, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
     widgets_amplitude_->attach_scroll_callback_array(s_amplitude_scroll_callback);
     widgets_amplitude_->attach_click_callback(s_amplitude_click_callback);
     container_outer_->attach_child(widgets_amplitude_, 5);
