@@ -62,11 +62,13 @@ static const unsigned char icons[] PROGMEM =
 void s_waveform_scroll_callback(uint8_t selected, int delta);
 void s_range_scroll_callback(uint8_t selected, int delta);
 void s_source_scroll_callback(uint8_t selected, int delta);
+void s_polarity_scroll_callback(uint8_t selected, int delta);
 void s_amplitude_scroll_callback(uint8_t selected, int delta);
 void s_invert_scroll_callback(uint8_t selected, int delta);
 void s_waveform_click_callback();
 void s_range_click_callback();
 void s_source_click_callback();
+void s_polarity_click_callback();
 void s_amplitude_click_callback();
 void s_invert_click_callback();
 
@@ -86,7 +88,7 @@ public:
   virtual void function_setup()
   {
     // build widget hierarchy
-    container_outer_ = new DUINO_WidgetContainer<6>(DUINO_Widget::DoubleClick, 1);
+    container_outer_ = new DUINO_WidgetContainer<7>(DUINO_Widget::DoubleClick, 1);
     widget_save_ = new DUINO_SaveWidget<ParameterValues>(121, 0);
     container_outer_->attach_child(widget_save_, 0);
     widgets_waveform_ = new DUINO_MultiDisplayWidget<4>(14, 13, 9, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
@@ -101,14 +103,18 @@ public:
     widgets_source_->attach_scroll_callback_array(s_source_scroll_callback);
     widgets_source_->attach_click_callback(s_source_click_callback);
     container_outer_->attach_child(widgets_source_, 3);
-    widgets_amplitude_ = new DUINO_MultiDisplayWidget<4>(79, 13, 19, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
+    widgets_polarity_ = new DUINO_MultiDisplayWidget<4>(79, 13, 19, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
+    widgets_polarity_->attach_scroll_callback_array(s_polarity_scroll_callback);
+    widgets_polarity_->attach_click_callback(s_polarity_click_callback);
+    container_outer_->attach_child(widgets_polarity_, 4);
+    widgets_amplitude_ = new DUINO_MultiDisplayWidget<4>(86, 13, 19, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
     widgets_amplitude_->attach_scroll_callback_array(s_amplitude_scroll_callback);
     widgets_amplitude_->attach_click_callback(s_amplitude_click_callback);
-    container_outer_->attach_child(widgets_amplitude_, 4);
+    container_outer_->attach_child(widgets_amplitude_, 5);
     widgets_invert_ = new DUINO_MultiDisplayWidget<4>(104, 13, 9, 9, 13, true, DUINO_Widget::Full, DUINO_Widget::Click);
     widgets_invert_->attach_scroll_callback_array(s_invert_scroll_callback);
     widgets_invert_->attach_click_callback(s_invert_click_callback);
-    container_outer_->attach_child(widgets_invert_, 5);
+    container_outer_->attach_child(widgets_invert_, 6);
 
     // load settings
     widget_save_->load_params();
@@ -147,6 +153,10 @@ public:
   {
   }
 
+  void widgets_polarity_scroll_callback(uint8_t stage_selected, int delta)
+  {
+  }
+
   void widgets_amplitude_scroll_callback(uint8_t stage_selected, int delta)
   {
   }
@@ -159,6 +169,7 @@ public:
   {
     widgets_range_->select(widgets_waveform_->selected());
     widgets_source_->select(widgets_waveform_->selected());
+    widgets_polarity_->select(widgets_waveform_->selected());
     widgets_amplitude_->select(widgets_waveform_->selected());
     widgets_invert_->select(widgets_waveform_->selected());
   }
@@ -167,6 +178,7 @@ public:
   {
   	widgets_waveform_->select(widgets_waveform_->selected());
     widgets_source_->select(widgets_waveform_->selected());
+    widgets_polarity_->select(widgets_waveform_->selected());
     widgets_amplitude_->select(widgets_waveform_->selected());
     widgets_invert_->select(widgets_waveform_->selected());
   }
@@ -175,6 +187,16 @@ public:
   {
   	widgets_waveform_->select(widgets_waveform_->selected());
     widgets_range_->select(widgets_waveform_->selected());
+    widgets_polarity_->select(widgets_waveform_->selected());
+    widgets_amplitude_->select(widgets_waveform_->selected());
+    widgets_invert_->select(widgets_waveform_->selected());
+  }
+
+  void widgets_polarity_click_callback()
+  {
+  	widgets_waveform_->select(widgets_waveform_->selected());
+    widgets_range_->select(widgets_waveform_->selected());
+    widgets_source_->select(widgets_waveform_->selected());
     widgets_amplitude_->select(widgets_waveform_->selected());
     widgets_invert_->select(widgets_waveform_->selected());
   }
@@ -184,6 +206,7 @@ public:
   	widgets_waveform_->select(widgets_waveform_->selected());
     widgets_range_->select(widgets_waveform_->selected());
     widgets_source_->select(widgets_waveform_->selected());
+    widgets_polarity_->select(widgets_waveform_->selected());
     widgets_invert_->select(widgets_waveform_->selected());
   }
 
@@ -192,6 +215,7 @@ public:
   	widgets_waveform_->select(widgets_waveform_->selected());
     widgets_range_->select(widgets_waveform_->selected());
     widgets_source_->select(widgets_waveform_->selected());
+    widgets_polarity_->select(widgets_waveform_->selected());
     widgets_amplitude_->select(widgets_waveform_->selected());
   }
 
@@ -201,15 +225,17 @@ private:
     uint8_t waveform[4];
     uint8_t range[4];
     uint8_t source[4];
+    uint8_t polarity : 4;
     uint8_t amplitude[4];
-    uint8_t invert[4];
+    uint8_t invert : 4;
   };
 
-  DUINO_WidgetContainer<6> * container_outer_;
+  DUINO_WidgetContainer<7> * container_outer_;
   DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_MultiDisplayWidget<4> * widgets_waveform_;
   DUINO_MultiDisplayWidget<4> * widgets_range_;
   DUINO_MultiDisplayWidget<4> * widgets_source_;
+  DUINO_MultiDisplayWidget<4> * widgets_polarity_;
   DUINO_MultiDisplayWidget<4> * widgets_amplitude_;
   DUINO_MultiDisplayWidget<4> * widgets_invert_;
 };
@@ -219,11 +245,13 @@ DU_LFO_Function * function;
 void s_waveform_scroll_callback(uint8_t selected, int delta) { function->widgets_waveform_scroll_callback(selected, delta); }
 void s_range_scroll_callback(uint8_t selected, int delta) { function->widgets_range_scroll_callback(selected, delta); }
 void s_source_scroll_callback(uint8_t selected, int delta) { function->widgets_source_scroll_callback(selected, delta); }
+void s_polarity_scroll_callback(uint8_t selected, int delta) { function->widgets_source_scroll_callback(selected, delta); }
 void s_amplitude_scroll_callback(uint8_t selected, int delta) { function->widgets_amplitude_scroll_callback(selected, delta); }
 void s_invert_scroll_callback(uint8_t selected, int delta) { function->widgets_invert_scroll_callback(selected, delta); }
 void s_waveform_click_callback() { function->widgets_waveform_click_callback(); }
 void s_range_click_callback() { function->widgets_range_click_callback(); }
 void s_source_click_callback() { function->widgets_source_click_callback(); }
+void s_polarity_click_callback() { function->widgets_source_click_callback(); }
 void s_amplitude_click_callback() { function->widgets_amplitude_click_callback(); }
 void s_invert_click_callback() { function->widgets_invert_click_callback(); }
 
