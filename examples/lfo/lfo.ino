@@ -46,6 +46,7 @@
 
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
+#include <du-ino_indicators.h>
 #include <du-ino_save.h>
 #include <avr/pgmspace.h>
 
@@ -115,6 +116,12 @@ public:
     widgets_invert_->attach_scroll_callback_array(s_invert_scroll_callback);
     widgets_invert_->attach_click_callback(s_invert_click_callback);
     container_outer_->attach_child(widgets_invert_, 6);
+
+    // hold indicators
+    for(uint8_t i  = 0; i < 4; ++i)
+    {
+      indicator_hold_[i] = new DUINO_JackIndicator(121, 15 + 13 * i);
+    }
 
     // load settings
     widget_save_->load_params();
@@ -238,6 +245,8 @@ private:
   DUINO_MultiDisplayWidget<4> * widgets_polarity_;
   DUINO_MultiDisplayWidget<4> * widgets_amplitude_;
   DUINO_MultiDisplayWidget<4> * widgets_invert_;
+
+  DUINO_JackIndicator * indicator_hold_[4];
 };
 
 DU_LFO_Function * function;
