@@ -49,10 +49,18 @@
 #include <du-ino_widgets.h>
 #include <du-ino_indicators.h>
 #include <du-ino_save.h>
+#include <du-ino_utils.h>
 #include <avr/pgmspace.h>
 
 #define ENV_RELEASE_COEFF     -2.0
 #define ENV_RELEASE_HOLD      3
+
+#define LEVEL_MAX 99
+#define RATE_MAX 96
+#define LOOP_MIN -1
+#define LOOP_MAX 5
+#define REPEAT_MIN 0
+#define REPEAT_MAX 7
 
 static const unsigned char icons[] PROGMEM =
 {
@@ -170,10 +178,13 @@ public:
 
     // load parameters
     widget_save_->load_params();
-    sanitize_level();
-    sanitize_rate();
-    sanitize_loop();
-    sanitize_repeat();
+    for (uint8_t p = 0; p < 4; ++p)
+    {
+      widget_save_->params.vals.level[p] = clamp<int8_t>(widget_save_->params.vals.level[p], 0, LEVEL_MAX);
+      widget_save_->params.vals.rate[p] = clamp<int8_t>(widget_save_->params.vals.rate[p], 0, RATE_MAX);
+    }
+    widget_save_->params.vals.loop = clamp<int8_t>(widget_save_->params.vals.loop, LOOP_MIN, LOOP_MAX);
+    widget_save_->params.vals.repeat = clamp<int8_t>(widget_save_->params.vals.repeat, REPEAT_MIN, REPEAT_MAX);
     cached_params_ = widget_save_->params.vals;
 
     // draw title
@@ -364,11 +375,7 @@ public:
 
   void widget_loop_scroll_callback(int delta)
   {
-    const int8_t loop_last = widget_save_->params.vals.loop;
-
-    widget_save_->params.vals.loop += delta;
-    sanitize_loop();
-    if (widget_save_->params.vals.loop != loop_last)
+    if (adjust<int8_t>(widget_save_->params.vals.loop, delta, LOOP_MIN, LOOP_MAX))
     {
       widget_save_->mark_changed();
       update_cached_ = true;
@@ -379,11 +386,7 @@ public:
 
   void widget_repeat_scroll_callback(int delta)
   {
-    const int8_t repeat_last = widget_save_->params.vals.repeat;
-
-    widget_save_->params.vals.repeat += delta;
-    sanitize_repeat();
-    if (widget_save_->params.vals.repeat != repeat_last)
+    if (adjust<int8_t>(widget_save_->params.vals.repeat, delta, REPEAT_MIN, REPEAT_MAX))
     {
       widget_save_->mark_changed();
       update_cached_ = true;
@@ -400,10 +403,7 @@ public:
     if (parameter)
     {
       // adjust rate
-      const int8_t rate_last = widget_save_->params.vals.rate[p];
-      widget_save_->params.vals.rate[p - 1] += delta;
-      sanitize_rate();
-      if(widget_save_->params.vals.rate[p - 1] != rate_last)
+      if(adjust<int8_t>(widget_save_->params.vals.rate[p - 1], delta, 0, RATE_MAX))
       {
         widget_save_->mark_changed();
         update_cached_ = true;
@@ -416,10 +416,7 @@ public:
     else
     {
       // adjust level
-      const int8_t level_last = widget_save_->params.vals.level[p];
-      widget_save_->params.vals.level[p] += delta;
-      sanitize_level();
-      if(widget_save_->params.vals.level[p] != level_last)
+      if(adjust<int8_t>(widget_save_->params.vals.level[p], delta, 0, LEVEL_MAX))
       {
         widget_save_->mark_changed();
         update_cached_ = true;
@@ -436,60 +433,6 @@ public:
   }
 
 private:
-  void sanitize_level()
-  {
-    for (uint8_t p = 0; p < 4; ++p)
-    {
-      if (widget_save_->params.vals.level[p] < 0)
-      {
-        widget_save_->params.vals.level[p] = 0;
-      }
-      else if (widget_save_->params.vals.level[p] > 99)
-      {
-        widget_save_->params.vals.level[p] = 99;
-      }
-    }
-  }
-
-  void sanitize_rate()
-  {
-    for (uint8_t p = 0; p < 4; ++p)
-    {
-      if (widget_save_->params.vals.rate[p] < 0)
-      {
-        widget_save_->params.vals.rate[p] = 0;
-      }
-      else if (widget_save_->params.vals.rate[p] > 96)
-      {
-        widget_save_->params.vals.rate[p] = 96;
-      }
-    }
-  }
-
-  void sanitize_loop()
-  {
-    if (widget_save_->params.vals.loop < -1)
-    {
-      widget_save_->params.vals.loop = -1;
-    }
-    else if (widget_save_->params.vals.loop > 5)
-    {
-      widget_save_->params.vals.loop = 5;
-    }
-  }
-
-  void sanitize_repeat()
-  {
-    if (widget_save_->params.vals.repeat < 0)
-    {
-      widget_save_->params.vals.repeat = 0;
-    }
-    else if (widget_save_->params.vals.repeat > 7)
-    {
-      widget_save_->params.vals.repeat = 7;
-    }
-  }
-
   float level_to_cv(uint8_t p, bool use_cached = false)
   {
     if (p == 4)
