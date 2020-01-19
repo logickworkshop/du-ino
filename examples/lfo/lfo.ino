@@ -73,6 +73,14 @@ void s_invert_click_callback();
 class DU_LFO_Function : public DUINO_Function
 {
 public:
+  enum Waveform
+  {
+  	Square,
+  	Sine,
+  	Saw,
+  	Triangle
+  };
+
   DU_LFO_Function() : DUINO_Function(0b11111111) { }
 
   virtual void function_setup()
