@@ -176,47 +176,47 @@ public:
 
   void widgets_range_click_callback()
   {
-  	widgets_waveform_->select(widgets_waveform_->selected());
-    widgets_source_->select(widgets_waveform_->selected());
-    widgets_polarity_->select(widgets_waveform_->selected());
-    widgets_amplitude_->select(widgets_waveform_->selected());
-    widgets_invert_->select(widgets_waveform_->selected());
+  	widgets_waveform_->select(widgets_range_->selected());
+    widgets_source_->select(widgets_range_->selected());
+    widgets_polarity_->select(widgets_range_->selected());
+    widgets_amplitude_->select(widgets_range_->selected());
+    widgets_invert_->select(widgets_range_->selected());
   }
 
   void widgets_source_click_callback()
   {
-  	widgets_waveform_->select(widgets_waveform_->selected());
-    widgets_range_->select(widgets_waveform_->selected());
-    widgets_polarity_->select(widgets_waveform_->selected());
-    widgets_amplitude_->select(widgets_waveform_->selected());
-    widgets_invert_->select(widgets_waveform_->selected());
+  	widgets_waveform_->select(widgets_source_->selected());
+    widgets_range_->select(widgets_source_->selected());
+    widgets_polarity_->select(widgets_source_->selected());
+    widgets_amplitude_->select(widgets_source_->selected());
+    widgets_invert_->select(widgets_source_->selected());
   }
 
   void widgets_polarity_click_callback()
   {
-  	widgets_waveform_->select(widgets_waveform_->selected());
-    widgets_range_->select(widgets_waveform_->selected());
-    widgets_source_->select(widgets_waveform_->selected());
-    widgets_amplitude_->select(widgets_waveform_->selected());
-    widgets_invert_->select(widgets_waveform_->selected());
+  	widgets_waveform_->select(widgets_polarity_->selected());
+    widgets_range_->select(widgets_polarity_->selected());
+    widgets_source_->select(widgets_polarity_->selected());
+    widgets_amplitude_->select(widgets_polarity_->selected());
+    widgets_invert_->select(widgets_polarity_->selected());
   }
 
   void widgets_amplitude_click_callback()
   {
-  	widgets_waveform_->select(widgets_waveform_->selected());
-    widgets_range_->select(widgets_waveform_->selected());
-    widgets_source_->select(widgets_waveform_->selected());
-    widgets_polarity_->select(widgets_waveform_->selected());
-    widgets_invert_->select(widgets_waveform_->selected());
+  	widgets_waveform_->select(widgets_amplitude_->selected());
+    widgets_range_->select(widgets_amplitude_->selected());
+    widgets_source_->select(widgets_amplitude_->selected());
+    widgets_polarity_->select(widgets_amplitude_->selected());
+    widgets_invert_->select(widgets_amplitude_->selected());
   }
 
   void widgets_invert_click_callback()
   {
-  	widgets_waveform_->select(widgets_waveform_->selected());
-    widgets_range_->select(widgets_waveform_->selected());
-    widgets_source_->select(widgets_waveform_->selected());
-    widgets_polarity_->select(widgets_waveform_->selected());
-    widgets_amplitude_->select(widgets_waveform_->selected());
+  	widgets_waveform_->select(widgets_invert_->selected());
+    widgets_range_->select(widgets_invert_->selected());
+    widgets_source_->select(widgets_invert_->selected());
+    widgets_polarity_->select(widgets_invert_->selected());
+    widgets_amplitude_->select(widgets_invert_->selected());
   }
 
 private:
