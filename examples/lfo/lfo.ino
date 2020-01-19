@@ -112,6 +112,12 @@ public:
     // draw save box
     Display.fill_rect(122, 1, 5, 5, DUINO_SH1106::White);
 
+    // draw LFO labels
+    Display.draw_char(2, 14, '1', DUINO_SH1106::White);
+    Display.draw_char(2, 27, '2', DUINO_SH1106::White);
+    Display.draw_char(2, 40, '3', DUINO_SH1106::White);
+    Display.draw_char(2, 53, '4', DUINO_SH1106::White);
+
     widget_setup(container_outer_);
     Display.display();
   }
