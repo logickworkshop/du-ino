@@ -29,6 +29,7 @@
 #define USE_CALIBRATION
 #endif
 
+#define STARTUP_DELAY     100 // ms
 #define TRIG_MS           5   // ms
 #define DIGITAL_THRESH    3.0 // V
 #define CV_IN_OFFSET      0.1 // V
@@ -59,6 +60,9 @@ void DUINO_Function::begin()
 
   if (!initialized)
   {
+    // startup delay, to allow fussy OLED displays to work with fussy power supplies
+    delay(STARTUP_DELAY);
+
     // initialize DACs
     dac_[0]->begin();
     dac_[1]->begin();
