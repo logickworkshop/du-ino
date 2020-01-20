@@ -48,7 +48,18 @@
 #include <du-ino_widgets.h>
 #include <du-ino_indicators.h>
 #include <du-ino_save.h>
+#include <du-ino_utils.h>
 #include <avr/pgmspace.h>
+
+#define AMPLITUDE_MAX 10
+
+enum Waveform
+{
+  WF_SQUARE = 0,
+  WF_SINE = 1,
+  WF_SAW = 2,
+  WF_TRIANGLE = 3
+};
 
 static const unsigned char icons[] PROGMEM =
 {
@@ -76,14 +87,6 @@ void s_invert_click_callback();
 class DU_LFO_Function : public DUINO_Function
 {
 public:
-  enum Waveform
-  {
-  	Square,
-  	Sine,
-  	Saw,
-  	Triangle
-  };
-
   DU_LFO_Function() : DUINO_Function(0b11111111) { }
 
   virtual void function_setup()
@@ -125,6 +128,13 @@ public:
 
     // load settings
     widget_save_->load_params();
+
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+      widget_save_->params.vals.waveform[i] =
+          clamp<int8_t>(widget_save_->params.vals.waveform[i], WF_SQUARE, WF_TRIANGLE);
+      widget_save_->params.vals.amplitude[i] = clamp<int8_t>(widget_save_->params.vals.amplitude[i], 0, AMPLITUDE_MAX);
+    }
 
     // draw title
     Display.draw_du_logo_sm(0, 0, DUINO_SH1106::White);
@@ -229,11 +239,11 @@ public:
 private:
   struct ParameterValues
   {
-    uint8_t waveform[4];
-    uint8_t range[4];
-    uint8_t source[4];
+    int8_t waveform[4];
+    int8_t range[4];
+    int8_t source[4];
     uint8_t polarity : 4;
-    uint8_t amplitude[4];
+    int8_t amplitude[4];
     uint8_t invert : 4;
   };
 
