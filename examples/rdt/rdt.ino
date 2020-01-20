@@ -51,6 +51,12 @@
 #include <du-ino_clock.h>
 #include <avr/pgmspace.h>
 
+#define CLOCK_BPM_MAX 300
+#define SWING_MIN 0
+#define SWING_MAX 6
+#define LFSR_MIN 1
+#define LFSR_MAX 8
+
 static const unsigned char loop_icons[] PROGMEM =
 {
   0x30, 0x48, 0x84, 0x84, 0x80, 0x84, 0x8e, 0x9f,  // left part
@@ -179,36 +185,15 @@ public:
     // load settings
     widget_save_->load_params();
 
-    if (widget_save_->params.vals.clock_bpm < 0)
-    {
-      widget_save_->params.vals.clock_bpm = 0;
-    }
-    else if (widget_save_->params.vals.clock_bpm > 300)
-    {
-      widget_save_->params.vals.clock_bpm = 300;
-    }
+    widget_save_->params.vals.clock_bpm = clamp<int16_t>(widget_save_->params.vals.clock_bpm, 0, CLOCK_BPM_MAX);
     Clock.set_bpm(widget_save_->params.vals.clock_bpm);
 
-    if (widget_save_->params.vals.swing < 0)
-    {
-      widget_save_->params.vals.swing = 0;
-    }
-    else if (widget_save_->params.vals.swing > 6)
-    {
-      widget_save_->params.vals.swing = 6;
-    }
+    widget_save_->params.vals.swing = clamp<int8_t>(widget_save_->params.vals.swing, SWING_MIN, SWING_MAX);
     Clock.set_swing(widget_save_->params.vals.swing);
 
     for (uint8_t i = 0; i < 2; ++i)
     {
-      if (widget_save_->params.vals.lfsr[i] < 1)
-      {
-        widget_save_->params.vals.lfsr[i] = 1;
-      }
-      else if (widget_save_->params.vals.lfsr[i] > 8)
-      {
-        widget_save_->params.vals.lfsr[i] = 8;
-      }
+      widget_save_->params.vals.lfsr[i] = clamp<int8_t>(widget_save_->params.vals.lfsr[i], LFSR_MIN, LFSR_MAX);
     }
 
     // draw parameters
@@ -393,63 +378,46 @@ public:
 
   void widget_clock_scroll_callback(int delta)
   {
-    widget_save_->params.vals.clock_bpm += delta;
-    if (widget_save_->params.vals.clock_bpm < 0)
+    if (adjust<int16_t>(widget_save_->params.vals.clock_bpm, delta, 0, CLOCK_BPM_MAX))
     {
-      widget_save_->params.vals.clock_bpm = 0;
+      Clock.set_bpm(widget_save_->params.vals.clock_bpm);
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
+      display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
+          DUINO_SH1106::Black);
+      widget_clock_->display();
     }
-    else if (widget_save_->params.vals.clock_bpm > 300)
-    {
-      widget_save_->params.vals.clock_bpm = 300;
-    }
-    Clock.set_bpm(widget_save_->params.vals.clock_bpm);
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
-    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
-        DUINO_SH1106::Black);
-    widget_clock_->display();
   }
 
   void widget_swing_scroll_callback(int delta)
   {
-    widget_save_->params.vals.swing += delta;
-    if (widget_save_->params.vals.swing < 0)
+    if (adjust<int8_t>(widget_save_->params.vals.swing, delta, SWING_MIN, SWING_MAX))
     {
-      widget_save_->params.vals.swing = 0;
+      Clock.set_swing(widget_save_->params.vals.swing);
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_swing_->x() + 1, widget_swing_->y() + 1, 11, 7, DUINO_SH1106::White);
+      display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::Black);
+      widget_swing_->display();
     }
-    else if (widget_save_->params.vals.swing > 6)
-    {
-      widget_save_->params.vals.swing = 6;
-    }
-    Clock.set_swing(widget_save_->params.vals.swing);
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_swing_->x() + 1, widget_swing_->y() + 1, 11, 7, DUINO_SH1106::White);
-    display_swing(widget_swing_->x() + 1, widget_swing_->y() + 1, widget_save_->params.vals.swing, DUINO_SH1106::Black);
-    widget_swing_->display();
   }
 
   void widgets_lfsr_scroll_callback(uint8_t half, int delta)
   {
-    Display.fill_rect(24 + (half * 40) + ((widget_save_->params.vals.lfsr[half] - 1) * 5), 29, 5, 3,
-        DUINO_SH1106::Black);
-    Display.fill_rect(widgets_lfsr_->x(half) + 4, widgets_lfsr_->y(half) + 3, 5, 7, DUINO_SH1106::Black);
-    widget_save_->params.vals.lfsr[half] += delta;
-    if (widget_save_->params.vals.lfsr[half] < 1)
+    if (adjust<int8_t>(widget_save_->params.vals.lfsr[half], delta, LFSR_MIN, LFSR_MAX))
     {
-      widget_save_->params.vals.lfsr[half] = 1;
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(24 + (half * 40) + ((widget_save_->params.vals.lfsr[half] - 1) * 5), 29, 5, 3,
+          DUINO_SH1106::Black);
+      Display.fill_rect(widgets_lfsr_->x(half) + 4, widgets_lfsr_->y(half) + 3, 5, 7, DUINO_SH1106::Black);
+      Display.draw_char(widgets_lfsr_->x(half) + 4, widgets_lfsr_->y(half) + 3,
+          '0' + widget_save_->params.vals.lfsr[half], DUINO_SH1106::White);
+      draw_lfsr_arrow(24 + (half * 40) + ((widget_save_->params.vals.lfsr[half] - 1) * 5), 29, DUINO_SH1106::White);
+      widgets_lfsr_->display();
+      Display.display(23, 103, 3, 3);
     }
-    else if (widget_save_->params.vals.lfsr[half] > 8)
-    {
-      widget_save_->params.vals.lfsr[half] = 8;
-    }
-    widget_save_->mark_changed();
-    Display.draw_char(widgets_lfsr_->x(half) + 4, widgets_lfsr_->y(half) + 3,
-        '0' + widget_save_->params.vals.lfsr[half], DUINO_SH1106::White);
-    draw_lfsr_arrow(24 + (half * 40) + ((widget_save_->params.vals.lfsr[half] - 1) * 5), 29, DUINO_SH1106::White);
-    widgets_lfsr_->display();
-    Display.display(23, 103, 3, 3);
   }
 
 private:
@@ -506,7 +474,8 @@ private:
     Display.draw_pixel(x + 4, y + 2, color);
   }
 
-  struct ParameterValues {
+  struct ParameterValues
+  {
     uint16_t pattern;
     int16_t clock_bpm;
     int8_t swing;

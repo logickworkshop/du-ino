@@ -49,7 +49,18 @@
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
 #include <du-ino_dsp.h>
+#include <du-ino_utils.h>
 #include <avr/pgmspace.h>
+
+#define PITCH_MAX 119
+#define STEPS_MIN 1
+#define STEPS_MAX 8
+#define STAGE_MIN 1
+#define STAGE_MAX 8
+#define GATE_TIME_MAX 16
+#define GATE_TIME_DIV 8000
+#define SLEW_RATE_MAX 16
+#define CLOCK_BPM_MAX 300
 
 enum GateMode
 {
@@ -179,44 +190,31 @@ public:
     // verify settings and export to function parameters
     for (uint8_t i = 0; i < 8; ++i)
     {
-      if (widget_save_->params.vals.stage_pitch[i] < 0)
+      widget_save_->params.vals.stage_pitch[i] = clamp<int8_t>(widget_save_->params.vals.stage_pitch[i], 0, PITCH_MAX);
+
+      if (widget_save_->params.vals.stage_steps[i] < STEPS_MIN || widget_save_->params.vals.stage_steps[i] > STEPS_MAX)
       {
-        widget_save_->params.vals.stage_pitch[i] = 0;
+        widget_save_->params.vals.stage_steps[i] = STEPS_MAX;
       }
-      if (widget_save_->params.vals.stage_pitch[i] > 119)
+
+      if(widget_save_->params.vals.stage_gate[i] < GATE_NONE || widget_save_->params.vals.stage_gate[i] > GATE_EXT2)
       {
-        widget_save_->params.vals.stage_pitch[i] = 119;
+        widget_save_->params.vals.stage_gate[i] = GATE_REPT;
       }
     }
 
-    for (uint8_t i = 0; i < 8; ++i)
+    if (widget_save_->params.vals.stage_count < STAGE_MIN || widget_save_->params.vals.stage_count > STAGE_MAX)
     {
-      if (widget_save_->params.vals.stage_steps[i] < 1 || widget_save_->params.vals.stage_steps[i] > 8)
-      {
-        widget_save_->params.vals.stage_steps[i] = 8;
-      }
+      widget_save_->params.vals.stage_count = STAGE_MAX;
     }
     
-    for (uint8_t i = 0; i < 8; ++i)
+    if (widget_save_->params.vals.slew_rate < 0 || widget_save_->params.vals.slew_rate > SLEW_RATE_MAX)
     {
-      if(widget_save_->params.vals.stage_gate[i] < 0 || widget_save_->params.vals.stage_gate[i] > 5)
-      {
-        widget_save_->params.vals.stage_gate[i] = 2;
-      }
-    }
-
-    if (widget_save_->params.vals.stage_count < 1 || widget_save_->params.vals.stage_count > 8)
-    {
-      widget_save_->params.vals.stage_count = 8;
-    }
-    
-    if (widget_save_->params.vals.slew_rate < 0 || widget_save_->params.vals.slew_rate > 16)
-    {
-      widget_save_->params.vals.slew_rate = 8;
+      widget_save_->params.vals.slew_rate = SLEW_RATE_MAX / 2;
     }
     slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
 
-    if (widget_save_->params.vals.clock_bpm < 0 || widget_save_->params.vals.clock_bpm > 300)
+    if (widget_save_->params.vals.clock_bpm < 0 || widget_save_->params.vals.clock_bpm > CLOCK_BPM_MAX)
     {
       widget_save_->params.vals.clock_bpm = 0;
     }
@@ -229,11 +227,11 @@ public:
       Clock.set_external();
     }
 
-    if (widget_save_->params.vals.gate_time < 0 || widget_save_->params.vals.gate_time > 16)
+    if (widget_save_->params.vals.gate_time < 0 || widget_save_->params.vals.gate_time > GATE_TIME_MAX)
     {
-      widget_save_->params.vals.gate_time = 8;
+      widget_save_->params.vals.gate_time = GATE_TIME_MAX / 2;
     }
-    gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
+    gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
 
     // draw global elements
     for (uint8_t i = 0; i < 6; ++i)
@@ -434,33 +432,20 @@ public:
 
   void widget_count_scroll_callback(int delta)
   {
-    widget_save_->params.vals.stage_count += delta;
-    if (widget_save_->params.vals.stage_count < 1)
+    if (adjust<int8_t>(widget_save_->params.vals.stage_count, delta, STAGE_MIN, STAGE_MAX))
     {
-      widget_save_->params.vals.stage_count = 1;
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_count_->x() + 1, widget_count_->y() + 1, 5, 7, DUINO_SH1106::White);
+      Display.draw_char(widget_count_->x() + 1, widget_count_->y() + 1, '0' + widget_save_->params.vals.stage_count,
+          DUINO_SH1106::Black);
+      widget_count_->display();
     }
-    else if (widget_save_->params.vals.stage_count > 8)
-    {
-      widget_save_->params.vals.stage_count = 8;
-    }
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_count_->x() + 1, widget_count_->y() + 1, 5, 7, DUINO_SH1106::White);
-    Display.draw_char(widget_count_->x() + 1, widget_count_->y() + 1, '0' + widget_save_->params.vals.stage_count,
-        DUINO_SH1106::Black);
-    widget_count_->display();
   }
 
   void widget_diradd_scroll_callback(int delta)
   {
-    if (delta < 0)
-    {
-      widget_save_->params.vals.diradd_mode = 0;
-    }
-    else if (delta > 0)
-    {
-      widget_save_->params.vals.diradd_mode = 1;
-    }
+    widget_save_->params.vals.diradd_mode = delta < 0 ? 0 : 1;
     widget_save_->mark_changed();
     widget_save_->display();
     Display.fill_rect(widget_diradd_->x() + 1, widget_diradd_->y() + 1, 5, 7, DUINO_SH1106::White);
@@ -471,130 +456,94 @@ public:
 
   void widget_slew_scroll_callback(int delta)
   {
-    widget_save_->params.vals.slew_rate += delta;
-    if (widget_save_->params.vals.slew_rate < 0)
+    if (adjust<int8_t>(widget_save_->params.vals.slew_rate, delta, 0, SLEW_RATE_MAX))
     {
-      widget_save_->params.vals.slew_rate = 0;
+      slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_slew_->x() + 2, widget_slew_->y() + 2, 16, 5, DUINO_SH1106::White);
+      display_slew_rate(widget_slew_->x() + 2, widget_slew_->y() + 2, widget_save_->params.vals.slew_rate,
+          DUINO_SH1106::Black);
+      widget_slew_->display();
     }
-    else if (widget_save_->params.vals.slew_rate > 16)
-    {
-      widget_save_->params.vals.slew_rate = 16;
-    }
-    slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_slew_->x() + 2, widget_slew_->y() + 2, 16, 5, DUINO_SH1106::White);
-    display_slew_rate(widget_slew_->x() + 2, widget_slew_->y() + 2, widget_save_->params.vals.slew_rate,
-        DUINO_SH1106::Black);
-    widget_slew_->display();
   }
 
   void widget_gate_scroll_callback(int delta)
   {
-    widget_save_->params.vals.gate_time += delta;
-    if (widget_save_->params.vals.gate_time < 0)
+    if (adjust<int8_t>(widget_save_->params.vals.gate_time, delta, 0, GATE_TIME_MAX))
     {
-      widget_save_->params.vals.gate_time = 0;
+      gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_gate_->x() + 2, widget_gate_->y() + 2, 16, 5, DUINO_SH1106::White);
+      display_gate_time(widget_gate_->x() + 2, widget_gate_->y() + 2, widget_save_->params.vals.gate_time,
+          DUINO_SH1106::Black);
+      widget_gate_->display();
     }
-    else if (widget_save_->params.vals.gate_time > 16)
-    {
-      widget_save_->params.vals.gate_time = 16;
-    }
-    gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_gate_->x() + 2, widget_gate_->y() + 2, 16, 5, DUINO_SH1106::White);
-    display_gate_time(widget_gate_->x() + 2, widget_gate_->y() + 2, widget_save_->params.vals.gate_time,
-        DUINO_SH1106::Black);
-    widget_gate_->display();
   }
 
   void widget_clock_scroll_callback(int delta)
   {
-    widget_save_->params.vals.clock_bpm += delta;
-    if (widget_save_->params.vals.clock_bpm < 0)
+    if (adjust<int16_t>(widget_save_->params.vals.clock_bpm, delta, 0, CLOCK_BPM_MAX))
     {
-      widget_save_->params.vals.clock_bpm = 0;
+      if (widget_save_->params.vals.clock_bpm)
+      {
+        Clock.set_bpm(widget_save_->params.vals.clock_bpm);
+      }
+      else
+      {
+        Clock.set_external();
+      }
+      gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
+      display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
+          DUINO_SH1106::Black);
+      widget_clock_->display();
     }
-    else if (widget_save_->params.vals.clock_bpm > 300)
-    {
-      widget_save_->params.vals.clock_bpm = 300;
-    }
-    if (widget_save_->params.vals.clock_bpm)
-    {
-      Clock.set_bpm(widget_save_->params.vals.clock_bpm);
-    }
-    else
-    {
-      Clock.set_external();
-    }
-    gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / 8000);
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
-    display_clock(widget_clock_->x() + 1, widget_clock_->y() + 1, widget_save_->params.vals.clock_bpm,
-        DUINO_SH1106::Black);
-    widget_clock_->display();
   }
 
   void widgets_pitch_scroll_callback(uint8_t stage_selected, int delta)
   {
-    widget_save_->params.vals.stage_pitch[stage_selected] += delta;
-    if (widget_save_->params.vals.stage_pitch[stage_selected] < 0)
+    if (adjust<int8_t>(widget_save_->params.vals.stage_pitch[stage_selected], delta, 0, PITCH_MAX))
     {
-      widget_save_->params.vals.stage_pitch[stage_selected] = 0;
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widgets_pitch_->x(stage_selected), widgets_pitch_->y(stage_selected), 16, 15,
+          DUINO_SH1106::White);
+      display_note(widgets_pitch_->x(stage_selected), widgets_pitch_->y(stage_selected),
+          widget_save_->params.vals.stage_pitch[stage_selected], DUINO_SH1106::Black);
+      widgets_pitch_->display();
     }
-    else if (widget_save_->params.vals.stage_pitch[stage_selected] > 119)
-    {
-      widget_save_->params.vals.stage_pitch[stage_selected] = 119;
-    }
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widgets_pitch_->x(stage_selected), widgets_pitch_->y(stage_selected), 16, 15,
-        DUINO_SH1106::White);
-    display_note(widgets_pitch_->x(stage_selected), widgets_pitch_->y(stage_selected),
-        widget_save_->params.vals.stage_pitch[stage_selected], DUINO_SH1106::Black);
-    widgets_pitch_->display();
   }
 
   void widgets_steps_scroll_callback(uint8_t stage_selected, int delta)
   {
-    widget_save_->params.vals.stage_steps[stage_selected] += delta;
-    if (widget_save_->params.vals.stage_steps[stage_selected] < 1)
+    if (adjust<int8_t>(widget_save_->params.vals.stage_steps[stage_selected], delta, STEPS_MIN, STEPS_MAX))
     {
-      widget_save_->params.vals.stage_steps[stage_selected] = 1;
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widgets_steps_->x(stage_selected) + 1, widgets_steps_->y(stage_selected) + 1, 5, 7,
+          DUINO_SH1106::White);
+      Display.draw_char(widgets_steps_->x(stage_selected) + 1, widgets_steps_->y(stage_selected) + 1,
+          '0' + widget_save_->params.vals.stage_steps[stage_selected], DUINO_SH1106::Black);
+      widgets_steps_->display();
     }
-    else if (widget_save_->params.vals.stage_steps[stage_selected] > 8)
-    {
-      widget_save_->params.vals.stage_steps[stage_selected] = 8;
-    }
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widgets_steps_->x(stage_selected) + 1, widgets_steps_->y(stage_selected) + 1, 5, 7,
-        DUINO_SH1106::White);
-    Display.draw_char(widgets_steps_->x(stage_selected) + 1, widgets_steps_->y(stage_selected) + 1,
-        '0' + widget_save_->params.vals.stage_steps[stage_selected], DUINO_SH1106::Black);
-    widgets_steps_->display();
   }
 
   void widgets_gate_scroll_callback(uint8_t stage_selected, int delta)
   {
-    widget_save_->params.vals.stage_gate[stage_selected] += delta;
-    if (widget_save_->params.vals.stage_gate[stage_selected] < 0)
+    if (adjust<int8_t>(widget_save_->params.vals.stage_gate[stage_selected], delta, GATE_NONE, GATE_EXT2))
     {
-      widget_save_->params.vals.stage_gate[stage_selected] = 0;
+      widget_save_->mark_changed();
+      widget_save_->display();
+      Display.fill_rect(widgets_gate_->x(stage_selected) + 1, widgets_gate_->y(stage_selected) + 1, 7, 7,
+          DUINO_SH1106::White);
+      Display.draw_bitmap_7(widgets_gate_->x(stage_selected) + 1, widgets_gate_->y(stage_selected) + 1,
+          gate_mode_icons, (GateMode)(widget_save_->params.vals.stage_gate[stage_selected]), DUINO_SH1106::Black);
+      widgets_gate_->display();
     }
-    else if (widget_save_->params.vals.stage_gate[stage_selected] > 5)
-    {
-      widget_save_->params.vals.stage_gate[stage_selected] = 5;
-    }
-    widget_save_->mark_changed();
-    widget_save_->display();
-    Display.fill_rect(widgets_gate_->x(stage_selected) + 1, widgets_gate_->y(stage_selected) + 1, 7, 7,
-        DUINO_SH1106::White);
-    Display.draw_bitmap_7(widgets_gate_->x(stage_selected) + 1, widgets_gate_->y(stage_selected) + 1,
-        gate_mode_icons, (GateMode)(widget_save_->params.vals.stage_gate[stage_selected]), DUINO_SH1106::Black);
-    widgets_gate_->display();
   }
 
   void widgets_slew_scroll_callback(uint8_t stage_selected, int delta)
@@ -648,15 +597,7 @@ public:
   uint8_t address_to_stage()
   {
     int8_t addr_stage = (int8_t)(cv_read(CI1) * 1.6);
-    if (addr_stage < 0)
-    {
-      addr_stage = 0;
-    }
-    else if (stage > widget_save_->params.vals.stage_count - 1)
-    {
-      addr_stage = widget_save_->params.vals.stage_count - 1;
-    }
-    return (uint8_t)addr_stage;
+    return (uint8_t)clamp<int8_t>(addr_stage, 0, widget_save_->params.vals.stage_count - 1);
   }
 
 private:

@@ -47,6 +47,7 @@
 #include <du-ino_function.h>
 #include <du-ino_widgets.h>
 #include <du-ino_save.h>
+#include <du-ino_utils.h>
 #include <avr/pgmspace.h>
 
 #define ENV_PEAK              10.0 // V
@@ -118,15 +119,7 @@ public:
     widget_save_->load_params();
     for (uint8_t i = 0; i < 8; ++i)
     {
-      if (widget_save_->params.vals.v[i] < 0)
-      {
-        widget_save_->params.vals.v[i] = 0;
-      }
-      else if (widget_save_->params.vals.v[i] > V_MAX)
-      {
-        widget_save_->params.vals.v[i] = V_MAX;
-      }
-      v_last[i] = widget_save_->params.vals.v[i];
+      widget_save_->params.vals.v[i] = clamp<int8_t>(widget_save_->params.vals.v[i], 0, V_MAX);
     }
     for (uint8_t e = 0; e < 2; ++e)
     {
@@ -250,19 +243,11 @@ public:
 
   void widget_adsr_scroll_callback(uint8_t selected, int delta)
   {
-    widget_save_->params.vals.v[selected] += delta;
-    if (widget_save_->params.vals.v[selected] < 0)
-    {
-      widget_save_->params.vals.v[selected] = 0;
-    }
-    if (widget_save_->params.vals.v[selected] > V_MAX)
-    {
-      widget_save_->params.vals.v[selected] = V_MAX;
-    }
-    if (widget_save_->params.vals.v[selected] != v_last[selected])
+    const int8_t v_last = widget_save_->params.vals.v[selected];
+    if (adjust<int8_t>(widget_save_->params.vals.v[selected], delta, 0, V_MAX))
     {
       // update slider
-      Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - v_last[selected], 9, 3, DUINO_SH1106::Black);
+      Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - v_last, 9, 3, DUINO_SH1106::Black);
       Display.fill_rect(widgets_adsr_[selected]->x() - 1, 51 - widget_save_->params.vals.v[selected], 9, 3,
           DUINO_SH1106::White);
       Display.display(widgets_adsr_[selected]->x() - 1, widgets_adsr_[selected]->x() + 7, 1, 6);
@@ -285,9 +270,6 @@ public:
           break;
       }
 
-      // update last encoder value
-      v_last[selected] = widget_save_->params.vals.v[selected];
-
       widget_save_->mark_changed();
       widget_save_->display();
     }
@@ -298,7 +280,6 @@ private:
   uint8_t env;
   unsigned long gate_time, release_time;
   float cv_current, cv_released;
-  int8_t v_last[8];
   uint8_t last_selected_env;
   bool last_gate;
 
