@@ -7,7 +7,7 @@ This is the official Arduino library for the DU MDLR [DU-INO](http://logick.ca/d
 ## Getting Started
 
 1. Download the [Arduino IDE](https://www.arduino.cc/en/Main/Software) for your system.
-2. From the Arduino IDE Library Manager (**Tools** - **Manage Libraries**), install the DU-INO and [TimerOne](https://www.arduinolibraries.info/libraries/timer-one) libraries.
+2. From the Arduino IDE Library Manager (**Tools** - **Manage Libraries**), install the DU-INO library.
 3. Start hacking!
 
 If the [latest release](https://github.com/logickworkshop/du-ino/releases) of the DU-INO library is not available through your Arduino IDE, you can download and manually install it via **Sketch** - **Include Library** - **Add .ZIP Library**.
