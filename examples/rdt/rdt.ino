@@ -49,6 +49,7 @@
 #include <du-ino_indicators.h>
 #include <du-ino_save.h>
 #include <du-ino_clock.h>
+#include <du-ino_utils.h>
 #include <avr/pgmspace.h>
 
 #define CLOCK_BPM_MAX 300
