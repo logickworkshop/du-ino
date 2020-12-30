@@ -73,10 +73,6 @@ struct DU_ADSR_Values
   uint16_t R;  // ms
 };
 
-volatile bool gate, retrigger;
-volatile uint8_t selected_env;
-volatile unsigned long debounce;
-
 static const unsigned char label[4] = {'A', 'D', 'S', 'R'};
 
 void gate_isr();
@@ -106,6 +102,9 @@ public:
     container_outer_->attach_child(container_adsr_, 1);
     container_adsr_->attach_scroll_callback_array(adsr_scroll_callback);
 
+    gate = retrigger = false;
+    selected_env = 0;
+    debounce = 0;
     env = 0;
     gate_time = 0;
     release_time = 0;
@@ -241,6 +240,25 @@ public:
     }
   }
 
+  void gate_callback()
+  {
+    gate = gt_read_debounce(DUINO_Function::GT3);
+    if (gate)
+    {
+      retrigger = true;
+    }
+  }
+
+  void switch_callback()
+  {
+    if (millis() - debounce > DEBOUNCE_MS)
+    {
+      selected_env++;
+      selected_env %= 2;
+      debounce = millis();
+    }
+  }
+
   void widget_adsr_scroll_callback(uint8_t selected, int delta)
   {
     const int8_t v_last = widget_save_->params.vals.v[selected];
@@ -276,13 +294,6 @@ public:
   }
 
 private:
-  DU_ADSR_Values adsr_values[2];
-  uint8_t env;
-  unsigned long gate_time, release_time;
-  float cv_current, cv_released;
-  uint8_t last_selected_env;
-  bool last_gate;
-
   struct ParameterValues
   {
     int8_t v[8];
@@ -292,37 +303,27 @@ private:
   DUINO_WidgetContainer<8> * container_adsr_;
   DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widgets_adsr_[8];
+
+  volatile bool gate, retrigger;
+  volatile uint8_t selected_env;
+  volatile unsigned long debounce;
+  DU_ADSR_Values adsr_values[2];
+  uint8_t env;
+  unsigned long gate_time, release_time;
+  float cv_current, cv_released;
+  uint8_t last_selected_env;
+  bool last_gate;
 };
 
 DU_ADSR_Function * function;
 
-void gate_isr()
-{
-  gate = function->gt_read_debounce(DUINO_Function::GT3);
-  if (gate)
-  {
-    retrigger = true;
-  }
-}
-
-void switch_isr()
-{
-  if (millis() - debounce > DEBOUNCE_MS)
-  {
-    selected_env++;
-    selected_env %= 2;
-    debounce = millis();
-  }
-}
+void gate_isr() { function->gate_callback(); }
+void switch_isr() { function->switch_callback(); }
 
 void adsr_scroll_callback(uint8_t selected, int delta) { function->widget_adsr_scroll_callback(selected, delta); }
 
 void setup()
 {
-  gate = retrigger = false;
-  selected_env = 0;
-  debounce = 0;
-
   function = new DU_ADSR_Function();
 
   function->begin();
