@@ -102,14 +102,14 @@ public:
     container_outer_->attach_child(container_adsr_, 1);
     container_adsr_->attach_scroll_callback_array(adsr_scroll_callback);
 
-    gate = retrigger = false;
-    selected_env = 0;
-    debounce = 0;
-    env = 0;
-    gate_time = 0;
-    release_time = 0;
-    last_selected_env = 0;
-    last_gate = false;
+    gate_ = retrigger_ = false;
+    selected_env_ = 0;
+    debounce_ = 0;
+    env_ = 0;
+    gate_time_ = 0;
+    release_time_ = 0;
+    last_selected_env_ = 0;
+    last_gate_ = false;
 
     gt_attach_interrupt(GT3, gate_isr, CHANGE);
     gt_attach_interrupt(GT4, switch_isr, FALLING);
@@ -122,10 +122,10 @@ public:
     }
     for (uint8_t e = 0; e < 2; ++e)
     {
-      adsr_values[e].A = uint16_t(widget_save_->params.vals.v[2 * e]) * 24;
-      adsr_values[e].D = uint16_t(widget_save_->params.vals.v[2 * e + 1]) * 24;
-      adsr_values[e].S = (float(widget_save_->params.vals.v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
-      adsr_values[e].R = uint16_t(widget_save_->params.vals.v[2 * e + 3]) * 24;
+      adsr_values_[e].A = uint16_t(widget_save_->params.vals.v[2 * e]) * 24;
+      adsr_values_[e].D = uint16_t(widget_save_->params.vals.v[2 * e + 1]) * 24;
+      adsr_values_[e].S = (float(widget_save_->params.vals.v[2 * e + 2]) / float(V_MAX)) * ENV_PEAK;
+      adsr_values_[e].R = uint16_t(widget_save_->params.vals.v[2 * e + 3]) * 24;
     }
 
     // draw title
@@ -155,80 +155,80 @@ public:
 
   virtual void function_loop()
   {
-    if (retrigger)
+    if (retrigger_)
     {
-      env = selected_env;
-      gate_time = 0;
-      release_time = 0;
-      retrigger = false;
+      env_ = selected_env_;
+      gate_time_ = 0;
+      release_time_ = 0;
+      retrigger_ = false;
     }
 
-    if (gate_time)
+    if (gate_time_)
     {
-      if (gate)
+      if (gate_)
       {
-        uint16_t elapsed = millis() - gate_time;
-        if (elapsed < adsr_values[env].A)
+        uint16_t elapsed = millis() - gate_time_;
+        if (elapsed < adsr_values_[env_].A)
         {
           // attack
-          cv_current = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values[env].A))));
+          cv_current_ = ENV_PEAK * ENV_SATURATION * (1.0 - exp(-(float(elapsed) / float(adsr_values_[env_].A))));
         }
         else
         {
           // decay/sustain
-          cv_current = adsr_values[env].S + (ENV_PEAK - adsr_values[env].S)
-              * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values[env].A) / float(adsr_values[env].D)));
+          cv_current_ = adsr_values_[env_].S + (ENV_PEAK - adsr_values_[env_].S)
+              * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values_[env_].A) / float(adsr_values_[env_].D)));
         }
       }
       else
       {
-        if (release_time)
+        if (release_time_)
         {
-          uint16_t elapsed = millis() - release_time;
-          if(elapsed < adsr_values[env].R * ENV_RELEASE_HOLD)
+          uint16_t elapsed = millis() - release_time_;
+          if(elapsed < adsr_values_[env_].R * ENV_RELEASE_HOLD)
           {
             // release
-            cv_current = exp(ENV_RELEASE_COEFF * (float(elapsed) / float(adsr_values[env].R))) * cv_released;
+            cv_current_ = exp(ENV_RELEASE_COEFF * (float(elapsed) / float(adsr_values_[env_].R))) * cv_released_;
           }
           else
           {
-            cv_current = 0.0;
-            release_time = 0;
-            gate_time = 0;
+            cv_current_ = 0.0;
+            release_time_ = 0;
+            gate_time_ = 0;
           }
         }
         else
         {
-          release_time = millis();
-          cv_released = cv_current;
+          release_time_ = millis();
+          cv_released_ = cv_current_;
         }
       }
 
-      cv_out(CO1, cv_current);
-      cv_out(CO3, cv_current / 2.0);
+      cv_out(CO1, cv_current_);
+      cv_out(CO3, cv_current_ / 2.0);
     }
-    else if (gate)
+    else if (gate_)
     {
-      gate_time = millis()
-          - (unsigned long)(-float(adsr_values[env].A) * log(1 - (cv_current / (ENV_PEAK * ENV_SATURATION))));
+      gate_time_ = millis()
+          - (unsigned long)(-float(adsr_values_[env_].A) * log(1 - (cv_current_ / (ENV_PEAK * ENV_SATURATION))));
     }
 
     widget_loop();
 
     // display selected envelope
-    if (selected_env != last_selected_env)
+    if (selected_env_ != last_selected_env_)
     {
-      last_selected_env = selected_env;
+      last_selected_env_ = selected_env_;
       Display.fill_rect(53, 55, 7, 9, DUINO_SH1106::Inverse);
       Display.fill_rect(68, 55, 7, 9, DUINO_SH1106::Inverse);
       Display.display(53, 74, 6, 7);
     }
 
     // display gate
-    if (gate != last_gate)
+    if (gate_ != last_gate_)
     {
-      last_gate = gate;
-      if (gate)
+      last_gate_ = gate_;
+      if (gate_)
       {
         Display.draw_bitmap_7(60, 25, icons, 0, DUINO_SH1106::White);
       }
@@ -242,20 +242,20 @@ public:
 
   void gate_callback()
   {
-    gate = gt_read_debounce(DUINO_Function::GT3);
-    if (gate)
+    gate_ = gt_read_debounce(DUINO_Function::GT3);
+    if (gate_)
     {
-      retrigger = true;
+      retrigger_ = true;
     }
   }
 
   void switch_callback()
   {
-    if (millis() - debounce > DEBOUNCE_MS)
+    if (millis() - debounce_ > DEBOUNCE_MS)
     {
-      selected_env++;
-      selected_env %= 2;
-      debounce = millis();
+      selected_env_++;
+      selected_env_ %= 2;
+      debounce_ = millis();
     }
   }
 
@@ -275,16 +275,16 @@ public:
       switch (selected % 4)
       {
         case 0:
-          adsr_values[e].A = uint16_t(widget_save_->params.vals.v[selected]) * 24;
+          adsr_values_[e].A = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
         case 1:
-          adsr_values[e].D = uint16_t(widget_save_->params.vals.v[selected]) * 24;
+          adsr_values_[e].D = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
         case 2:
-          adsr_values[e].S = (float(widget_save_->params.vals.v[selected]) / float(V_MAX)) * ENV_PEAK;
+          adsr_values_[e].S = (float(widget_save_->params.vals.v[selected]) / float(V_MAX)) * ENV_PEAK;
           break;
         case 3:
-          adsr_values[e].R = uint16_t(widget_save_->params.vals.v[selected]) * 24;
+          adsr_values_[e].R = uint16_t(widget_save_->params.vals.v[selected]) * 24;
           break;
       }
 
@@ -304,15 +304,15 @@ private:
   DUINO_SaveWidget<ParameterValues> * widget_save_;
   DUINO_DisplayWidget * widgets_adsr_[8];
 
-  volatile bool gate, retrigger;
-  volatile uint8_t selected_env;
-  volatile unsigned long debounce;
-  DU_ADSR_Values adsr_values[2];
-  uint8_t env;
-  unsigned long gate_time, release_time;
-  float cv_current, cv_released;
-  uint8_t last_selected_env;
-  bool last_gate;
+  volatile bool gate_, retrigger_;
+  volatile uint8_t selected_env_;
+  volatile unsigned long debounce_;
+  DU_ADSR_Values adsr_values_[2];
+  uint8_t env_;
+  unsigned long gate_time_, release_time_;
+  float cv_current_, cv_released_;
+  uint8_t last_selected_env_;
+  bool last_gate_;
 };
 
 DU_ADSR_Function * function;
