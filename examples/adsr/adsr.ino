@@ -157,9 +157,14 @@ public:
   {
     if (retrigger_)
     {
+      // update the currently selected envelope (we use the same envelope for the duration of a curve)
       env_ = selected_env_;
+
+      // reset the gate and release times so that the curve logic can execute
       gate_time_ = 0;
       release_time_ = 0;
+
+      // reset to wait for another retrigger
       retrigger_ = false;
     }
 
@@ -167,6 +172,7 @@ public:
     {
       if (gate_)
       {
+        // if the gate is active, we are in the attack, decay, or sustain part of the curve, depending on elapsed time
         uint16_t elapsed = millis() - gate_time_;
         if (elapsed < adsr_values_[env_].A)
         {
@@ -175,7 +181,7 @@ public:
         }
         else
         {
-          // decay/sustain
+          // decay/sustain (no dedicated sustain; the decay curve approaches the sustain value after the decay time)
           cv_current_ = adsr_values_[env_].S + (ENV_PEAK - adsr_values_[env_].S)
               * exp(ENV_DECAY_COEFF * (float(elapsed - adsr_values_[env_].A) / float(adsr_values_[env_].D)));
         }
@@ -192,6 +198,7 @@ public:
           }
           else
           {
+            // release curve has finished; zero output and reset gate and release times
             cv_current_ = 0.0;
             release_time_ = 0;
             gate_time_ = 0;
@@ -199,16 +206,20 @@ public:
         }
         else
         {
+          // initial release step; record the release time and the initial CV value at release
           release_time_ = millis();
           cv_released_ = cv_current_;
         }
       }
 
+      // output the 10V and 5V envelope outputs on CO1 and CO3
       cv_out(CO1, cv_current_);
       cv_out(CO3, cv_current_ / 2.0);
     }
     else if (gate_)
     {
+      // set the gate time to the time when the attack curve would have started for the current CV output value, so that
+      // subsequent curve calculations are correct for retrigger (this will just be the current time if current CV is 0)
       gate_time_ = millis()
           - (unsigned long)(-float(adsr_values_[env_].A) * log(1 - (cv_current_ / (ENV_PEAK * ENV_SATURATION))));
     }
