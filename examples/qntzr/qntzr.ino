@@ -102,14 +102,14 @@ public:
     }
     container_notes_->attach_click_callback_array(notes_click_callback);
 
-    triggered = false;
-    trigger_mode = false;
-    key = 0;
-    scale_id = 0;
-    scale = get_scale_by_id(scale_id);
-    output_octave = 0;
-    output_note = 0;
-    current_displayed_note = 0;
+    triggered_ = false;
+    trigger_mode_ = false;
+    key_ = 0;
+    scale_id_ = 0;
+    scale_ = get_scale_by_id(scale_id_);
+    output_octave_ = 0;
+    output_note_ = 0;
+    current_displayed_note_ = 0;
 
     gt_attach_interrupt(GT3, trig_isr, FALLING);
 
@@ -131,7 +131,7 @@ public:
     draw_black_key(103, 11);  // Bb
     draw_right_key(109, 11);  // B
 
-    invert_note(current_displayed_note);
+    invert_note(current_displayed_note_);
     widget_setup(container_outer_);
     Display.display();
 
@@ -142,13 +142,13 @@ public:
 
   virtual void function_loop()
   {
-    if (!trigger_mode || triggered)
+    if (!trigger_mode_ || triggered_)
     {
-      if (scale == 0)
+      if (scale_ == 0)
       {
         cv_out(CO1, 0.0);
-        output_octave = 0;
-        output_note = 0;
+        output_octave_ = 0;
+        output_note_ = 0;
       }
       else
       {
@@ -158,7 +158,7 @@ public:
         // find a lower bound
         int below_octave = (int)input - 1;
         uint8_t below_note = 0;
-        while (!(scale & (1 << below_note)))
+        while (!(scale_ & (1 << below_note)))
         {
           below_note++;
         }
@@ -166,7 +166,7 @@ public:
         // find closest lower and upper values
         int above_octave = below_octave, octave = below_octave;
         uint8_t above_note = below_note, note = below_note;
-        while (note_cv(above_octave, key, above_note) < input)
+        while (note_cv(above_octave, key_, above_note) < input)
         {
           note++;
           if (note > 11)
@@ -175,7 +175,7 @@ public:
             octave++;
           }
 
-          if (scale & (1 << note))
+          if (scale_ & (1 << note))
           {
             below_octave = above_octave;
             below_note = above_note;
@@ -185,8 +185,8 @@ public:
         }
 
         // output the nearer of the two values
-        float below = note_cv(below_octave, key, below_note);
-        float above = note_cv(above_octave, key, above_note);
+        float below = note_cv(below_octave, key_, below_note);
+        float above = note_cv(above_octave, key_, above_note);
         if (input - below < above - input)
         {
           cv_out(CO1, below);
@@ -201,80 +201,80 @@ public:
         }
 
         // send trigger and update display note if note has changed
-        if (octave != output_octave || note != output_note)
+        if (octave != output_octave_ || note != output_note_)
         {
           gt_out(GT1, true, true);
-          output_octave = octave;
-          output_note = note;
+          output_octave_ = octave;
+          output_note_ = note;
         }
       }
       
       // reset trigger
-      triggered = false;
+      triggered_ = false;
     }
 
     widget_loop();
 
     // display current note
-    if (output_note != current_displayed_note)
+    if (output_note_ != current_displayed_note_)
     {
-      invert_note(current_displayed_note);
-      invert_note(output_note);
-      current_displayed_note = output_note;
+      invert_note(current_displayed_note_);
+      invert_note(output_note_);
+      current_displayed_note_ = output_note_;
     }
   }
 
   void trig_callback()
   {
-    triggered = true;
+    triggered_ = true;
   }
 
   void widget_trigger_mode_scroll_callback(int delta)
   {
-    trigger_mode = delta > 0;
+    trigger_mode_ = delta > 0;
     display_trigger_mode();
   }
 
   void widget_key_scroll_callback(int delta)
   {
-    key += delta;
-    key %= 12;
-    if(key < 0)
+    key_ += delta;
+    key_ %= 12;
+    if(key_ < 0)
     {
-      key += 12;
+      key_ += 12;
     }
     display_key();
-    triggered = true;
+    triggered_ = true;
   }
 
   void widget_scale_scroll_callback(int delta)
   {
-    scale_id += delta;
-    if (scale_id < -1)
+    scale_id_ += delta;
+    if (scale_id_ < -1)
     {
-      scale_id = -1;
+      scale_id_ = -1;
     }
-    else if (scale_id >= N_SCALES)
+    else if (scale_id_ >= N_SCALES)
     {
-      scale_id = N_SCALES - 1;
+      scale_id_ = N_SCALES - 1;
     }
-    scale = get_scale_by_id(scale_id);
+    scale_ = get_scale_by_id(scale_id_);
     display_scale();
-    triggered = true;
+    triggered_ = true;
   }
 
   void widgets_notes_click_callback(uint8_t selected)
   {
-    scale ^= (1 << selected);
-    scale_id = get_id_from_scale(scale);
+    scale_ ^= (1 << selected);
+    scale_id_ = get_id_from_scale(scale_);
     display_scale();
-    triggered = true;
+    triggered_ = true;
   }
 
 private:
-  float note_cv(int octave, uint8_t key, uint8_t note)
+  float note_cv(int octave, uint8_t key_, uint8_t note)
   {
-    return (float)octave + (float)key / 12.0 + (float)note / 12.0;
+    return (float)octave + (float)key_ / 12.0 + (float)note / 12.0;
   }
 
   void draw_left_key(int16_t x, int16_t y)
@@ -321,7 +321,7 @@ private:
   {
     Display.fill_rect(widget_trigger_mode_->x() + 1, widget_trigger_mode_->y() + 1, 7, 7,
         widget_trigger_mode_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
-    Display.draw_bitmap_7(widget_trigger_mode_->x() + 1, widget_trigger_mode_->y() + 1, icons, trigger_mode,
+    Display.draw_bitmap_7(widget_trigger_mode_->x() + 1, widget_trigger_mode_->y() + 1, icons, trigger_mode_,
         widget_trigger_mode_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
     widget_trigger_mode_->display();
   }
@@ -333,7 +333,7 @@ private:
 
     bool sharp = false;
     unsigned char letter;
-    switch (key)
+    switch (key_)
     {
       case 1: // C#
         sharp = true;
@@ -383,20 +383,20 @@ private:
   {
     Display.fill_rect(widget_scale_->x() + 1, widget_scale_->y() + 1, 17, 7,
         widget_scale_->inverted() ? DUINO_SH1106::White : DUINO_SH1106::Black);
-    if (scale_id > -1)
+    if (scale_id_ > -1)
     {
       for (uint8_t i = 0; i < 3; ++i)
       {
         Display.draw_char(widget_scale_->x() + 1 + i * 6, widget_scale_->y() + 1,
-            pgm_read_byte(&scales[scale_id * 5 + 2 + i]),
+            pgm_read_byte(&scales[scale_id_ * 5 + 2 + i]),
             widget_scale_->inverted() ? DUINO_SH1106::Black : DUINO_SH1106::White);
       }
     }
 
     for (uint8_t note = 0; note < 12; ++note)
     {  
-      bool white = scale & (1 << note);
-      if (note == current_displayed_note)
+      bool white = scale_ & (1 << note);
+      if (note == current_displayed_note_)
       {
         white = !white;
       }
@@ -475,14 +475,14 @@ private:
   DUINO_DisplayWidget * widget_scale_;
   DUINO_DisplayWidget * widgets_notes_[12];
 
-  volatile bool triggered;
-  bool trigger_mode;
-  int8_t key;
-  int scale_id;
-  uint16_t scale;
-  uint8_t output_note;
-  int output_octave;
-  uint8_t current_displayed_note;
+  volatile bool triggered_;
+  bool trigger_mode_;
+  int8_t key_;
+  int scale_id_;
+  uint16_t scale_;
+  uint8_t output_note_;
+  int output_octave_;
+  uint8_t current_displayed_note_;
 };
 
 DU_Quantizer_Function * function;
