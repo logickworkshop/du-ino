@@ -55,8 +55,6 @@ static const unsigned char icons[] PROGMEM =
   0x60, 0x63, 0x0f, 0x0f, 0x0f, 0x63, 0x60  // trigger mode on
 };
 
-volatile bool triggered;
-
 void trig_isr();
 
 void trigger_mode_scroll_callback(int delta);
@@ -104,6 +102,7 @@ public:
     }
     container_notes_->attach_click_callback_array(notes_click_callback);
 
+    triggered = false;
     trigger_mode = false;
     key = 0;
     scale_id = 0;
@@ -223,6 +222,11 @@ public:
       invert_note(output_note);
       current_displayed_note = output_note;
     }
+  }
+
+  void trig_callback()
+  {
+    triggered = true;
   }
 
   void widget_trigger_mode_scroll_callback(int delta)
@@ -471,6 +475,7 @@ private:
   DUINO_DisplayWidget * widget_scale_;
   DUINO_DisplayWidget * widgets_notes_[12];
 
+  volatile bool triggered;
   bool trigger_mode;
   int8_t key;
   int scale_id;
@@ -482,10 +487,7 @@ private:
 
 DU_Quantizer_Function * function;
 
-void trig_isr()
-{
-  triggered = true;
-}
+void trig_isr() { function->trig_callback(); }
 
 void trigger_mode_scroll_callback(int delta) { function->widget_trigger_mode_scroll_callback(delta); }
 void key_scroll_callback(int delta) { function->widget_key_scroll_callback(delta); }
@@ -495,8 +497,6 @@ void notes_click_callback(uint8_t selected) { function->widgets_notes_click_call
 void setup()
 {
   function = new DU_Quantizer_Function();
-
-  triggered = false;
 
   function->begin();
 }
