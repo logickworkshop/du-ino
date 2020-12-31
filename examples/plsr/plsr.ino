@@ -71,8 +71,6 @@ static const DUINO_Function::Jack in_jacks[4] =
 static const DUINO_Function::Jack out_jacks[4] =
   {DUINO_Function::CO1, DUINO_Function::CO2, DUINO_Function::CO3, DUINO_Function::CO4};
 
-volatile int8_t current_step;
-
 void clock_ext_isr();
 void reset_isr();
 
@@ -130,6 +128,7 @@ public:
     randomSeed(cv_read(CI1));
 
     // initialize interface
+    current_step = -1;
     displayed_step = -1;
 
     // load params
@@ -180,6 +179,17 @@ public:
   virtual void function_loop()
   {
     widget_loop();
+  }
+
+  void clock_ext_callback()
+  {
+    Clock.on_jack(gt_read_debounce(DUINO_Function::GT3));
+  }
+
+  void reset_callback()
+  {
+    current_step = -1;
+    Clock.reset();
   }
 
   void clock_clock_callback()
@@ -364,21 +374,14 @@ private:
   DUINO_DisplayWidget * widget_swing_;
   DUINO_MultiDisplayWidget<STEP_MAX> * widgets_patterns_[4];
 
+  volatile int8_t current_step;
   int8_t displayed_step;
 };
 
 DU_PLSR_Function * function;
 
-void clock_ext_isr()
-{
-  Clock.on_jack(function->gt_read_debounce(DUINO_Function::GT3));
-}
-
-void reset_isr()
-{
-  current_step = -1;
-  Clock.reset();
-}
+void clock_ext_isr() { function->clock_ext_callback(); }
+void reset_isr() { function->reset_callback(); }
 
 void clock_callback() { function->clock_clock_callback(); }
 void external_callback() { function->clock_external_callback(); }
@@ -394,8 +397,6 @@ void patterns_click_callback_3(uint8_t step) { function->widgets_patterns_click_
 void setup()
 {
   function = new DU_PLSR_Function();
-
-  current_step = -1;
 
   function->begin();
 }
