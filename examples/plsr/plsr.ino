@@ -128,8 +128,8 @@ public:
     randomSeed(cv_read(CI1));
 
     // initialize interface
-    current_step = -1;
-    displayed_step = -1;
+    current_step_ = -1;
+    displayed_step_ = -1;
 
     // load params
     widget_save_->load_params();
@@ -188,7 +188,7 @@ public:
 
   void reset_callback()
   {
-    current_step = -1;
+    current_step_ = -1;
     Clock.reset();
   }
 
@@ -200,14 +200,14 @@ public:
     if (Clock.state())
     {
       // increment step
-      current_step++;
-      current_step %= widget_save_->params.vals.step_count;
+      current_step_++;
+      current_step_ %= widget_save_->params.vals.step_count;
 
       // check each dot for trigger probability
       uint8_t jacks = 0;
       for (uint8_t bank = 0; bank < 4; ++bank)
       {
-        if (stochastic_trigger(bank, current_step))
+        if (stochastic_trigger(bank, current_step_))
         {
           jacks |= (1 << out_jacks[bank]);
         }
@@ -217,9 +217,9 @@ public:
       gt_out_multi(jacks, true, true);
 
       // display step
-      invert_step(displayed_step);
-      displayed_step = current_step;
-      invert_step(displayed_step);
+      invert_step(displayed_step_);
+      displayed_step_ = current_step_;
+      invert_step(displayed_step_);
     }
   }
 
@@ -374,8 +374,8 @@ private:
   DUINO_DisplayWidget * widget_swing_;
   DUINO_MultiDisplayWidget<STEP_MAX> * widgets_patterns_[4];
 
-  volatile int8_t current_step;
-  int8_t displayed_step;
+  volatile int8_t current_step_;
+  int8_t displayed_step_;
 };
 
 DU_PLSR_Function * function;
