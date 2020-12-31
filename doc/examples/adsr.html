@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU ADSR/VCA - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU ADSR/VCA</h1>
+        <p>The ADSR/VCA function gives you a pair of traditional ADSR envelope generators with exponential 10V and 5V outputs. One of the two envelopes is active at a time, and a trigger input allows you to toggle between the envelopes (effective on the next gate/retrigger). The analog computer is configured as a VCA, which uses the envelope output as its control voltage unless an external source is connected.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/adsr.png">
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Gate In</h4>
+                    <p>Opens the envelope gate (can be retriggered).</p>
+                </div>
+            </div>
+            <div class="jack" id="gt4">
+                <div class="popup">
+                    <h4>Toggle Envelope In</h4>
+                    <p>Switches between the two envelopes when triggered.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci3">
+                <div class="popup">
+                    <h4>VCA Audio In</h4>
+                    <p>Audio input for the voltage-controlled attenuator.</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>10V Envelope Out</h4>
+                    <p>Envelope output with a peak at 10V.</p>
+                </div>
+            </div>
+            <div class="jack" id="co3">
+                <div class="popup">
+                    <h4>10V Envelope Out</h4>
+                    <p>Envelope output with a peak at 5V.</p>
+                </div>
+            </div>
+            <div class="jack" id="fnctn">
+                <div class="popup">
+                    <h4>VCA Audio Out</h4>
+                    <p>Audio output for the voltage-controlled attenuator.</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/adsr.png">
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch down"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

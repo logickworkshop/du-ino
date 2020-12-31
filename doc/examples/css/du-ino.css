@@ -1,0 +1,193 @@
+body {
+    font-family: verdana;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.header {
+    width: 800px;
+}
+
+.main {
+    width: 800px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.ui {
+    image-rendering: pixelated;
+}
+
+.panel {
+    position: relative;
+    width: 280px;
+    height: 507px;
+    background-image: url("../images/du-ino-panel.png");
+    margin: 12px;
+}
+
+.panel .ui {
+    position: absolute;
+    left: 55px;
+    top: 68px;
+}
+
+.jack {
+    position: absolute;
+    width: 23px;
+    height: 23px;
+    background-image: url("../images/dot.png");
+    background-repeat: no-repeat;
+    
+    background-position: center;
+    cursor: help;
+}
+
+#gt1 {
+    left: 16px;
+    top: 185px;
+}
+
+#gt2 {
+    left: 65px;
+    top: 185px;
+}
+
+#gt3 {
+    left: 191px;
+    top: 185px;
+}
+
+#gt4 {
+    left: 240px;
+    top: 185px;
+}
+
+#ci1 {
+    left: 65px;
+    top: 234px;
+}
+
+#ci2 {
+    left: 65px;
+    top: 284px;
+}
+
+#ci3 {
+    left: 65px;
+    top: 333px;
+}
+
+#ci4 {
+    left: 65px;
+    top: 382px;
+}
+
+#offst {
+    left: 65px;
+    top: 431px;
+}
+
+#co1 {
+    left: 191px;
+    top: 234px;
+}
+
+#co2 {
+    left: 191px;
+    top: 284px;
+}
+
+#co3 {
+    left: 191px;
+    top: 333px;
+}
+
+#co4 {
+    left: 191px;
+    top: 382px;
+}
+
+#fnctn {
+    left: 191px;
+    top: 431px;
+}
+
+.popup {
+    visibility: hidden;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 200px;
+    margin-left: -100px;
+    z-index: 1;
+    padding: 5px;
+    border-radius: 6px;
+    background-color: #579d1c;
+    font-size: small;
+}
+
+.popup h4 {
+    margin-top: 0;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.popup p {
+    margin-top: 0;
+    margin-bottom: 0;
+    color: white;
+}
+
+.jack .popup::after {
+  content: " ";
+  position: absolute;
+  top: 100%; /* At the bottom of the tooltip */
+  left: 50%;
+  margin-left: -15px;
+  border-width: 10px;
+  border-style: solid;
+  border-color: #579d1c transparent transparent transparent;
+}
+
+.jack:hover .popup {
+    visibility: visible;
+}
+
+.interface .ui {
+    width: 256px;
+    height: 128px;
+    margin: 12px;
+    border: 4px solid black;
+}
+
+.switches {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 12px;
+}
+
+.switch {
+    width: 18px;
+    height: 37px;
+    background-image: url("../images/switch.png");
+}
+
+.up {
+    transform: scaleY(-1);
+}
+
+.break {
+    flex-basis: 100%;
+    height: 0;
+}
