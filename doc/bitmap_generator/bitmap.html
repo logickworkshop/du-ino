@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="css/bitmap.css">
+  <title>DU-INO Bitmap Generator</title>
+</head>
+
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="js/bitmap.js"></script>
+<div class="container">
+    <div class="header">
+        <h1>DU-INO Bitmap Generator</h1>
+        <p>Draw a bitmap in white pixels and copy the resulting hexadecimal codes to your <code>icons</code> array.</p>
+        <p>For 7x7 icons, do not draw in the rightmost column or bottom row, and omit the last hexadecimal value.</p>
+    </div>
+    <div class="break"></div>
+    <div class="input" id="checkboxes">
+    </div>
+    <div class="break"></div>
+    <div class="output">
+        <input type="text" id="data" size="46" placeholder="0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" readonly>
+        </input>
+    </div>
+</div>
+</body>
+
+</html>
