@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU VSEG - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU VSEG</h1>
+        <p>The VSEG (vector synth envelope generator) is a 4-point envelope generator based on the one found in the
+        Sequential Circuits Prophet VS. Each point has an amplitude from 0V to 10V, and a duration from 11ms to 40s of
+        the linear progression to the next point. A defined segment of the envelope can be repeated or ping-ponged a
+        set number of times before sustaining, or continuously until the gate is released.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/vseg.png">
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Gate In</h4>
+                    <p>Opens the envelope gate.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt4">
+                <div class="popup">
+                    <h4>Retrigger In</h4>
+                    <p>Retriggers the envelope.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci3">
+                <div class="popup">
+                    <h4>VCA Audio In</h4>
+                    <p>Audio input for the voltage-controlled attenuator.</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>10V Envelope Out</h4>
+                    <p>Envelope output with a peak at 10V.</p>
+                </div>
+            </div>
+            <div class="jack" id="co3">
+                <div class="popup">
+                    <h4>5V Envelope Out</h4>
+                    <p>Envelope output with a peak at 5V.</p>
+                </div>
+            </div>
+            <div class="jack" id="fnctn">
+                <div class="popup">
+                    <h4>VCA Audio Out</h4>
+                    <p>Audio output for the voltage-controlled attenuator.</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/vseg.png">
+            <div class="widget" style="top: 14px; left: 256px; width: 14px; height: 14px; z-index: 3;">
+                <div class="popup">
+                    <h4>Save Box</h4>
+                    <p>Double-click to jump to the save box. Click to save the current envelope values to memory.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 12px; left: 102px; width: 14px; height: 18px; z-index: 3;">
+                <div class="popup">
+                    <h4>Current Point</h4>
+                    <p>Indicates the envelope point currently being edited.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 12px; left: 120px; width: 46px; height: 22px; z-index: 3;">
+                <div class="popup">
+                    <h4>Point Level</h4>
+                    <p>Scroll to set the amplitude of the current envelope point. Click to move to the rate.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 12px; left: 170px; width: 82px; height: 22px; z-index: 3;">
+                <div class="popup">
+                    <h4>Point Rate</h4>
+                    <p>Scroll to set the rate (time to next point, in milliseconds) of the current envelope point. Click
+                    to move to the level of the next point.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 36px; left: 12px; width: 196px; height: 18px; z-index: 3;">
+                <div class="popup">
+                    <h4>Repeat/Ping-Pong</h4>
+                    <p>Scroll to select among different repeat or ping-pong patterns.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 36px; left: 218px; width: 26px; height: 18px; z-index: 3;">
+                <div class="popup">
+                    <h4>Repeat Count</h4>
+                    <p>Scroll to select the number of times to repeat or ping-pong (after which point 3 becomes a
+                    sustain). Select "C" for continuous.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 36px; left: 254px; width: 18px; height: 18px; z-index: 3;">
+                <div class="popup">
+                    <h4>Gate Indicator</h4>
+                    <p>Active when the gate is open.</p>
+                </div>
+            </div>
+            <div class="widget" style="top: 58px; left: 12px; width: 260px; height: 86px; z-index: 3;">
+                <div class="popup">
+                    <h4>Envelope Display</h4>
+                    <p>Displays the general shape of the envelope.</p>
+                </div>
+            </div>
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch down"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
