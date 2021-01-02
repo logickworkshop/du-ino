@@ -42,13 +42,23 @@ h1, h2 {
     top: 68px;
 }
 
+.interface {
+    position: relative;
+}
+
+.interface .ui {
+    width: 256px;
+    height: 128px;
+    margin: 12px;
+    border: 4px solid black;
+}
+
 .jack {
     position: absolute;
     width: 23px;
     height: 23px;
     background-image: url("../images/dot.png");
     background-repeat: no-repeat;
-    
     background-position: center;
     cursor: help;
 }
@@ -123,6 +133,15 @@ h1, h2 {
     top: 431px;
 }
 
+.widget {
+    position: absolute;
+    cursor: help;
+}
+
+.widget:hover {
+    border: 2px solid #579d1c;
+}
+
 .popup {
     visibility: hidden;
     position: absolute;
@@ -137,6 +156,10 @@ h1, h2 {
     font-size: small;
 }
 
+.widget .popup {
+    margin-bottom: 10px;
+}
+
 .popup h4 {
     margin-top: 0;
     margin-bottom: 4px;
@@ -149,7 +172,7 @@ h1, h2 {
     color: white;
 }
 
-.jack .popup::after {
+.popup::after {
   content: " ";
   position: absolute;
   top: 100%; /* At the bottom of the tooltip */
@@ -164,11 +187,8 @@ h1, h2 {
     visibility: visible;
 }
 
-.interface .ui {
-    width: 256px;
-    height: 128px;
-    margin: 12px;
-    border: 4px solid black;
+.widget:hover .popup {
+    visibility: visible;
 }
 
 .switches {
