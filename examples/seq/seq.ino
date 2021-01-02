@@ -157,18 +157,18 @@ public:
     widgets_slew_->attach_click_callback(s_slew_click_callback);
     container_outer_->attach_child(widgets_slew_, 5);
 
-    slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
+    slew_filter_ = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
 
-    stage = step = 0;
-    gate = false;
+    stage_ = step_ = 0;
+    gate_ = false;
 
-    last_gate = false;
-    last_stage = 0;
-    last_diradd_mode = false;
-    last_reverse = false;
-    last_half_clock = false;
+    last_gate_ = false;
+    last_stage_ = 0;
+    last_diradd_mode_ = false;
+    last_reverse_ = false;
+    last_half_clock_ = false;
 
-    reverse = false;
+    reverse_ = false;
 
     Clock.begin();
     Clock.attach_clock_callback(clock_callback);
@@ -212,7 +212,7 @@ public:
     {
       widget_save_->params.vals.slew_rate = SLEW_RATE_MAX / 2;
     }
-    slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
+    slew_filter_->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
 
     if (widget_save_->params.vals.clock_bpm < 0 || widget_save_->params.vals.clock_bpm > CLOCK_BPM_MAX)
     {
@@ -231,7 +231,7 @@ public:
     {
       widget_save_->params.vals.gate_time = GATE_TIME_MAX / 2;
     }
-    gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
+    gate_ms_ = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
 
     // draw global elements
     for (uint8_t i = 0; i < 6; ++i)
@@ -286,12 +286,12 @@ public:
   virtual void function_loop()
   {
     // cache stage, step, and clock gate (so that each loop is "atomic")
-    const uint8_t cached_stage = stage;
-    const uint8_t cached_step = step;
-    cached_clock_gate = Clock.state();
-    cached_retrigger = Clock.retrigger();
+    const uint8_t cached_stage = stage_;
+    const uint8_t cached_step = step_;
+    cached_clock_gate_ = Clock.state();
+    cached_retrigger_ = Clock.retrigger();
 
-    if (cached_retrigger)
+    if (cached_retrigger_)
     {
       // drop gate at start of stage
       if (!cached_step)
@@ -303,55 +303,55 @@ public:
       gt_out(GT2, false);
 
       // update step clock time
-      clock_time = millis();
+      clock_time_ = millis();
     }
 
     // set gate state
     switch ((GateMode)(widget_save_->params.vals.stage_gate[cached_stage]))
     {
       case GATE_NONE:
-        gate = false;
+        gate_ = false;
         break;
       case GATE_1SHT:
         if (!cached_step)
         {
-          gate = partial_gate();
+          gate_ = partial_gate();
         }
         break;
       case GATE_REPT:
-        gate = partial_gate();
+        gate_ = partial_gate();
         break;
       case GATE_LONG:
         if (cached_step == widget_save_->params.vals.stage_steps[cached_stage] - 1)
         {
-          gate = partial_gate();
+          gate_ = partial_gate();
         }
         else
         {
-          gate = true;
+          gate_ = true;
         }
         break;
       case GATE_EXT1:
-        gate = gt_read(CI3);
+        gate_ = gt_read(CI3);
         break;
       case GATE_EXT2:
-        gate = gt_read(CI4);
+        gate_ = gt_read(CI4);
         break;
     }
 
     // set pitch CV state
     const float pitch_cv = note_to_cv(widget_save_->params.vals.stage_pitch[cached_stage]);
     const bool slew_on = (bool)((widget_save_->params.vals.stage_slew >> cached_stage) & 1);
-    cv_out(CO1, slew_on ? slew_filter->filter(pitch_cv) : pitch_cv);
+    cv_out(CO1, slew_on ? slew_filter_->filter(pitch_cv) : pitch_cv);
 
     // set gate and clock states
-    gt_out(GT1, gate);
-    gt_out(GT2, cached_clock_gate);
+    gt_out(GT1, gate_);
+    gt_out(GT2, cached_clock_gate_);
 
     // update reverse setting
     if (!widget_save_->params.vals.diradd_mode)
     {
-      reverse = gt_read(CI1);
+      reverse_ = gt_read(CI1);
     }
 
     // update half clock setting
@@ -360,39 +360,39 @@ public:
     widget_loop();
 
     // display reverse/address
-    if (widget_save_->params.vals.diradd_mode != last_diradd_mode
-        || (!widget_save_->params.vals.diradd_mode && reverse != last_reverse)
-        || (widget_save_->params.vals.diradd_mode && stage != last_stage))
+    if (widget_save_->params.vals.diradd_mode != last_diradd_mode_
+        || (!widget_save_->params.vals.diradd_mode && reverse_ != last_reverse_)
+        || (widget_save_->params.vals.diradd_mode && stage_ != last_stage_))
     {
       display_reverse_address(30, 12);
-      last_diradd_mode = widget_save_->params.vals.diradd_mode;
-      last_reverse = reverse;
+      last_diradd_mode_ = widget_save_->params.vals.diradd_mode;
+      last_reverse_ = reverse_;
       Display.display(30, 34, 1, 2);
     }
 
     // display half clock
     const bool half_clock = Clock.get_divider() == 2;
-    if (half_clock != last_half_clock)
+    if (half_clock != last_half_clock_)
     {
       display_half_clock(41, 12, half_clock);
-      last_half_clock = half_clock;
+      last_half_clock_ = half_clock;
       Display.display(41, 51, 1, 2);
     }
 
     // display gate
-    if (gate != last_gate || stage != last_stage)
+    if (gate_ != last_gate_ || stage_ != last_stage_)
     {
-      const uint8_t last_stage_cached = last_stage;
-      last_gate = gate;
-      last_stage = stage;
+      const uint8_t last_stage_cached = last_stage_;
+      last_gate_ = gate_;
+      last_stage_ = stage_;
 
-      if (gate)
+      if (gate_)
       {
-        if (stage != last_stage_cached)
+        if (stage_ != last_stage_cached)
         {
           display_gate(last_stage_cached, DUINO_SH1106::Black);
         }
-        display_gate(stage, DUINO_SH1106::White);
+        display_gate(stage_, DUINO_SH1106::White);
       }
       else
       {
@@ -400,7 +400,7 @@ public:
       }
 
       Display.display(16 * last_stage_cached + 6, 16 * last_stage_cached + 9, 3, 3);
-      Display.display(16 * stage + 6, 16 * stage + 9, 3, 3);
+      Display.display(16 * stage_ + 6, 16 * stage_ + 9, 3, 3);
     }
   }
 
@@ -411,7 +411,7 @@ public:
 
   void reset_callback()
   {
-    stage = step = 0;
+    stage_ = step_ = 0;
     Clock.reset();
   }
 
@@ -419,13 +419,13 @@ public:
   {
     if (Clock.state())
     {
-      step++;
-      step %= widget_save_->params.vals.stage_steps[stage];
-      if (!step)
+      step_++;
+      step_ %= widget_save_->params.vals.stage_steps[stage_];
+      if (!step_)
       {
-        stage = widget_save_->params.vals.diradd_mode ? address_to_stage() : (reverse ?
-            (stage ? stage - 1 : widget_save_->params.vals.stage_count - 1) : stage + 1);
-        stage %= widget_save_->params.vals.stage_count;
+        stage_ = widget_save_->params.vals.diradd_mode ? address_to_stage() : (reverse_ ?
+            (stage_ ? stage_ - 1 : widget_save_->params.vals.stage_count - 1) : stage_ + 1);
+        stage_ %= widget_save_->params.vals.stage_count;
       }
     }
   }
@@ -469,7 +469,7 @@ public:
   {
     if (adjust<int8_t>(widget_save_->params.vals.slew_rate, delta, 0, SLEW_RATE_MAX))
     {
-      slew_filter->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
+      slew_filter_->set_frequency(slew_hz(widget_save_->params.vals.slew_rate));
       widget_save_->mark_changed();
       widget_save_->display();
       Display.fill_rect(widget_slew_->x() + 2, widget_slew_->y() + 2, 16, 5, DUINO_SH1106::White);
@@ -483,7 +483,7 @@ public:
   {
     if (adjust<int8_t>(widget_save_->params.vals.gate_time, delta, 0, GATE_TIME_MAX))
     {
-      gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
+      gate_ms_ = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
       widget_save_->mark_changed();
       widget_save_->display();
       Display.fill_rect(widget_gate_->x() + 2, widget_gate_->y() + 2, 16, 5, DUINO_SH1106::White);
@@ -505,7 +505,7 @@ public:
       {
         Clock.set_external();
       }
-      gate_ms = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
+      gate_ms_ = widget_save_->params.vals.gate_time * (uint16_t)(Clock.get_period() / GATE_TIME_DIV);
       widget_save_->mark_changed();
       widget_save_->display();
       Display.fill_rect(widget_clock_->x() + 1, widget_clock_->y() + 1, 17, 7, DUINO_SH1106::White);
@@ -614,9 +614,9 @@ public:
 private:
   bool partial_gate()
   {
-    return (Clock.get_external() && cached_clock_gate)
-           || cached_retrigger
-           || ((millis() - clock_time) < gate_ms);
+    return (Clock.get_external() && cached_clock_gate_)
+           || cached_retrigger_
+           || ((millis() - clock_time_) < gate_ms_);
   }
 
   float note_to_cv(int8_t note)
@@ -700,11 +700,11 @@ private:
 
     if (widget_save_->params.vals.diradd_mode)
     {
-      Display.draw_char(30, 12, '1' + stage, DUINO_SH1106::White);
+      Display.draw_char(30, 12, '1' + stage_, DUINO_SH1106::White);
     }
     else
     {
-      Display.draw_char(30, 12, 0x10 + (unsigned char)reverse, DUINO_SH1106::White);
+      Display.draw_char(30, 12, 0x10 + (unsigned char)reverse_, DUINO_SH1106::White);
     }
   }
 
@@ -719,9 +719,9 @@ private:
     }
   }
 
-  void display_gate(uint8_t stage, DUINO_SH1106::Color color)
+  void display_gate(uint8_t stage_, DUINO_SH1106::Color color)
   {
-    Display.fill_rect(16 * stage + 6, 26, 4, 4, color);
+    Display.fill_rect(16 * stage_ + 6, 26, 4, 4, color);
   }
 
   struct ParameterValues
@@ -750,23 +750,23 @@ private:
   DUINO_MultiDisplayWidget<8> * widgets_gate_;
   DUINO_MultiDisplayWidget<8> * widgets_slew_;
 
-  DUINO_Filter * slew_filter;
+  DUINO_Filter * slew_filter_;
 
-  volatile uint8_t stage, step;
-  volatile bool gate;
+  volatile uint8_t stage_, step_;
+  volatile bool gate_;
 
-  bool cached_clock_gate, cached_retrigger;
-  unsigned long clock_time;
+  bool cached_clock_gate_, cached_retrigger_;
+  unsigned long clock_time_;
 
-  bool last_gate;
-  uint8_t last_stage;
-  bool last_diradd_mode;
-  bool last_reverse;
-  bool last_half_clock;
+  bool last_gate_;
+  uint8_t last_stage_;
+  bool last_diradd_mode_;
+  bool last_reverse_;
+  bool last_half_clock_;
 
-  bool reverse;
+  bool reverse_;
 
-  uint16_t gate_ms;
+  uint16_t gate_ms_;
 };
 
 DU_SEQ_Function * function;
