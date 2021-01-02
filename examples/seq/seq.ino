@@ -92,11 +92,6 @@ static const unsigned char gate_mode_icons[] PROGMEM =
 static const unsigned char semitone_lt[] PROGMEM = {'C', 'C', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'A', 'B', 'B'};
 static const Intonation semitone_in[] PROGMEM = {IN, IS, IN, IF, IN, IN, IS, IN, IS, IN, IF, IN};
 
-volatile uint8_t stage, step;
-volatile bool gate;
-
-DUINO_Filter * slew_filter;
-
 void clock_ext_isr();
 void reset_isr();
 
@@ -161,6 +156,11 @@ public:
     widgets_slew_->attach_scroll_callback_array(s_slew_scroll_callback);
     widgets_slew_->attach_click_callback(s_slew_click_callback);
     container_outer_->attach_child(widgets_slew_, 5);
+
+    slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
+
+    stage = step = 0;
+    gate = false;
 
     last_gate = false;
     last_stage = 0;
@@ -402,6 +402,17 @@ public:
       Display.display(16 * last_stage_cached + 6, 16 * last_stage_cached + 9, 3, 3);
       Display.display(16 * stage + 6, 16 * stage + 9, 3, 3);
     }
+  }
+
+  void clock_ext_callback()
+  {
+    Clock.on_jack(gt_read_debounce(DUINO_Function::GT3));
+  }
+
+  void reset_callback()
+  {
+    stage = step = 0;
+    Clock.reset();
   }
 
   void clock_clock_callback()
@@ -739,6 +750,11 @@ private:
   DUINO_MultiDisplayWidget<8> * widgets_gate_;
   DUINO_MultiDisplayWidget<8> * widgets_slew_;
 
+  DUINO_Filter * slew_filter;
+
+  volatile uint8_t stage, step;
+  volatile bool gate;
+
   bool cached_clock_gate, cached_retrigger;
   unsigned long clock_time;
 
@@ -755,16 +771,8 @@ private:
 
 DU_SEQ_Function * function;
 
-void clock_ext_isr()
-{
-  Clock.on_jack(function->gt_read_debounce(DUINO_Function::GT3));
-}
-
-void reset_isr()
-{
-  stage = step = 0;
-  Clock.reset();
-}
+void clock_ext_isr() { function->clock_ext_callback(); }
+void reset_isr() { function->reset_callback(); }
 
 void clock_callback() { function->clock_clock_callback(); }
 void external_callback() { function->clock_external_callback(); }
@@ -785,11 +793,6 @@ void s_slew_click_callback() { function->widgets_slew_click_callback(); }
 
 void setup()
 {
-  stage = step = 0;
-  gate = false;
-
-  slew_filter = new DUINO_Filter(DUINO_Filter::LowPass, 1.0, 0.0);
-
   function = new DU_SEQ_Function();
 
   function->begin();
