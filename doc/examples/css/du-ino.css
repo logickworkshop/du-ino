@@ -149,7 +149,7 @@ h1, h2 {
     left: 50%;
     width: 200px;
     margin-left: -100px;
-    z-index: 1;
+    z-index: 5;
     padding: 5px;
     border-radius: 6px;
     background-color: #579d1c;
