@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU-SEQ - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU-SEQ</h1>
+        <p>The DU-SEQ (a clone of the DU MDLR hardware module of the same name) is an 8-stage pulsing sequencer with
+        gate pattern, stage steps, and slew limiter assignable to each stage. With six gating patterns, including two
+        external gate inputs, a huge diversity of sequencing patterns is possible.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/seq.png">
+            <div class="jack" id="gt1">
+                <div class="popup">
+                    <h4>Gate Out</h4>
+                    <p>Sequencer gate output.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt2">
+                <div class="popup">
+                    <h4>Clock Out</h4>
+                    <p>Primary clock output.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Clock In</h4>
+                    <p>Primary clock input. Internal clock is used when disconnected.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt4">
+                <div class="popup">
+                    <h4>Reset In</h4>
+                    <p>Reset trigger input. Immediately resets the pattern (and internal clock, if using).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci1">
+                <div class="popup">
+                    <h4>Reverse/Address In</h4>
+                    <p>In direct mode, reverses the sequence direction when gate active. In address mode, CV selects the
+                    next stage (0V to 5V range).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci2">
+                <div class="popup">
+                    <h4>Half Clock In</h4>
+                    <p>Divides the clock by 2 when gate active.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci3">
+                <div class="popup">
+                    <h4>External Gate 1 In</h4>
+                    <p>Gate input for the external gate 1 gate pattern.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci4">
+                <div class="popup">
+                    <h4>External Gate 2 In</h4>
+                    <p>Gate input for the external gate 2 gate pattern.</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>Pitch CV Out</h4>
+                    <p>Sequencer pitch CV output (1V per octave).</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/seq.png">
+            <div class="widget" style="--x: 121; --y: 0; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Save Box</h4>
+                    <p>Double-click to jump to the save box. Click to save the current envelope values to memory.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 1; --y: 11; --width: 15; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Stage Count</h4>
+                    <p>Scroll to select the number of stages to count (1 to 8) when sequencing. Click to jump to
+                    direct/address mode.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 21; --y: 11; --width: 7; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Direct/Address Mode</h4>
+                    <p>Set to D for direct mode (CI1 gate controls direction), A for address mode (CI1 CV selects next
+                    stage). Click to jump to slew rate.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 29; --y: 11; --width: 7; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Direction/Address Indicator</h4>
+                    <p>Indicates the current direction or stage selection (from CI1).</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 40; --y: 11; --width: 13; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Half Clock Indicator</h4>
+                    <p>Indicates that the clock is divided by 2 (from CI2) when visible.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 58; --y: 11; --width: 20; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Slew Rate</h4>
+                    <p>Scroll to set the slew rate for stages with the slew rate limiter enabled. Click to jump to gate
+                    time.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 83; --y: 11; --width: 20; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Gate Time</h4>
+                    <p>Scroll to set the gate time (portion of a step during which the gate is high). Click to jump to
+                    clock rate.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 108; --y: 11; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Clock Rate</h4>
+                    <p>Scroll to modify the internal clock rate, in beats per minute (up to 300 BPM). Displays EXT if
+                    overridden by the external clock input. Click to jump to stage count.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 38; --y: 26; --width: 4; --height: 4; z-index: 3;">
+                <div class="popup">
+                    <h4>Stage/Gate Cursor</h4>
+                    <p>Indicates the current output stage and gate output.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 32; --width: 128; --height: 15; z-index: 3;">
+                <div class="popup">
+                    <h4>Stage Pitch</h4>
+                    <p>Scroll to select the pitch note for the stage. Click to cycle through stages. Double-click to
+                    jump to step count.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 48; --width: 128; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Step Count & Gate Pattern</h4>
+                    <p>Scroll to select the number of steps for the stage to count (left) or the gate pattern for the
+                    stage (right). Click to cycle through stages. Double-click to jump from step count to gate pattern,
+                    or from gate pattern to slew rate limiter.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 58; --width: 128; --height: 6; z-index: 3;">
+                <div class="popup">
+                    <h4>Slew Rate Limiter</h4>
+                    <p>Scroll clockwise to enable the slew rate limiter for the stage, counter-clockwise to disable.
+                    Click to cycle through stages. Double-click to jump to top menu.</p>
+                </div>
+            </div>
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
