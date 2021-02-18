@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU-RDT - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU-RDT</h1>
+        <p>The DU-RDT (a clone of the hardware DU MDLR module of the same name) is a Swiss army knife of sequential
+        logic functions on a common clock input: a 16-bit sampling shift register which operates as a 16-bit LFSR when
+        the input is disconnected, with two selectable outputs from the top and bottom bytes as well as a pattern lock
+        switch; a D-type flip flop with normal and complemented outputs; and a T-type flip flop normaled to the D-type's
+        complemented output.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/rdt.png">
+            <div class="jack" id="gt1">
+                <div class="popup">
+                    <h4>Upper LFSR Out</h4>
+                    <p>Output from the selected bit of the upper byte of the shift register.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt2">
+                <div class="popup">
+                    <h4>Lower LFSR Out</h4>
+                    <p>Output from the selected bit of the lower byte of the shift register.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Clock In</h4>
+                    <p>Primary clock input.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt4">
+                <div class="popup">
+                    <h4>1s In</h4>
+                    <p>Feeds 1s into the shift register when active.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci1">
+                <div class="popup">
+                    <h4>Pattern Loop</h4>
+                    <p>Feed a gate or turn the knob clockwise to lock and loop the current shift register pattern.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci2">
+                <div class="popup">
+                    <h4>D In</h4>
+                    <p>Gate input for the D flip flop (set knob to -10V).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci3">
+                <div class="popup">
+                    <h4>T In</h4>
+                    <p>Gate input for the T flip flop (set knob to -10V).</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>Clock Out</h4>
+                    <p>Primary clock output.</p>
+                </div>
+            </div>
+            <div class="jack" id="co2">
+                <div class="popup">
+                    <h4>D Out</h4>
+                    <p>D flip flop output (divides clock by 2 if D input is zero).</p>
+                </div>
+            </div>
+            <div class="jack" id="co3">
+                <div class="popup">
+                    <h4>Inverted D Out</h4>
+                    <p>Inverted D flip flop output.</p>
+                </div>
+            </div>
+            <div class="jack" id="co4">
+                <div class="popup">
+                    <h4>T Out</h4>
+                    <p>T flip flop output (divides clock by 4 if D and T inputs are zero).</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/rdt.png">
+            <div class="widget" style="--x: 121; --y: 0; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Save Box</h4>
+                    <p>Double-click to jump to the save box. Click to save the current envelope values to memory.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 73; --y: 0; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Clock Rate</h4>
+                    <p>Scroll to modify the internal clock rate, in beats per minute (up to 300 BPM). Displays EXT if
+                    overridden by the external clock input.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 97; --y: 0; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Swing</h4>
+                    <p>Scroll to modify the amount to swing the clock beat (starting from 50% straight time), up to 74%
+                    in increments of 6%.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 56; --y: 13; --width: 16; --height: 8; z-index: 3;">
+                <div class="popup">
+                    <h4>Loop Indicator</h4>
+                    <p>Inidcates that the current pattern is locked and looping when visible.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 24; --y: 23; --width: 80; --height: 5; z-index: 3;">
+                <div class="popup">
+                    <h4>LFSR Bit Pattern</h4>
+                    <p>Displays the 16-bit pattern currently stored in the linear feedback shift register.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 5; --y: 19; --width: 13; --height: 13; z-index: 3;">
+                <div class="popup">
+                    <h4>Upper LFSR Bit</h4>
+                    <p>Scroll to select the bit to output from the upper (left) byte of the shift register. The left
+                    arrow under the pattern display corresponds to this setting, indicating the current bit.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 110; --y: 19; --width: 13; --height: 13; z-index: 3;">
+                <div class="popup">
+                    <h4>Lower LFSR Bit</h4>
+                    <p>Scroll to select the bit to output from the lower (right) byte of the shift register. The right
+                    arrow under the pattern display corresponds to this setting, indicating the current bit.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 8; --y: 39; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Upper LFSR Out Indicator</h4>
+                    <p>Displays the state of the upper LFSR bit output.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 113; --y: 39; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Lower LFSR Out Indicator</h4>
+                    <p>Displays the state of the lower LFSR bit output.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 23; --y: 10; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>1s In Indicator</h4>
+                    <p>Displays the state of the 1s input.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 32; --y: 39; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>D In Indicator</h4>
+                    <p>Displays the state of the D input.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 32; --y: 48; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>T In Indicator</h4>
+                    <p>Displays the state of the T input.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 89; --y: 39; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>D Out Indicator</h4>
+                    <p>Displays the state of the D output.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 89; --y: 48; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Inverted D Out Indicator</h4>
+                    <p>Displays the state of the inverted D output.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 89; --y: 57; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>T Out Indicator</h4>
+                    <p>Displays the state of the T output.</p>
+                </div>
+            </div>
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
