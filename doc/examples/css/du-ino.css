@@ -136,6 +136,10 @@ h1, h2 {
 .widget {
     position: absolute;
     cursor: help;
+    left: calc(2px * var(--x) + 14px);
+    top: calc(2px * var(--y) + 14px);
+    width: calc(2px * var(--width));
+    height: calc(2px * var(--height));
 }
 
 .widget:hover {
