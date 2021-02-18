@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU QNTZR - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU QNTZR</h1>
+        <p>The QNTZR function is a digital CV pitch quantizer, configurable to any semitone-based scale (with 31 handy
+        scale presets), and with selectable key. It can be set to continuously quantize or to quantize on a trigger
+        (i.e. quantized sample-and-hold), and has a trigger output for note change.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/qntzr.png">
+            <div class="jack" id="gt1">
+                <div class="popup">
+                    <h4>Note Change Trigger Out</h4>
+                    <p>Outputs a trigger whenever the current output note changes.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Trigger In</h4>
+                    <p>If the trigger setting is enabled, triggers a sample for quantization.</p>
+                </div>
+            </div>
+            <div class="jack" id="ci1">
+                <div class="popup">
+                    <h4>Pitch CV In</h4>
+                    <p>Unquantized pitch CV input.</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>Pitch CV Out</h4>
+                    <p>Quantized pitch CV output.</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/qntzr.png">
+            <div class="widget" style="--x: 76; --y: 0; --width: 9; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Trigger Mode</h4>
+                    <p>Scroll clockwise to enable trigger mode (lifted T icon), counter-clockwise to quantize
+                    continuously.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 90; --y: 0; --width: 13; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Key</h4>
+                    <p>Scroll to set the key (root note) of the scale.</p>
+                </div>
+            </div>
+           <div class="widget" style="--x: 108; --y: 0; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Scale Preset</h4>
+                    <p>Scroll to select the scale preset. Will automatically update to display the corresponding scale
+                    preset when semitones are manually enabled/disabled (blank if no corresponding preset).</p>
+                </div>
+            </div>
+           <div class="widget" style="--x: 0; --y: 10; --width: 127; --height: 54; z-index: 3;">
+                <div class="popup">
+                    <h4>Scale Display</h4>
+                    <p>Scroll to navigate, click to enable/disable a semitone. Enabled semitones are indicated by a box
+                    on the corresponding key. The current output note is indicated by the highlighted key.</p>
+                </div>
+            </div>
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
