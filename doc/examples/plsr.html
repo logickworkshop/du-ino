@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/du-ino.css">
+<title>DU PLSR - DU-INO Function Reference</title>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DU PLSR</h1>
+        <p>The PLSR is a 4-pattern, 16-step stochastic drum sequencer. In addition to being enabled and disabled as in a
+        traditional sequencer, each step can also be set to marks 1 through 4, which trigger with probability
+        determined by the corresponding CV input.</p>
+    </div>
+    <div class="break"></div>
+    <div class="main">
+        <div class="panel">
+            <img class="ui" src="images/plsr.png">
+            <div class="jack" id="gt2">
+                <div class="popup">
+                    <h4>Clock Out</h4>
+                    <p>Primary clock output.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt3">
+                <div class="popup">
+                    <h4>Clock In</h4>
+                    <p>Primary clock input. Internal clock is used when disconnected.</p>
+                </div>
+            </div>
+            <div class="jack" id="gt4">
+                <div class="popup">
+                    <h4>Reset In</h4>
+                    <p>Reset trigger input. Immediately resets the pattern (and internal clock, if using).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci1">
+                <div class="popup">
+                    <h4>Probability 1 In</h4>
+                    <p>Controls the probability of steps marked 1 triggering (0V to 5V range).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci2">
+                <div class="popup">
+                    <h4>Probability 2 In</h4>
+                    <p>Controls the probability of steps marked 2 triggering (0V to 5V range).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci3">
+                <div class="popup">
+                    <h4>Probability 3 In</h4>
+                    <p>Controls the probability of steps marked 3 triggering (0V to 5V range).</p>
+                </div>
+            </div>
+            <div class="jack" id="ci4">
+                <div class="popup">
+                    <h4>Probability 4 In</h4>
+                    <p>Controls the probability of steps marked 4 triggering (0V to 5V range).</p>
+                </div>
+            </div>
+            <div class="jack" id="co1">
+                <div class="popup">
+                    <h4>Pattern 1 Out</h4>
+                    <p>Trigger output for sequencer pattern 1.</p>
+                </div>
+            </div>
+            <div class="jack" id="co2">
+                <div class="popup">
+                    <h4>Pattern 2 Out</h4>
+                    <p>Trigger output for sequencer pattern 2.</p>
+                </div>
+            </div>
+            <div class="jack" id="co3">
+                <div class="popup">
+                    <h4>Pattern 3 Out</h4>
+                    <p>Trigger output for sequencer pattern 3.</p>
+                </div>
+            </div>
+            <div class="jack" id="co4">
+                <div class="popup">
+                    <h4>Pattern 4 Out</h4>
+                    <p>Trigger output for sequencer pattern 4.</p>
+                </div>
+            </div>
+        </div>
+        <div class="break"></div>
+        <div class="interface">
+            <img class="ui" src="images/plsr.png">
+            <div class="widget" style="--x: 121; --y: 0; --width: 7; --height: 7; z-index: 3;">
+                <div class="popup">
+                    <h4>Save Box</h4>
+                    <p>Double-click to jump to the save box. Click to save the current envelope values to memory.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 56; --y: 0; --width: 13; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Step Count</h4>
+                    <p>Scroll to select the number of steps to count (1 to 16) when sequencing.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 73; --y: 0; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Clock Rate</h4>
+                    <p>Scroll to modify the internal clock rate, in beats per minute (up to 300 BPM). Displays EXT if
+                    overridden by the external clock input.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 97; --y: 0; --width: 19; --height: 9; z-index: 3;">
+                <div class="popup">
+                    <h4>Swing</h4>
+                    <p>Scroll to modify the amount to swing the clock beat (starting from 50% straight time), up to 74%
+                    in increments of 6%.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 16; --width: 128; --height: 9; z-index: 2;">
+                <div class="popup">
+                    <h4>Pattern 1</h4>
+                    <p>Displays the selected steps for pattern 1. Scroll to navigate, click to modify the step (cycles
+                    through off, on, and marks 1 through 4), double-click to jump to pattern 2.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 27; --width: 128; --height: 9; z-index: 2;">
+                <div class="popup">
+                    <h4>Pattern 2</h4>
+                    <p>Displays the selected steps for pattern 2. Scroll to navigate, click to modify the step (cycles
+                    through off, on, and marks 1 through 4), double-click to jump to pattern 3.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 38; --width: 128; --height: 9; z-index: 2;">
+                <div class="popup">
+                    <h4>Pattern 3</h4>
+                    <p>Displays the selected steps for pattern 3. Scroll to navigate, click to modify the step (cycles
+                    through off, on, and marks 1 through 4), double-click to jump to pattern 4.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 0; --y: 49; --width: 128; --height: 9; z-index: 2;">
+                <div class="popup">
+                    <h4>Pattern 4</h4>
+                    <p>Displays the selected steps for pattern 4. Scroll to navigate, click to modify the step (cycles
+                    through off, on, and marks 1 through 4), double-click to jump to the top menu.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 19; --y: 11; --width: 2; --height: 51; z-index: 3;">
+                <div class="popup">
+                    <h4>Step Cursor</h4>
+                    <p>Indicates the current output step while sequencing.</p>
+                </div>
+            </div>
+            <div class="widget" style="--x: 31; --y: 62; --width: 66; --height: 2; z-index: 3;">
+                <div class="popup">
+                    <h4>Quarter Note Ruler</h4>
+                    <p>Subdivides the 16 step bar into 4 quarter notes as a visual reference.</p>
+                </div>
+            </div>
+        </div>
+        <div class="switches">
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch up"></div>
+            <div class="switch up"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+            <div class="break"></div>
+            <div class="switch down"></div>
+            <div class="switch down"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
